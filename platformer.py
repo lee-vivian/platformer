@@ -16,8 +16,10 @@ Objects
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        img = pygame.image.load(os.path.join('images', 'player.png')).convert()
-        self.image = img
+        img_right = pygame.image.load(os.path.join('images', 'player_right.png')).convert()
+        img_left = pygame.image.load(os.path.join('images', 'player_left.png')).convert()
+        self.images = [img_right, img_left]
+        self.image = self.images[0]
         self.rect = self.image.get_rect()
 
 
