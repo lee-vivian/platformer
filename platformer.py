@@ -37,8 +37,9 @@ STEPS = 5  # num pixels to move per step
 
 # Level
 LEVEL = 1
-ground_list = level.Level.ground(LEVEL, WORLDX, WORLDY, TILE)
-platform_list = level.Level.platform(LEVEL, TILE)
+level = level.Level()
+ground_list = level.ground(LEVEL, WORLDX, WORLDY, TILE)
+platform_list = level.platform(LEVEL, TILE)
 
 '''
 Main Loop
@@ -61,16 +62,18 @@ while main:
             elif event.key in [pygame.K_RIGHT, ord('d')]:
                 player.control(STEPS, 0)
             elif event.key in [pygame.K_SPACE, pygame.K_UP, ord('w')]:
-                print('jump')
+                player.control(0, -STEPS)
 
         if event.type == pygame.KEYUP:
             if event.key in [pygame.K_LEFT, ord('a')]:
                 player.control(STEPS, 0)  # returns sprite momentum to 0
             elif event.key in [pygame.K_RIGHT, ord('d')]:
                 player.control(-STEPS, 0)  # returns sprite momentum to 0
+            elif event.key in [pygame.K_SPACE, pygame.K_UP, ord('w')]:
+                player.control(0, STEPS)
 
     world.blit(backdrop, backdropbox)
-    player.update()
+    player.update(WORLDX, WORLDY, TILE)
     player_list.draw(world)  # draw player
     ground_list.draw(world)  # draw ground tiles
     platform_list.draw(world)  # draw platforms tiles

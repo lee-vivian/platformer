@@ -28,9 +28,11 @@ class Player(pygame.sprite.Sprite):
         self.movex += x
         self.movey += y
 
-    def update(self):
-        self.rect.x += self.movex
-        self.rect.y += self.movey
+    def update(self, world_x, world_y, tile):
+        if 0 <= self.rect.x + self.movex < world_x - tile:
+            self.rect.x += self.movex
+        if 0 <= self.rect.y + self.movey < world_y:
+            self.rect.y += self.movey
         if self.movex < 0:
             self.frame += 1
             self.image = self.images[0]
