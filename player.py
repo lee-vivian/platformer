@@ -5,6 +5,8 @@ import os
 Player Object
 '''
 
+ALPHA = (0, 0, 0)
+
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
@@ -14,6 +16,10 @@ class Player(pygame.sprite.Sprite):
         self.frame = 0  # count frames
         img_right = pygame.image.load(os.path.join('images', 'player_right.png')).convert()
         img_left = pygame.image.load(os.path.join('images', 'player_left.png')).convert()
+        img_right.convert_alpha()
+        img_right.set_colorkey(ALPHA)
+        img_left.convert_alpha()
+        img_left.set_colorkey(ALPHA)
         self.images = [img_left, img_right]
         self.image = self.images[1]
         self.rect = self.image.get_rect()
