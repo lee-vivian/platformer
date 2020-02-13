@@ -8,37 +8,7 @@ acknowledgements: followed tutorial from opensource.com
 import pygame
 import sys
 import os
-
-'''
-Objects
-'''
-
-class Player(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)
-        self.movex = 0  # move along X
-        self.movey = 0  # move along Y
-        self.frame = 0  # count frames
-        img_right = pygame.image.load(os.path.join('images', 'player_right.png')).convert()
-        img_left = pygame.image.load(os.path.join('images', 'player_left.png')).convert()
-        self.images = [img_left, img_right]
-        self.image = self.images[1]
-        self.rect = self.image.get_rect()
-
-    def control(self, x, y):
-        self.movex += x
-        self.movey += y
-
-    def update(self):
-        self.rect.x += self.movex
-        self.rect.y += self.movey
-        if self.movex < 0:
-            self.frame += 1
-            self.image = self.images[0]
-        elif self.movex > 0:
-            self.frame += 1
-            self.image = self.images[1]
-
+import player
 
 '''
 Setup
@@ -56,7 +26,7 @@ backdrop = pygame.image.load(os.path.join('images', 'platform_bkgd.png')).conver
 backdropbox = world.get_rect()
 
 # Player
-player = Player()
+player = player.Player()
 player.rect.x = 0
 player.rect.y = 0
 player_list = pygame.sprite.Group()
