@@ -9,6 +9,7 @@ import pygame
 import sys
 import os
 import player
+import level
 
 '''
 Setup
@@ -17,6 +18,7 @@ Setup
 # Background
 WORLDX = 960
 WORLDY = 720
+TILE = 40
 FPS = 40  # frame rate
 ANI = 4  # animation cycles
 clock = pygame.time.Clock()
@@ -28,10 +30,15 @@ backdropbox = world.get_rect()
 # Player
 player = player.Player()
 player.rect.x = 0
-player.rect.y = WORLDY - 100
+player.rect.y = 360
 player_list = pygame.sprite.Group()
 player_list.add(player)
 STEPS = 5  # num pixels to move per step
+
+# Level
+LEVEL = 1
+ground_list = level.Level.ground(LEVEL, WORLDX, WORLDY, TILE)
+platform_list = level.Level.platform(LEVEL, TILE)
 
 '''
 Main Loop
@@ -65,5 +72,7 @@ while main:
     world.blit(backdrop, backdropbox)
     player.update()
     player_list.draw(world)  # draw player
+    ground_list.draw(world)  # draw ground tiles
+    platform_list.draw(world)  # draw platforms tiles
     pygame.display.flip()
     clock.tick(FPS)
