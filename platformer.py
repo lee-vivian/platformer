@@ -15,13 +15,13 @@ Setup
 '''
 
 # Background
-worldx = 960
-worldy = 720
-fps = 40  # frame rate
-ani = 4  # animation cycles
+WORLDX = 960
+WORLDY = 720
+FPS = 40  # frame rate
+ANI = 4  # animation cycles
 clock = pygame.time.Clock()
 pygame.init()
-world = pygame.display.set_mode([worldx, worldy])
+world = pygame.display.set_mode([WORLDX, WORLDY])
 backdrop = pygame.image.load(os.path.join('images', 'platform_bkgd.png')).convert()
 backdropbox = world.get_rect()
 
@@ -66,4 +66,4 @@ while main:
     player.update()
     player_list.draw(world)  # draw player
     pygame.display.flip()
-    clock.tick(fps)
+    clock.tick(FPS)
