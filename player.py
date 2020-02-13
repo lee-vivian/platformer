@@ -6,7 +6,9 @@ Player Object
 '''
 
 ALPHA = (0, 0, 0)
-
+GRAVITY = 5
+PLAYER_W = 74
+PLAYER_H = 40
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
@@ -28,10 +30,23 @@ class Player(pygame.sprite.Sprite):
         self.movex += x
         self.movey += y
 
-    def update(self, world_x, world_y, tile):
-        if 0 <= self.rect.x + self.movex < world_x - tile:
+    def on_tile(self, all_tiles):
+        player_on_tile = [self.rect.y + PLAYER_H == y and self.rect.x <= x <= self.rect.x + PLAYER_W
+                          for (x, y) in all_tiles]
+        return any(player_on_tile)
+
+    def is_valid_x_move(self, world_x, tile_dim):
+        return 0 <= self.rect.x + self.movex < world_x - tile_dim
+
+    def is_valid_y_move(self, world_y):
+        return 0 <= self.rect.y + self.movey < world_y - PLAYER_H
+
+    def update(self, world_x, world_y, tile_dim, all_tiles):
+        if not self.on_tile(all_tiles):
+            self.rect.y += GRAVITY
+        if self.is_valid_x_move(world_x, tile_dim):
             self.rect.x += self.movex
-        if 0 <= self.rect.y + self.movey < world_y:
+        if self.is_valid_y_move(world_y):
             self.rect.y += self.movey
         if self.movex < 0:
             self.frame += 1
@@ -39,4 +54,3 @@ class Player(pygame.sprite.Sprite):
         elif self.movex > 0:
             self.frame += 1
             self.image = self.images[1]
-
