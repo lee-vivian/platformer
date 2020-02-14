@@ -43,7 +43,11 @@ class Player(pygame.sprite.Sprite):
         self.jumping = False
 
     def control(self, x):
-        self.control_dx = x
+        # left and right arrows cancel each other out
+        if self.control_dx == -x:
+            self.control_dx = 0
+        else:
+            self.control_dx = x
 
     def gravity(self):
         self.movey += GRAVITY

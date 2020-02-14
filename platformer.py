@@ -67,9 +67,9 @@ while main:
 
         if event.type == pygame.KEYUP:
             if event.key in [pygame.K_LEFT, ord('a')]:
-                player.control(0)  # returns sprite momentum to 0
+                player.control(0)  # stop moving, set velocity to 0
             elif event.key in [pygame.K_RIGHT, ord('d')]:
-                player.control(0)  # returns sprite momentum to 0
+                player.control(0)  # stop moving, set velocity to 0
 
     world.blit(backdrop, backdropbox)
     player.gravity()
