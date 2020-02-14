@@ -59,7 +59,15 @@ class Player(pygame.sprite.Sprite):
             self.movey = -MAX_VEL
             self.jumping = True
 
-    def update(self, platform_list):
+    def goal_achieved(self, goal_list):
+        goal_hit_list = pygame.sprite.spritecollide(self, goal_list, False)
+        return len(goal_hit_list) > 0
+
+    def update(self, platform_list, goal_list):
+        if self.goal_achieved(goal_list):
+            print("Cowabunga!")
+            return
+
         self.movex = self.control_dx
 
         if self.movex < 0:
@@ -98,5 +106,4 @@ class Player(pygame.sprite.Sprite):
 
                 self.movey = 0
                 break
-
 

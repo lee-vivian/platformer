@@ -73,7 +73,7 @@ while main:
 
     world.blit(backdrop, backdropbox)
     player.gravity()
-    player.update(platform_list)
+    player.update(platform_list, goal_list)
     player_list.draw(world)  # draw player
     platform_list.draw(world)  # draw platforms tiles
     goal_list.draw(world)  # draw goal tiles
