@@ -29,8 +29,7 @@ backdropbox = world.get_rect()
 
 # Player
 player = player.Player()
-player.rect.x = 0
-player.rect.y = 360
+player.reset()
 player_list = pygame.sprite.Group()
 player_list.add(player)
 STEPS = 5  # num pixels to move per step

@@ -6,13 +6,13 @@ Player Object
 '''
 
 ALPHA = (0, 0, 0)
-GRAVITY = 3
+GRAVITY = 4
 PLAYER_W = 74
 PLAYER_H = 40
 WORLDX = 960
 WORLDY = 720
 TILE = 40
-JUMP = 25
+JUMP = 30
 
 
 class Player(pygame.sprite.Sprite):
@@ -34,6 +34,7 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
     def reset(self):
+        self.rect.x = 0
         self.rect.y = 0
 
     def control(self, x, y):
