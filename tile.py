@@ -7,7 +7,7 @@ Tile Object
 
 
 class Tile(pygame.sprite.Sprite):
-    def __init__(self, xloc, yloc, imgw, imgh, img_file, alpha=None):
+    def __init__(self, xloc, yloc, img_file, alpha=None):
         pygame.sprite.Sprite.__init__(self)
         img = pygame.image.load(os.path.join('images', img_file)).convert()
         if alpha is not None:

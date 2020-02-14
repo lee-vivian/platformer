@@ -1,6 +1,6 @@
-''''
+"""'
 Level Object
-'''
+"""
 
 import pygame
 import tile
@@ -10,26 +10,17 @@ PIZZA_ALPHA = (255, 255, 255)
 
 class Level:
 
-    @staticmethod
-    def get_ground_coords(lvl, world_x, world_y, tile_dim):
-        ground_coords = []
-        if lvl == 1:
-            for xpos in range(int(world_x / tile_dim)):
-                ground_coords.append((xpos * tile_dim, world_y - tile_dim))
-        else:
-            print("Level " + str(lvl))
-        return ground_coords
+    def get_border_coords(self, world_x, world_y, tile_dim):
+        border_coords = []
+        for xpos in range(int(world_x / tile_dim)):
+            border_coords.append((xpos * tile_dim, 0))
+            border_coords.append((xpos * tile_dim, world_y - tile_dim))
+        for ypos in range(int(world_y / tile_dim)):
+            border_coords.append((0, ypos * tile_dim))
+            border_coords.append((world_x - tile_dim, ypos * tile_dim))
+        return border_coords
 
-    def ground(self, lvl, world_x, world_y, tile_dim):
-        ground_list = pygame.sprite.Group()
-        ground_coords = self.get_ground_coords(lvl, world_x, world_y, tile_dim)
-        for (x, y) in ground_coords:
-            ground = tile.Tile(x, y, tile_dim, tile_dim, 'tile.png')
-            ground_list.add(ground)
-        return ground_list
-
-    @staticmethod
-    def get_platform_coords(lvl):
+    def get_platform_coords(self, lvl):
         platform_coords = []
         if lvl == 1:
             platform_coords += [
@@ -54,22 +45,18 @@ class Level:
             print("Level " + str(lvl))
         return platform_coords
 
-    def platform(self, lvl, tile_dim):
+    def platform(self, lvl, tile_dim, world_x, world_y):
         platform_list = pygame.sprite.Group()
-        platform_coords = self.get_platform_coords(lvl)
+        platform_coords = self.get_border_coords(world_x, world_y, tile_dim) + self.get_platform_coords(lvl)
         for (x, y) in platform_coords:
-            platform = tile.Tile(x, y, tile_dim, tile_dim, 'tile.png')
+            platform = tile.Tile(x, y, 'tile.png')
             platform_list.add(platform)
-        ground_list = self.ground(lvl, 960, 720, tile_dim)
-        for item in ground_list:
-            platform_list.add(item)
-
         return platform_list
 
-    def goal(self, lvl, tile_dim):
+    def goal(self, lvl):
         if lvl == 1:
             goal_list = pygame.sprite.Group()
-            goal = tile.Tile(880, 80, tile_dim, tile_dim, 'pizza.png', PIZZA_ALPHA)
+            goal = tile.Tile(880, 80, 'pizza.png', PIZZA_ALPHA)
             goal_list.add(goal)
             return goal_list
         else:

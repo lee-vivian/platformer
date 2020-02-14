@@ -29,7 +29,7 @@ backdropbox = world.get_rect()
 
 # Player
 player = player.Player()
-player.reset()
+player.reset(TILE)
 player_list = pygame.sprite.Group()
 player_list.add(player)
 STEPS = 5  # num pixels to move per step
@@ -37,12 +37,8 @@ STEPS = 5  # num pixels to move per step
 # Level
 LEVEL = 1
 level = level.Level()
-ground_list = level.ground(LEVEL, WORLDX, WORLDY, TILE)
-platform_list = level.platform(LEVEL, TILE)
-goal_list = level.goal(LEVEL, TILE)
-# all_tile_coords = []
-# all_tile_coords += level.get_ground_coords(LEVEL, WORLDX, WORLDY, TILE)
-# all_tile_coords += level.get_platform_coords(LEVEL)
+platform_list = level.platform(LEVEL, TILE, WORLDX, WORLDY)
+goal_list = level.goal(LEVEL)
 
 '''
 Main Loop
@@ -61,13 +57,13 @@ while main:
                 main = False
                 sys.exit()
             elif event.key == ord('r'):
-                player.reset()
+                player.reset(TILE)
             elif event.key in [pygame.K_LEFT, ord('a')]:
                 player.control(-STEPS)
             elif event.key in [pygame.K_RIGHT, ord('d')]:
                 player.control(STEPS)
             elif event.key in [pygame.K_SPACE, pygame.K_UP, ord('w')]:
-                player.jump(platform_list)
+                player.jump()
 
         if event.type == pygame.KEYUP:
             if event.key in [pygame.K_LEFT, ord('a')]:
@@ -77,9 +73,8 @@ while main:
 
     world.blit(backdrop, backdropbox)
     player.gravity()
-    player.update(ground_list, platform_list)
+    player.update(platform_list)
     player_list.draw(world)  # draw player
-    ground_list.draw(world)  # draw ground tiles
     platform_list.draw(world)  # draw platforms tiles
     goal_list.draw(world)  # draw goal tiles
     pygame.display.flip()
