@@ -50,17 +50,6 @@ class Player(pygame.sprite.Sprite):
     def jump(self, platform_list):
         self.jump_delta = 0
 
-    # def on_tile(self, all_tiles):
-    #     player_on_tile = [self.rect.y + PLAYER_H == y and self.rect.x <= x <= self.rect.x + PLAYER_W
-    #                       for (x, y) in all_tiles]
-    #     return any(player_on_tile)
-
-    # def is_valid_x_move(self, world_x, tile_dim):
-    #     return 0 <= self.rect.x + self.movex < world_x - tile_dim
-    #
-    # def is_valid_y_move(self, world_y):
-    #     return 0 <= self.rect.y + self.movey < world_y - PLAYER_H
-
     def update(self, ground_list, platform_list):
         self.rect.x += self.movex
         self.rect.y += self.movey
@@ -70,6 +59,12 @@ class Player(pygame.sprite.Sprite):
         elif self.movex > 0:
             self.frame += 1
             self.image = self.images[1]
+
+        # prevent player from moving off screen
+        if self.rect.x < 0:
+            self.rect.x = 0
+        elif self.rect.x + PLAYER_W > WORLDX:
+            self.rect.x = WORLDX - PLAYER_W
 
         platform_hit_list = pygame.sprite.spritecollide(self, platform_list, False)
         for p in platform_hit_list:
@@ -81,6 +76,12 @@ class Player(pygame.sprite.Sprite):
             # treat platforms like floors
             else:
                 self.rect.y = p.rect.y - TILE
+            # # prevent running into platform tiles
+            # if p.rect.x <= self.rect.x + TILE <= p.rect.x + TILE:
+            #     if self.rect.x < p.rect.x:
+            #         self.rect.x = p.rect.x - PLAYER_W
+            #     else:
+            #         self.rect.x = p.rect.x + PLAYER_W
 
         ground_hit_list = pygame.sprite.spritecollide(self, ground_list, False)
         for g in ground_hit_list:
