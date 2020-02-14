@@ -34,7 +34,6 @@ player.rect.y = 360
 player_list = pygame.sprite.Group()
 player_list.add(player)
 STEPS = 5  # num pixels to move per step
-JUMP = 8
 
 # Level
 LEVEL = 1
@@ -61,25 +60,24 @@ while main:
                 pygame.quit()
                 main = False
                 sys.exit()
+            elif event.key == ord('r'):
+                player.reset()
             elif event.key in [pygame.K_LEFT, ord('a')]:
                 player.control(-STEPS, 0)
             elif event.key in [pygame.K_RIGHT, ord('d')]:
                 player.control(STEPS, 0)
             elif event.key in [pygame.K_SPACE, pygame.K_UP, ord('w')]:
-                print("jump")
-                # player.control(0, -JUMP)
+                player.jump(platform_list)
 
         if event.type == pygame.KEYUP:
             if event.key in [pygame.K_LEFT, ord('a')]:
                 player.control(STEPS, 0)  # returns sprite momentum to 0
             elif event.key in [pygame.K_RIGHT, ord('d')]:
                 player.control(-STEPS, 0)  # returns sprite momentum to 0
-            elif event.key in [pygame.K_SPACE, pygame.K_UP, ord('w')]:
-                print("jump")
-                # player.control(0, JUMP)
 
     world.blit(backdrop, backdropbox)
-    player.update(WORLDX, WORLDY, TILE, all_tile_coords)
+    player.gravity()
+    player.update(ground_list, platform_list)
     player_list.draw(world)  # draw player
     ground_list.draw(world)  # draw ground tiles
     platform_list.draw(world)  # draw platforms tiles
