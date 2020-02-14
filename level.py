@@ -5,6 +5,8 @@ Level Object
 import pygame
 import tile
 
+PIZZA_ALPHA = (255, 255, 255)
+
 
 class Level:
 
@@ -58,4 +60,18 @@ class Level:
         for (x, y) in platform_coords:
             platform = tile.Tile(x, y, tile_dim, tile_dim, 'tile.png')
             platform_list.add(platform)
+        ground_list = self.ground(lvl, 960, 720, tile_dim)
+        for item in ground_list:
+            platform_list.add(item)
+
         return platform_list
+
+    def goal(self, lvl, tile_dim):
+        if lvl == 1:
+            goal_list = pygame.sprite.Group()
+            goal = tile.Tile(880, 80, tile_dim, tile_dim, 'pizza.png', PIZZA_ALPHA)
+            goal_list.add(goal)
+            return goal_list
+        else:
+            print("Level " + str(lvl))
+
