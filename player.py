@@ -24,7 +24,7 @@ class Player(pygame.sprite.Sprite):
         self.frame = 0  # count frames
         self.collide_delta = 0
         self.jump_delta = 6
-        self.jumping = True
+        self.onground = False
         self.control_dx = 0
         img_right = pygame.image.load(os.path.join('images', 'player_right.png')).convert()
         img_left = pygame.image.load(os.path.join('images', 'player_left.png')).convert()
@@ -40,7 +40,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.x = tile_dim
         self.rect.y = tile_dim
         self.control_dx = 0
-        self.jumping = False
+        self.onground = False
 
     def control(self, x):
         # left and right arrows cancel each other out
@@ -55,9 +55,9 @@ class Player(pygame.sprite.Sprite):
             self.movey = MAX_VEL
 
     def jump(self):
-        if not self.jumping:
+        if self.onground:
             self.movey = -MAX_VEL
-            self.jumping = True
+            self.onground = False
 
     def goal_achieved(self, goal_list):
         goal_hit_list = pygame.sprite.spritecollide(self, goal_list, False)
@@ -69,6 +69,7 @@ class Player(pygame.sprite.Sprite):
             return
 
         self.movex = self.control_dx
+        self.onground = False
 
         if self.movex < 0:
             self.frame += 1
@@ -102,7 +103,7 @@ class Player(pygame.sprite.Sprite):
                 self.rect.y = oldy
 
                 if self.movey > 0:
-                    self.jumping = False
+                    self.onground = True
 
                 self.movey = 0
                 break
