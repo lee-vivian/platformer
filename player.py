@@ -1,6 +1,9 @@
 import pygame
 import os
 
+import state
+import action
+
 '''
 Player Object
 '''
@@ -8,6 +11,7 @@ Player Object
 ALPHA = (0, 0, 0)
 GRAVITY = 4
 MAX_VEL = 8 * GRAVITY
+STEPS = 5
 PLAYER_W = 74
 PLAYER_H = 40
 WORLDX = 960
@@ -58,6 +62,65 @@ class Player(pygame.sprite.Sprite):
         if self.onground:
             self.movey = -MAX_VEL
             self.onground = False
+
+    @staticmethod
+    def get_height_jumped(player_x, player_y, movex, platform_list):
+        player_xlo = player_x
+        player_xhi = player_x + PLAYER_W
+
+        # increase xrange if jumping AND moving left or right
+        if movex < 0:
+            player_xlo -= STEPS
+        elif movex > 0:
+            player_xhi += STEPS
+
+        jump_heights = [MAX_VEL]
+        for tile in platform_list:
+            # if tile is positioned within y jumping range
+            if player_y - MAX_VEL < tile.rect.y + TILE <= player_y:
+                # if tile positioned is within x moving range
+                if tile.rect.x < player_xhi and tile.rect.x + TILE > player_xlo:
+                    jump_heights.append(player_y - (tile.rect.y + TILE))
+
+        return min(jump_heights)
+
+    @staticmethod
+    def get_distance_moved(player_x, player_y, movex, platform_list):
+        '''if jumping, pass returned state from jumping into update function first'''
+
+        if movex == 0:
+            return 0
+
+        move_distances = [STEPS]
+        # check adjacent tiles in path that result in collision
+        adjacent_tiles = [t for t in platform_list if t.rect.y == player_y]
+        if movex < 0:
+            for t in adjacent_tiles:
+                if player_x - STEPS < t.rect.x + TILE <= player_x:
+                    move_distances.append(player_x - (t.rect.x + TILE))
+        else:
+            for t in adjacent_tiles:
+                if player_x + PLAYER_W <= t.rect.x < player_x + PLAYER_W + STEPS:
+                    move_distances.append(t.rect.x - (player_x + PLAYER_W))
+
+        return min(move_distances)
+
+
+    # @staticmethod
+    # def next_state(state, action, platform_list):
+    #
+    #     # currently on ground
+    #     if state.onground:
+    #         if state.jump:
+    #
+    #         else:
+    #
+    #     # not on ground
+    #     else:
+
+
+
+
 
     def goal_achieved(self, goal_list):
         goal_hit_list = pygame.sprite.spritecollide(self, goal_list, False)
