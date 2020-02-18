@@ -10,6 +10,7 @@ import sys
 import os
 import player
 import level
+from action import Action
 
 '''
 Setup
@@ -29,7 +30,7 @@ backdropbox = world.get_rect()
 
 # Player
 player = player.Player()
-player.reset(TILE)
+player.reset()
 player_list = pygame.sprite.Group()
 player_list.add(player)
 STEPS = 5  # num pixels to move per step
@@ -45,6 +46,11 @@ Main Loop
 '''
 
 main = True
+
+key_left = False
+key_right = False
+key_jump = False
+
 while main:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -57,23 +63,24 @@ while main:
                 main = False
                 sys.exit()
             elif event.key == ord('r'):
-                player.reset(TILE)
+                player.reset()
             elif event.key in [pygame.K_LEFT, ord('a')]:
-                player.control(-STEPS)
+                key_left = True
             elif event.key in [pygame.K_RIGHT, ord('d')]:
-                player.control(STEPS)
+                key_right = True
             elif event.key in [pygame.K_SPACE, pygame.K_UP, ord('w')]:
-                player.jump()
+                key_jump = True
 
         if event.type == pygame.KEYUP:
             if event.key in [pygame.K_LEFT, ord('a')]:
-                player.control(0)  # stop moving, set velocity to 0
+                key_left = False
             elif event.key in [pygame.K_RIGHT, ord('d')]:
-                player.control(0)  # stop moving, set velocity to 0
+                key_right = False
 
     world.blit(backdrop, backdropbox)
-    player.gravity()
-    player.update(platform_list, goal_list)
+    player.update(Action(key_left, key_right, key_jump), platform_list, goal_list)
+    key_jump = False
+
     player_list.draw(world)  # draw player
     platform_list.draw(world)  # draw platforms tiles
     goal_list.draw(world)  # draw goal tiles

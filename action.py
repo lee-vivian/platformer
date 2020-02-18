@@ -4,10 +4,10 @@ Player Action Object
 
 
 class Action:
-    def __init__(self, jump, right, left):
-        self.jump = jump
-        self.right = right
+    def __init__(self, left, right, jump):
         self.left = left
+        self.right = right
+        self.jump = jump
 
     @staticmethod
     def str_to_action(x):
