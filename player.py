@@ -35,9 +35,12 @@ class Player(pygame.sprite.Sprite):
         self.image = self.images[1]
         self.rect = self.image.get_rect()
 
+    @staticmethod
+    def start_state():
+        return State(TILE, TILE, 0, GRAVITY, True, False, False)
+
     def reset(self):
-        state = State(TILE, TILE, 0, GRAVITY, True, False, False)
-        self.state = state
+        self.state = Player.start_state()
 
     @staticmethod
     def collide(x, y, tile_list):
