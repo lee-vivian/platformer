@@ -72,9 +72,9 @@ def enumerate_states(start_state, graph, action_set, platform_list, goal_list):
     return graph
 
 
-G = enumerate_states(start_state, graph, action_set, platform_list, goal_list)
-print("Nodes: ", G.number_of_nodes())
-print("Edges: ", G.number_of_edges())
+# G = enumerate_states(start_state, graph, action_set, platform_list, goal_list)
+# print("Nodes: ", G.number_of_nodes())
+# print("Edges: ", G.number_of_edges())
 
 
 
@@ -82,7 +82,7 @@ print("Edges: ", G.number_of_edges())
 Main Loop
 '''
 
-main = False
+main = True
 
 key_left = False
 key_right = False
