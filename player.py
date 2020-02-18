@@ -113,107 +113,109 @@ class Player(pygame.sprite.Sprite):
                 break
 
     @staticmethod
-    def get_height_jumped(x, y, movex, platform_list):
-        player_xlo = x
-        player_xhi = x + PLAYER_W
-
-        # increase xrange if jumping AND moving left or right
-        if movex < 0:
-            player_xlo -= STEPS
-        elif movex > 0:
-            player_xhi += STEPS
-
-        jump_heights = [MAX_VEL]
-        for tile in platform_list:
-            # if tile is positioned within y jumping range
-            if y - MAX_VEL < tile.rect.y + TILE <= y:
-                # if tile positioned is within x moving range
-                if tile.rect.x < player_xhi and tile.rect.x + TILE > player_xlo:
-                    jump_heights.append(y - (tile.rect.y + TILE))
-
-        return min(jump_heights)
-
-    @staticmethod
-    def get_height_fallen(x, y, movex, platform_list):
-        player_xlo = x
-        player_xhi = x + PLAYER_W
-
-        # increase xrange if falling AND moving left or right
-        if movex < 0:
-            player_xlo -= STEPS
-        elif movex > 0:
-            player_xhi += STEPS
-
-        fall_heights = [GRAVITY]
-        for tile in platform_list:
-            # if tile is positioned within y falling range
-            if y + PLAYER_H <= tile.rect.y < y + PLAYER_H + GRAVITY:
-                # if tile is positioned within x falling range
-                if tile.rect.x < player_xhi and tile.rect.x + TILE > player_xlo:
-                    fall_heights.append(tile.rect.y - (y + PLAYER_H))
-
-        return min(fall_heights)
-
-    @staticmethod
-    def get_distance_moved(x, y, movex, platform_list):
-        # UPDATE MOVEMENT IN Y DIRECTION FIRST
-        if movex == 0:
-            return 0
-
-        move_distances = [STEPS]
-        # check adjacent tiles in path that result in collision
-        adjacent_tiles = [t for t in platform_list if t.rect.y == y]
-        if movex < 0:
-            for t in adjacent_tiles:
-                if x - STEPS < t.rect.x + TILE <= x:
-                    move_distances.append(x - (t.rect.x + TILE))
-        else:
-            for t in adjacent_tiles:
-                if x + PLAYER_W <= t.rect.x < x + PLAYER_W + STEPS:
-                    move_distances.append(t.rect.x - (x + PLAYER_W))
-
-        dist_moved = min(move_distances)
-        return dist_moved if movex > 0 else dist_moved * -1
-
-    @staticmethod
-    def player_on_ground(x, y, platform_list):
-        player_xlo = x
-        player_xhi = x + PLAYER_W
-        for tile in platform_list:
-            if tile.rect.y == y + PLAYER_H and tile.rect.x < player_xhi and tile.rect.x + TILE > player_xlo:
-                return True
-        return False
-
-    @staticmethod
     def next_state(state, action, platform_list):
 
+        left_and_right = action.left and action.right
+
+        # can only jump when on ground and not pressing left and right simultaneously
+        jumping = action.jump and state.movey == 0 and not left_and_right
+        falling = state.movey > 0
+
+        # player x movement range
+        player_xlo = state.x
+        player_xhi = state.x + PLAYER_W
+
+        if not left_and_right:
+            if action.left:
+                player_xlo -= STEPS
+                player_xhi -= STEPS
+            elif action.right:
+                player_xlo += STEPS
+                player_xhi += STEPS
+
+        # state attributes to update
         new_x = 0 + state.x
         new_y = 0 + state.y
-        if action.left != action.right:
-            new_move_x = STEPS if action.right else -STEPS
-        else:
-            new_move_x = 0
+        new_movex = 0 + state.movex
+        new_movey = 0 + state.movey
+        new_facing_right = state.facing_right
 
-        # on ground - may or may not be jumping
-        if state.onground:
-            # state does not change
-            if (action.left and action.right) or (not action.jump and not action.left and not action.right):
-                return State(state.x, state.y, state.movex, state.onground)
+        # handle jumping and falling
+        if jumping or falling:
 
-            # jump up
-            if action.jump:
-                new_y -= Player.get_height_jumped(new_x, new_y, new_move_x, platform_list)
+            # player y movement range
+            max_y_delta = MAX_VEL if jumping else GRAVITY
+            y_deltas = [max_y_delta]
+            y_lo = state.y - MAX_VEL if jumping else state.y + PLAYER_H
+            y_hi = state.y if jumping else state.y + PLAYER_H + GRAVITY
 
-        # not on ground - always falling due to gravity
-        else:
-            # fall down
-            height_fallen = Player.get_height_fallen(new_x, new_y, new_move_x, platform_list)
-            new_y += height_fallen
+            # check ceilings if jumping and floors if falling
+            tile_y_addition = TILE if jumping else 0
 
-        # move horizontally
-        new_x += Player.get_distance_moved(new_x, new_y, new_move_x, platform_list)
+            # check for collisions
+            for tile in platform_list:
+                tile_in_y_path = y_lo <= (tile.rect.y + tile_y_addition) <= y_hi
+                tile_in_x_path = tile.rect.x < player_xhi and tile.rect.x + TILE > player_xlo
+                if tile_in_y_path and tile_in_x_path:
+                    if jumping:
+                        y_deltas.append(y_hi - (tile.rect.y + tile_y_addition))
+                    else:
+                        y_deltas.append(tile.rect.y - y_lo)
 
-        # check if on ground
-        new_on_ground = Player.player_on_ground(new_x, new_y, platform_list)
+            # update state y
+            y_delta = min(y_deltas)
+            new_y = new_y - y_delta if jumping else new_y + y_delta
 
-        return State(new_x, new_y, new_move_x, new_on_ground)
+            # update state movey
+            y_collision_occurred = y_delta < max_y_delta
+            if y_collision_occurred:
+                new_movey = 0
+            elif jumping:
+                new_movey = -MAX_VEL
+
+        # handle x movement
+        if action.left or action.right:
+
+            # left and right arrows cancel each other out and stop movement
+            if left_and_right or (state.movex < 0 and action.right) or (state.movex > 0 and action.left):
+                new_movex = 0
+            else:
+                # get adjacent tiles after jumping or falling
+                adjacent_tiles = [t for t in platform_list if t.rect.y == new_y]
+
+                # player x movement range
+                max_x_delta = STEPS
+                x_deltas = [max_x_delta]
+                x_lo = state.x - STEPS if action.left else state.x + PLAYER_W
+                x_hi = state.x if action.left else state.x + PLAYER_W + STEPS
+
+                # check right most side of tile if moving left
+                tile_x_addition = TILE if action.left else 0
+
+                # check for collisions in x path
+                for t in adjacent_tiles:
+                    if x_lo <= (t.rect.x + tile_x_addition) <= x_hi:
+                        if action.left:
+                            x_deltas.append(x_hi - (t.rect.x + tile_x_addition))
+                        else:
+                            x_deltas.append(t.rect.x - x_lo)
+
+                # update state x
+                x_delta = min(x_deltas)
+                new_x = new_x - x_delta if action.left else new_x + x_delta
+
+                # update state movex
+                x_collision_occured = x_delta < max_x_delta
+                if x_collision_occured:
+                    new_movex = 0
+                elif action.left:
+                    new_movex = -STEPS
+                else:
+                    new_movex = STEPS
+
+                # update state face direction
+                new_facing_right = action.right
+
+        # return new state
+        return State(new_x, new_y, new_movex, new_movey, new_facing_right)
+
