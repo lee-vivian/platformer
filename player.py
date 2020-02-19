@@ -9,7 +9,7 @@ Player Object
 
 ALPHA = (0, 0, 0)
 GRAVITY = 4
-MAX_VEL = 8 * GRAVITY
+MAX_VEL = 7 * GRAVITY
 STEPS = 5
 PLAYER_W = 74
 PLAYER_H = 40
@@ -70,7 +70,6 @@ class Player(pygame.sprite.Sprite):
 
         if action.jump and new_state.onground:
             new_state.movey = -MAX_VEL
-            new_state.onground = False
 
         if new_state.movex < 0:
             new_state.facing_right = False
@@ -88,6 +87,8 @@ class Player(pygame.sprite.Sprite):
                 new_state.x = old_x
                 new_state.movex = 0
                 break
+
+        new_state.onground = False
 
         for jj in range(abs(new_state.movey)):
             old_y = new_state.y
