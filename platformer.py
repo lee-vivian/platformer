@@ -8,7 +8,6 @@ acknowledgements: followed tutorial from opensource.com
 import pygame
 import sys
 import os
-import networkx as nx
 
 import player
 import level
@@ -18,9 +17,16 @@ from action import Action
 Setup
 '''
 
+LEVEL = 1
+
 # Background
-WORLDX = 960
-WORLDY = 720
+if LEVEL == 0:
+    WORLDX = 240
+    WORLDY = 200
+else:
+    WORLDX = 960
+    WORLDY = 720
+
 TILE = 40
 FPS = 40  # frame rate
 ANI = 4  # animation cycles
@@ -38,45 +44,9 @@ player_list.add(player)
 STEPS = 5  # num pixels to move per step
 
 # Level
-LEVEL = 1
 level = level.Level()
 platform_list = level.platform(LEVEL, TILE, WORLDX, WORLDY)
 goal_list = level.goal(LEVEL)
-
-'''
-Enumerating the State Tree
-'''
-
-left_options = [True, False]
-right_options = [True, False]
-jump_options = [True, False]
-action_set = []
-
-for l in left_options:
-    for r in right_options:
-        for j in jump_options:
-            action_set.append(Action(l, r, j))
-
-start_state = player.start_state()
-graph = nx.Graph()
-graph.add_node(start_state)
-
-
-def enumerate_states(start_state, graph, action_set, platform_list, goal_list):
-    for action in action_set:
-        next_state = player.next_state(start_state, action, platform_list, goal_list)
-        if not graph.has_node(next_state):
-            graph.add_node(next_state)
-            graph.add_edge(start_state, next_state)
-            enumerate_states(next_state, graph, action_set, platform_list, goal_list)
-    return graph
-
-
-# G = enumerate_states(start_state, graph, action_set, platform_list, goal_list)
-# print("Nodes: ", G.number_of_nodes())
-# print("Edges: ", G.number_of_edges())
-
-
 
 '''
 Main Loop

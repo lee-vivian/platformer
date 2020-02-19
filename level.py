@@ -22,7 +22,12 @@ class Level:
 
     def get_platform_coords(self, lvl):
         platform_coords = []
-        if lvl == 1:
+        if lvl == 0:
+            platform_coords += [
+                (120, 120), (160, 120),
+                (160, 80)
+            ]
+        elif lvl == 1:
             platform_coords += [
                 (0, 400), (40, 400), (80, 400), (120, 400),
                 (240, 320), (280, 320), (320, 320),
@@ -57,11 +62,14 @@ class Level:
         return platform_list
 
     def goal(self, lvl):
-        if lvl == 1:
-            goal_list = pygame.sprite.Group()
+        goal_list = pygame.sprite.Group()
+        if lvl == 0:
+            goal = tile.Tile(160, 40, 'pizza.png', PIZZA_ALPHA)
+            goal_list.add(goal)
+        elif lvl == 1:
             goal = tile.Tile(880, 120, 'pizza.png', PIZZA_ALPHA)
             goal_list.add(goal)
-            return goal_list
         else:
             print("Level " + str(lvl))
+        return goal_list
 
