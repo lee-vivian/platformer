@@ -15,3 +15,12 @@ class State:
 
     def clone(self):
         return State(self.x, self.y, self.movex, self.movey, self.facing_right, self.onground, self.goal_reached)
+
+    def to_str(self):
+        string = ""
+        string += "(" + str(self.x) + ", " + str(self.y) + ") | "
+        string += "[" + str(self.movex) + ", " + str(self.movey) + "] | "
+        string += "right | " if self.facing_right else "left | "
+        string += "ground | " if self.onground else "fall | "
+        string += "done" if self.goal_reached else "ip"
+        return string
