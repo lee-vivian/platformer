@@ -17,10 +17,13 @@ class State:
         return State(self.x, self.y, self.movex, self.movey, self.facing_right, self.onground, self.goal_reached)
 
     def to_str(self):
-        string = ""
-        string += "(" + str(self.x) + ", " + str(self.y) + ") | "
-        string += "[" + str(self.movex) + ", " + str(self.movey) + "] | "
-        string += "right | " if self.facing_right else "left | "
-        string += "ground | " if self.onground else "fall | "
-        string += "done" if self.goal_reached else "ip"
+        string = "{"
+        string += "'x': " + str(self.x) + ", "
+        string += "'y': " + str(self.y) + ", "
+        string += "'movex': " + str(self.movex) + ", "
+        string += "'movey': " + str(self.movey) + ", "
+        string += "'facing_right': " + str(self.facing_right) + ", "
+        string += "'onground': " + str(self.onground) + ", "
+        string += "'goal_reached': " + str(self.goal_reached)
+        string += "}"
         return string
