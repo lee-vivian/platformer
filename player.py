@@ -2,7 +2,6 @@ import pygame
 import os
 
 from state import State
-from action import Action
 
 '''
 Player Object
