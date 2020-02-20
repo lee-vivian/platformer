@@ -9,7 +9,6 @@ import networkx as nx
 import player
 import level
 from player import Player
-from state import State
 from action import Action
 
 '''
@@ -48,13 +47,6 @@ platform_list = level.platform(LEVEL, TILE, WORLDX, WORLDY)
 goal_list = level.goal(LEVEL)
 
 
-def str_to_state(string):
-    state_dict = eval(string)
-    return State(state_dict['x'], state_dict['y'],
-                 state_dict['movex'], state_dict['movey'],
-                 state_dict['facing_right'], state_dict['onground'], state_dict['goal_reached'])
-
-
 def enumerate_states(start_state, graph, action_set, platform_list, goal_list):
 
     start_state_str = start_state.to_str()
@@ -69,7 +61,7 @@ def enumerate_states(start_state, graph, action_set, platform_list, goal_list):
         explored_states.append(cur_state_str)
 
         for action in action_set:
-            cur_state = str_to_state(cur_state_str)
+            cur_state = Player.str_to_state(cur_state_str)
             next_state = Player.next_state(cur_state, action, platform_list, goal_list)
             next_state_str = next_state.to_str()
             if next_state_str not in explored_states and next_state_str not in unexplored_states:

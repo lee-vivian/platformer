@@ -51,6 +51,13 @@ class Player(pygame.sprite.Sprite):
         return False
 
     @staticmethod
+    def str_to_state(string):
+        state_dict = eval(string)
+        return State(state_dict['x'], state_dict['y'],
+                     state_dict['movex'], state_dict['movey'],
+                     state_dict['facing_right'], state_dict['onground'], state_dict['goal_reached'])
+
+    @staticmethod
     def next_state(state, action, platform_list, goal_list):
         new_state = state.clone()
 
@@ -109,8 +116,19 @@ class Player(pygame.sprite.Sprite):
 
         return new_state
 
-    def update(self, action, platform_list, goal_list):
-        self.state = Player.next_state(self.state, action, platform_list, goal_list)
+    def update(self, action, platform_list, goal_list, precomputed_graph, edge_actions_dict):
+
+        if precomputed_graph is None or edge_actions_dict is None:
+            self.state = Player.next_state(self.state, action, platform_list, goal_list)
+        else:
+            action_str = action.to_str()
+            state_edges = precomputed_graph.edges(self.state.to_str())
+            for edge in state_edges:
+                if action_str in edge_actions_dict[edge]:
+                    edge_dest = edge[1]
+                    self.state = Player.str_to_state(edge_dest)
+                    break
+
         self.image = self.images[1] if self.state.facing_right else self.images[0]
         self.rect = self.image.get_rect()
         self.rect.x = self.state.x

@@ -8,6 +8,7 @@ acknowledgements: followed tutorial from opensource.com
 import pygame
 import sys
 import os
+import networkx as nx
 
 import player
 import level
@@ -18,6 +19,12 @@ Setup
 '''
 
 LEVEL = 1
+
+# Use precomputed graph
+USE_GRAPH = True
+file_path = "graph_" + str(LEVEL) + ".gpickle"
+precomputed_graph = None if not USE_GRAPH else nx.read_gpickle(file_path)
+edge_actions_dict = None if not USE_GRAPH else nx.get_edge_attributes(precomputed_graph, "action")
 
 # Background
 if LEVEL == 0:
@@ -85,7 +92,7 @@ while main:
                 key_right = False
 
     world.blit(backdrop, backdropbox)
-    player.update(Action(key_left, key_right, key_jump), platform_list, goal_list)
+    player.update(Action(key_left, key_right, key_jump), platform_list, goal_list, precomputed_graph, edge_actions_dict)
     key_jump = False
 
     player_list.draw(world)  # draw player
