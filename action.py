@@ -9,18 +9,18 @@ class Action:
         self.right = right
         self.jump = jump
 
-    @staticmethod
-    def str_to_action(x):
-        jump = 'J' in x
-        right = 'R' in x
-        left = 'L' in x
-        return Action(jump, right, left)
+    def to_str(self):
+        action_string = ""
+        if self.jump:
+            action_string += "J"
+        if self.left:
+            action_string += "L"
+        if self.right:
+            action_string += "R"
+        if action_string == "":
+            action_string = "X"
+        return action_string
 
-    @staticmethod
-    def strings_to_actions(strings):
-        action_list = []
-        for s in strings:
-            action_list.append(Action.str_to_action(s))
 
 
 

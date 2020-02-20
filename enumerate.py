@@ -6,6 +6,7 @@ import pygame
 import sys
 import os
 import networkx as nx
+import json
 
 import player
 from player import Player
@@ -68,16 +69,16 @@ def enumerate_states(start_state, graph, action_set, platform_list, goal_list):
 
         cur_state_str = unexplored_states.pop(0)
         explored_states.append(cur_state_str)
+        print(cur_state_str)
 
         for action in action_set:
-
             cur_state = str_to_state(cur_state_str)
             next_state = Player.next_state(cur_state, action, platform_list, goal_list)
             next_state_str = next_state.to_str()
             if next_state_str not in explored_states and next_state_str not in unexplored_states:
                 graph.add_node(next_state_str)
                 unexplored_states.append(next_state_str)
-            graph.add_edge(cur_state_str, next_state_str, action=action)
+            graph.add_edge(cur_state_str, next_state_str, action=action.to_str())
 
     return graph
 
@@ -94,7 +95,7 @@ start_state = Player.start_state()
 graph = nx.Graph()
 
 orig_stdout = sys.stdout
-f = open('enumerated_states.txt', 'w')
+f = open("enumerated_states_lvl_" + str(LEVEL) + ".txt", 'w')
 sys.stdout = f
 
 print("Start enumerating state tree for LVL", LEVEL, "...")
@@ -105,4 +106,11 @@ f.close()
 
 print("Nodes: ", G.number_of_nodes())
 print("Edges: ", G.number_of_edges())
+
+# SAVE GRAPH TO JSON FILE
+graph_dict = nx.to_dict_of_dicts(G)
+graph_json = json.dumps(graph_dict)
+f = open("enumerated_states_graph_lvl_" + str(LEVEL) + ".json", "w")
+f.write(graph_json)
+f.close()
 
