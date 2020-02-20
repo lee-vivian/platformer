@@ -3,14 +3,12 @@ Enumerate the state space of a level
 '''
 
 import pygame
-import sys
 import os
 import networkx as nx
-import json
 
 import player
-from player import Player
 import level
+from player import Player
 from state import State
 from action import Action
 
@@ -57,7 +55,6 @@ def str_to_state(string):
                  state_dict['facing_right'], state_dict['onground'], state_dict['goal_reached'])
 
 
-# @TODO update method to create graph of state strings instead of States
 def enumerate_states(start_state, graph, action_set, platform_list, goal_list):
 
     start_state_str = start_state.to_str()
@@ -69,7 +66,6 @@ def enumerate_states(start_state, graph, action_set, platform_list, goal_list):
 
         cur_state_str = unexplored_states.pop(0)
         explored_states.append(cur_state_str)
-        print(cur_state_str)
 
         for action in action_set:
             cur_state = str_to_state(cur_state_str)
@@ -92,25 +88,16 @@ for left in [True, False]:
         for jump in [True, False]:
             action_set.append(Action(left, right, jump))
 start_state = Player.start_state()
-graph = nx.Graph()
-
-orig_stdout = sys.stdout
-f = open("enumerated_states_lvl_" + str(LEVEL) + ".txt", 'w')
-sys.stdout = f
+graph = nx.DiGraph()
 
 print("Start enumerating state tree for LVL", LEVEL, "...")
 G = enumerate_states(start_state, graph, action_set, platform_list, goal_list)
+print("Finished enumerating state tree for LVL", LEVEL, "...")
 
-sys.stdout = orig_stdout
-f.close()
-
+print("--- State Graph fo Level " + str(LEVEL) + "---")
 print("Nodes: ", G.number_of_nodes())
 print("Edges: ", G.number_of_edges())
 
-# SAVE GRAPH TO JSON FILE
-graph_dict = nx.to_dict_of_dicts(G)
-graph_json = json.dumps(graph_dict)
-f = open("enumerated_states_graph_lvl_" + str(LEVEL) + ".json", "w")
-f.write(graph_json)
-f.close()
-
+# SAVE GRAPH
+nx.write_gpickle(G, "graph_" + str(LEVEL) + ".gpickle")
+print("Saved to: ", "graph_" + str(LEVEL) + ".gpickle")
