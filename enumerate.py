@@ -10,6 +10,7 @@ import networkx as nx
 import player
 from player import Player
 import level
+from state import State
 from action import Action
 
 '''
@@ -48,28 +49,35 @@ platform_list = level.platform(LEVEL, TILE, WORLDX, WORLDY)
 goal_list = level.goal(LEVEL)
 
 
+def str_to_state(string):
+    state_dict = eval(string)
+    return State(state_dict['x'], state_dict['y'],
+                 state_dict['movex'], state_dict['movey'],
+                 state_dict['facing_right'], state_dict['onground'], state_dict['goal_reached'])
+
+
+# @TODO update method to create graph of state strings instead of States
 def enumerate_states(start_state, graph, action_set, platform_list, goal_list):
 
-    graph.add_node(start_state)
-    unexplored_states = [start_state]
-    unexplored_states_str = [start_state.to_str()]
-    explored_states_str = []
+    start_state_str = start_state.to_str()
+    graph.add_node(start_state_str)
+    unexplored_states = [start_state_str]
+    explored_states = []
 
     while len(unexplored_states) > 0:
 
-        cur_state = unexplored_states.pop(0)
-        unexplored_states_str.pop(0)
-        explored_states_str.append(cur_state.to_str())
-        print(cur_state.to_str())
+        cur_state_str = unexplored_states.pop(0)
+        explored_states.append(cur_state_str)
 
         for action in action_set:
+
+            cur_state = str_to_state(cur_state_str)
             next_state = Player.next_state(cur_state, action, platform_list, goal_list)
             next_state_str = next_state.to_str()
-            if next_state_str not in explored_states_str and next_state_str not in unexplored_states_str:
-                graph.add_node(next_state)
-                graph.add_edge(cur_state, next_state)
-                unexplored_states.append(next_state)
-                unexplored_states_str.append(next_state_str)
+            if next_state_str not in explored_states and next_state_str not in unexplored_states:
+                graph.add_node(next_state_str)
+                unexplored_states.append(next_state_str)
+            graph.add_edge(cur_state_str, next_state_str, action=action)
 
     return graph
 
