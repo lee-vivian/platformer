@@ -59,6 +59,7 @@ def enumerate_states(start_state, graph, action_set, platform_list, goal_list):
 
     start_state_str = start_state.to_str()
     graph.add_node(start_state_str)
+
     unexplored_states = [start_state_str]
     explored_states = []
 
@@ -74,7 +75,10 @@ def enumerate_states(start_state, graph, action_set, platform_list, goal_list):
             if next_state_str not in explored_states and next_state_str not in unexplored_states:
                 graph.add_node(next_state_str)
                 unexplored_states.append(next_state_str)
-            graph.add_edge(cur_state_str, next_state_str, action=action.to_str())
+            if not graph.has_edge(cur_state_str, next_state_str):
+                graph.add_edge(cur_state_str, next_state_str, action=[action.to_str()])
+            else:
+                graph.get_edge_data(cur_state_str, next_state_str)["action"].append(action.to_str())
 
     return graph
 
