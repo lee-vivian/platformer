@@ -16,21 +16,15 @@ Setup
 '''
 
 LEVEL = 1
+level = level.Level(LEVEL)
 
 # Background
-if LEVEL == 0:
-    WORLDX = 240
-    WORLDY = 200
-else:
-    WORLDX = 960
-    WORLDY = 720
-
 TILE = 40
 FPS = 40  # frame rate
 ANI = 4  # animation cycles
 clock = pygame.time.Clock()
 pygame.init()
-world = pygame.display.set_mode([WORLDX, WORLDY])
+world = pygame.display.set_mode([level.world_x, level.world_y])
 backdrop = pygame.image.load(os.path.join('images', 'platform_bkgd.png')).convert()
 backdropbox = world.get_rect()
 
@@ -39,12 +33,10 @@ player = player.Player()
 player.reset()
 player_list = pygame.sprite.Group()
 player_list.add(player)
-STEPS = 5  # num pixels to move per step
 
 # Level
-level = level.Level()
-platform_list = level.platform(LEVEL, TILE, WORLDX, WORLDY)
-goal_list = level.goal(LEVEL)
+platform_list = level.platform(TILE)
+goal_list = level.goal()
 
 
 def enumerate_states(start_state, graph, action_set, platform_list, goal_list):

@@ -7,16 +7,17 @@ from state import State
 Player Object
 '''
 
+# Player constants
 ALPHA = (0, 0, 0)
 GRAVITY = 4
 MAX_VEL = 7 * GRAVITY
 STEPS = 5
 PLAYER_W = 74
 PLAYER_H = 40
-WORLDX = 960
-WORLDY = 720
-TILE = 40
 JUMP = 30
+
+# Level constants
+TILE = 40
 
 
 class Player(pygame.sprite.Sprite):
