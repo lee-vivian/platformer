@@ -15,6 +15,13 @@ class Level:
         self.world_x = 240 if lvl == 0 else 960
         self.world_y = 200 if lvl == 0 else 720
 
+    def get_all_possible_coords(self, tile_dim):
+        coords = []
+        for x in range(int(self.world_x / tile_dim)):
+            for y in range(int(self.world_y / tile_dim)):
+                coords.append((x * tile_dim, y * tile_dim))
+        return coords
+
     def get_border_coords(self, tile_dim):
         border_coords = []
         for xpos in range(int(self.world_x / tile_dim)):
