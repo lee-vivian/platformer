@@ -10,12 +10,13 @@ import player
 import level
 from player import Player
 from action import Action
+from grid_cell import GridCell
 
 '''
 Setup
 '''
 
-LEVEL = 1
+LEVEL = 0
 level = level.Level(LEVEL)
 
 # Background
@@ -89,3 +90,10 @@ print("Edges: ", G.number_of_edges())
 # SAVE GRAPH
 nx.write_gpickle(G, "graph_" + str(LEVEL) + ".gpickle")
 print("Saved to: ", "graph_" + str(LEVEL) + ".gpickle")
+
+# EXTRACT GRID CELLS FROM LEVEL
+level_grid_cells = GridCell.extract_grid_cells(level, G)
+
+for grid_cell in level_grid_cells:
+    print(grid_cell.to_str())
+
