@@ -13,12 +13,17 @@ class Metatile:
         self.graph_as_dict = graph_as_dict
 
     def to_str(self):
-        string = "{filled: "
+        string = "{'filled': "
         string += "1" if self.filled else "0"
-        string += ", graph: "
+        string += ", 'graph': "
         string += str(self.graph_as_dict)
         string += "}"
         return string
+
+    @staticmethod
+    def from_str(string):
+        metatile_dict = eval(string)
+        return Metatile(metatile_dict['filled'], metatile_dict['graph'])
 
     @staticmethod
     def get_coord_node_dict(graph):
@@ -103,4 +108,3 @@ class Metatile:
             metatiles.append(Metatile(filled, metatile_graph_as_dict))
 
         return metatiles
-

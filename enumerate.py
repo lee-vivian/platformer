@@ -5,8 +5,6 @@ Enumerate the state space of a level
 import pygame
 import os
 import networkx as nx
-# import json
-# from json import JSONEncoder
 
 import player
 import level
@@ -121,17 +119,41 @@ print("unique metatiles: " + str(unique_metatiles))
 print("filled metatiles: " + str(filled_metatiles))
 print("metatiles with graphs: " + str(metatiles_with_graphs))
 
+# SAVE METATILES TO TXT FILE
+metatile_filename = "metatiles_" + str(LEVEL) + ".txt"
 
-# # @TODO save level metatiles - FIX
-# class MetatileEncoder(JSONEncoder):
-#
-#     def default(self, metatile):
-#         return metatile.__dict__
-#
-#
-# with open(graph_level + ".json", "w") as write:
-#     json.dumps(level_metatiles, cls=MetatileEncoder)
-#
-# print("Level Metatiles  saved to: " + graph_level + ".json")
+with open(metatile_filename, 'w') as f:
+    for metatile in level_metatiles:
+        f.write("%s\n" % metatile.to_str())
 
+print("level metatiles saved to: " + metatile_filename)
+
+'''
+# LOAD METATILES FROM FILE
+f = open(metatile_filename, 'r')
+metatile_strs = f.readlines()
+f.close()
+
+loaded_level_metatiles = []
+for metatile_str in metatile_strs:
+    loaded_level_metatiles.append(Metatile.from_str(metatile_str))
+
+total_metatiles = len(loaded_level_metatiles)
+unique_metatiles = len(set([t.to_str() for t in loaded_level_metatiles]))
+filled_metatiles = 0
+metatiles_with_graphs = 0
+
+for metatile in loaded_level_metatiles:
+    if metatile.filled:
+        filled_metatiles += 1
+
+    if bool(metatile.graph_as_dict):  # if metatile's graph is not empty
+        metatiles_with_graphs += 1
+
+print("---- LOADED LEVEL " + str(LEVEL) + " ----")
+print("total metatiles: " + str(total_metatiles))
+print("unique metatiles: " + str(unique_metatiles))
+print("filled metatiles: " + str(filled_metatiles))
+print("metatiles with graphs: " + str(metatiles_with_graphs))
+'''
 
