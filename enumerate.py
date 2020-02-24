@@ -1,5 +1,5 @@
 '''
-Enumerate the state space of a level
+Enumerate the state space of a level and extract level metatiles
 '''
 
 import pygame
@@ -123,20 +123,34 @@ else:
     for metatile_str in metatile_strs:
         level_metatiles.append(Metatile.from_str(metatile_str))
 
-total_metatiles = len(level_metatiles)
-unique_metatiles = len(set([t.to_str() for t in level_metatiles]))
-filled_metatiles = 0
-metatiles_with_graphs = 0
+unique_metatiles_dict = {}
+for tile in level_metatiles:
+    tile_str = tile.to_str()
+    if unique_metatiles_dict.get(tile_str) is None:
+        unique_metatiles_dict[tile_str] = 1
+
+num_filled_metatiles = 0
+num_metatiles_with_graphs = 0
+metatiles_with_graphs = []
 
 for metatile in level_metatiles:
     if metatile.filled:
-        filled_metatiles += 1
+        num_filled_metatiles += 1
 
     if bool(metatile.graph_as_dict):  # if metatile's graph is not empty
-        metatiles_with_graphs += 1
+        num_metatiles_with_graphs += 1
+        metatiles_with_graphs.append(metatile.to_str())
+
+num_unique_metatiles_with_graphs = 0
+
+for metatile in metatiles_with_graphs:
+    if unique_metatiles_dict.get(metatile) is not None:
+        num_unique_metatiles_with_graphs += 1
 
 print("---- LEVEL " + str(LEVEL) + " ----")
-print("total metatiles: " + str(total_metatiles))
-print("unique metatiles: " + str(unique_metatiles))
-print("filled metatiles: " + str(filled_metatiles))
-print("metatiles with graphs: " + str(metatiles_with_graphs))
+print("num total metatiles: ",  len(level_metatiles))
+print("num unique metatiles: ", len(unique_metatiles_dict.keys()))
+print("num filled metatiles: ", num_filled_metatiles)
+print("num metatiles with graphs: ", num_metatiles_with_graphs)
+print("num unique metatiles with graphs: ", num_unique_metatiles_with_graphs)
+
