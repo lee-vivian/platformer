@@ -21,9 +21,21 @@ class Metatile:
         return string
 
     @staticmethod
-    def node_at_coord(node, coord):
-        state_dict = eval(node)
-        return state_dict['x'] == coord[0] and state_dict['y'] == coord[1]
+    def get_node_spatial_hash(graph):
+
+        spatial_hash = {}
+
+        for node in graph.nodes():
+
+            state_dict = eval(node)
+            coord = (state_dict['x'], state_dict['y'])
+
+            if spatial_hash.get(coord) is None:
+                spatial_hash[coord] = [node]
+            else:
+                spatial_hash[coord].append(node)
+
+        return spatial_hash
 
     @staticmethod
     def get_normalized_graph(graph, coord):
@@ -50,20 +62,38 @@ class Metatile:
     def extract_tiles(level, graph):
 
         metatiles = []
+        metatiles_dict = {}
+
         tile_coords = level.get_border_coords(TILE) + level.get_platform_coords() + level.get_goal_coords()
+        tile_coords_dict = {}
+        for coord in tile_coords:
+            tile_coords_dict[coord] = 1
+
+        node_spatial_hash = Metatile.get_node_spatial_hash(graph)
 
         for coord in level.get_all_possible_coords(TILE):
 
-            filled = coord in tile_coords  # False if blank, True if tile
-            cell_graph = nx.DiGraph()
+            filled = tile_coords_dict.get(coord) is not None
+            metatile_graph = nx.DiGraph()
 
-            for node in graph.nodes():
-                if Metatile.node_at_coord(node, coord):
+            nodes_at_coord = node_spatial_hash.get(coord)
+
+            if nodes_at_coord is not None:
+                for node in nodes_at_coord:
                     subgraph = graph.edge_subgraph(graph.edges(node)).copy()
-                    cell_graph = nx.compose(cell_graph, subgraph)  # adds node, neighbor nodes, edges, and edge attrs
+                    metatile_graph = nx.compose(metatile_graph, subgraph)  # join graphs
 
-            normalized_cell_graph = Metatile.get_normalized_graph(cell_graph, coord)  # normalize grid cell to coord
-            normalized_cell_graph_dict = nx.to_dict_of_dicts(normalized_cell_graph)
-            metatiles.append(Metatile(filled, normalized_cell_graph_dict))
+                metatile_graph = Metatile.get_normalized_graph(metatile_graph, coord)  # normalize graph to coord
+
+            metatile_graph_as_dict = nx.to_dict_of_dicts(metatile_graph)
+            metatile = Metatile(filled, metatile_graph_as_dict)
+
+            metatiles.append(metatile)
+
+            if metatiles_dict.get(coord) is None:
+                metatiles_dict[coord] = [metatile]
+            else:
+                metatiles_dict[coord].append(metatile)
 
         return metatiles
+
