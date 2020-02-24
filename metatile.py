@@ -1,5 +1,5 @@
 '''
-Grid Cell Object for a Level (one of: [tile, blank])
+Metatile Object that describes each grid cell in a Level
 '''
 
 import networkx as nx
@@ -7,7 +7,7 @@ import networkx as nx
 TILE = 40
 
 
-class GridCell:
+class Metatile:
     def __init__(self, filled, graph_as_dict):
         self.filled = filled
         self.graph_as_dict = graph_as_dict
@@ -47,9 +47,9 @@ class GridCell:
         return normalized_graph
 
     @staticmethod
-    def extract_grid_cells(level, graph):
+    def extract_tiles(level, graph):
 
-        grid_cells = []
+        metatiles = []
         tile_coords = level.get_border_coords(TILE) + level.get_platform_coords() + level.get_goal_coords()
 
         for coord in level.get_all_possible_coords(TILE):
@@ -58,22 +58,12 @@ class GridCell:
             cell_graph = nx.DiGraph()
 
             for node in graph.nodes():
-                if GridCell.node_at_coord(node, coord):
+                if Metatile.node_at_coord(node, coord):
                     subgraph = graph.edge_subgraph(graph.edges(node)).copy()
                     cell_graph = nx.compose(cell_graph, subgraph)  # adds node, neighbor nodes, edges, and edge attrs
 
-            normalized_cell_graph = GridCell.get_normalized_graph(cell_graph, coord)  # normalize grid cell to coord
+            normalized_cell_graph = Metatile.get_normalized_graph(cell_graph, coord)  # normalize grid cell to coord
             normalized_cell_graph_dict = nx.to_dict_of_dicts(normalized_cell_graph)
-            grid_cells.append(GridCell(filled, normalized_cell_graph_dict))
+            metatiles.append(Metatile(filled, normalized_cell_graph_dict))
 
-        return grid_cells
-
-
-
-
-
-
-
-
-
-
+        return metatiles

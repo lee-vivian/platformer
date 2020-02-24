@@ -12,7 +12,7 @@ import player
 import level
 from player import Player
 from action import Action
-from grid_cell import GridCell
+from metatile import Metatile
 
 '''
 Setup
@@ -99,41 +99,40 @@ if RERUN_ENUMERATE_STATES:
 else:
     G = nx.read_gpickle(gpickle_filename)
 
-# EXTRACT GRID CELLS FROM LEVEL
-level_grid_cells = GridCell.extract_grid_cells(level, G)
+# EXTRACT METATILES FROM LEVEL
+level_metatiles = Metatile.extract_tiles(level, G)
 
-# GET LEVEL GRID CELL STATS
-total_cells = 0
-filled_cells = 0
-cells_with_graphs = 0
+total_metatiles = 0
+filled_metatiles = 0
+metatiles_with_graphs = 0
 
-for grid_cell in level_grid_cells:
+for tile in level_metatiles:
 
-    total_cells += 1
+    total_metatiles += 1
 
-    if grid_cell.filled:
-        filled_cells += 1
+    if tile.filled:
+        filled_metatiles += 1
 
     # if grid cell's graph is not empty
-    if bool(grid_cell.graph_as_dict):
-        cells_with_graphs += 1
+    if bool(tile.graph_as_dict):
+        metatiles_with_graphs += 1
 
 print("---- LEVEL " + str(LEVEL) + " ----")
-print("total cells: " + str(total_cells))
-print("filled cells: " + str(filled_cells))
-print("cells with graphs: " + str(cells_with_graphs))
+print("total cells: " + str(total_metatiles))
+print("filled cells: " + str(filled_metatiles))
+print("cells with graphs: " + str(metatiles_with_graphs))
 
 
-# # @TODO save level grid cells - FIX
-# class GridCellEncoder(JSONEncoder):
+# # @TODO save level metatiles - FIX
+# class MetatileEncoder(JSONEncoder):
 #
-#     def default(self, grid_cell):
-#         return grid_cell.__dict__
+#     def default(self, metatile):
+#         return metatile.__dict__
 #
 #
 # with open(graph_level + ".json", "w") as write:
-#     json.dumps(level_grid_cells, cls=GridCellEncoder)
+#     json.dumps(level_metatiles, cls=MetatileEncoder)
 #
-# print("Level Grid Cells saved to: " + graph_level + ".json")
+# print("Level Metatiles  saved to: " + graph_level + ".json")
 
 
