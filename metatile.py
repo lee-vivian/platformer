@@ -21,19 +21,33 @@ class Metatile:
         return string
 
     @staticmethod
-    def get_node_spatial_hash(graph):
+    def get_coord_node_dict(graph):
+        coord_node_dict = {}
+        for node in graph.nodes():
+            state_dict = eval(node)
+            node_coord = (state_dict['x'], state_dict['y'])
 
+            if coord_node_dict.get(node_coord) is None:
+                coord_node_dict[node_coord] = [node]
+            else:
+                coord_node_dict[node_coord].append(node)
+
+        return coord_node_dict
+
+    @staticmethod
+    def get_node_spatial_hash(graph, all_possible_coords):
+
+        coord_node_dict = Metatile.get_coord_node_dict(graph)
         spatial_hash = {}
 
-        for node in graph.nodes():
+        for metatile_coord in all_possible_coords:
+            spatial_hash[metatile_coord] = []
 
-            state_dict = eval(node)
-            coord = (state_dict['x'], state_dict['y'])
-
-            if spatial_hash.get(coord) is None:
-                spatial_hash[coord] = [node]
-            else:
-                spatial_hash[coord].append(node)
+            for x in range(metatile_coord[0], metatile_coord[0] + TILE):
+                for y in range(metatile_coord[1], metatile_coord[1] + TILE):
+                    temp_coord = (x, y)
+                    if coord_node_dict.get(temp_coord) is not None:
+                        spatial_hash[metatile_coord] += coord_node_dict[temp_coord]
 
         return spatial_hash
 
@@ -59,7 +73,7 @@ class Metatile:
         return normalized_graph
 
     @staticmethod
-    def extract_tiles(level, graph):
+    def extract_metatiles(level, graph):
 
         metatiles = []
 
@@ -68,21 +82,22 @@ class Metatile:
         for coord in tile_coords:
             tile_coords_dict[coord] = 1
 
-        node_spatial_hash = Metatile.get_node_spatial_hash(graph)
+        all_possible_coords = level.get_all_possible_coords(TILE)
+        node_spatial_hash = Metatile.get_node_spatial_hash(graph, all_possible_coords)
 
-        for coord in level.get_all_possible_coords(TILE):
+        for metatile_coord in all_possible_coords:
 
-            filled = tile_coords_dict.get(coord) is not None
+            filled = tile_coords_dict.get(metatile_coord) is not None
             metatile_graph = nx.DiGraph()
 
-            nodes_at_coord = node_spatial_hash.get(coord)
+            nodes_in_metatile = node_spatial_hash.get(metatile_coord)
 
-            if nodes_at_coord is not None:
-                for node in nodes_at_coord:
+            if len(nodes_in_metatile) > 0:
+                for node in nodes_in_metatile:
                     subgraph = graph.edge_subgraph(graph.edges(node)).copy()
                     metatile_graph = nx.compose(metatile_graph, subgraph)  # join graphs
 
-                metatile_graph = Metatile.get_normalized_graph(metatile_graph, coord)  # normalize graph to coord
+                metatile_graph = Metatile.get_normalized_graph(metatile_graph, metatile_coord)  # normalize graph nodes to coord
 
             metatile_graph_as_dict = nx.to_dict_of_dicts(metatile_graph)
             metatiles.append(Metatile(filled, metatile_graph_as_dict))

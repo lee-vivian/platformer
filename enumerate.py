@@ -101,7 +101,7 @@ else:
 
 # GET METATILE STATS FROM LEVEL
 
-level_metatiles = Metatile.extract_tiles(level, G)
+level_metatiles = Metatile.extract_metatiles(level, G)
 
 total_metatiles = len(level_metatiles)
 unique_metatiles = len(set([t.to_str() for t in level_metatiles]))
