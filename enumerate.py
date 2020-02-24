@@ -99,28 +99,27 @@ if RERUN_ENUMERATE_STATES:
 else:
     G = nx.read_gpickle(gpickle_filename)
 
-# EXTRACT METATILES FROM LEVEL
+# GET METATILE STATS FROM LEVEL
+
 level_metatiles = Metatile.extract_tiles(level, G)
 
-total_metatiles = 0
+total_metatiles = len(level_metatiles)
+unique_metatiles = len(set([t.to_str() for t in level_metatiles]))
 filled_metatiles = 0
 metatiles_with_graphs = 0
 
-for tile in level_metatiles:
-
-    total_metatiles += 1
-
-    if tile.filled:
+for metatile in level_metatiles:
+    if metatile.filled:
         filled_metatiles += 1
 
-    # if grid cell's graph is not empty
-    if bool(tile.graph_as_dict):
+    if bool(metatile.graph_as_dict):  # if metatile's graph is not empty
         metatiles_with_graphs += 1
 
 print("---- LEVEL " + str(LEVEL) + " ----")
-print("total cells: " + str(total_metatiles))
-print("filled cells: " + str(filled_metatiles))
-print("cells with graphs: " + str(metatiles_with_graphs))
+print("total metatiles: " + str(total_metatiles))
+print("unique metatiles: " + str(unique_metatiles))
+print("filled metatiles: " + str(filled_metatiles))
+print("metatiles with graphs: " + str(metatiles_with_graphs))
 
 
 # # @TODO save level metatiles - FIX
