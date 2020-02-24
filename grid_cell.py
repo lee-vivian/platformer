@@ -8,18 +8,16 @@ TILE = 40
 
 
 class GridCell:
-    def __init__(self, filled, graph):
+    def __init__(self, filled, graph_as_dict):
         self.filled = filled
-        self.graph = graph
+        self.graph_as_dict = graph_as_dict
 
     def to_str(self):
         string = "{filled: "
         string += "1" if self.filled else "0"
-        string += ", edges: ["
-        for edge in self.graph.edges():
-            string += str(edge) + ", "
-        string = string[0:len(string)-len(", ")]
-        string += "]}"
+        string += ", graph: "
+        string += str(self.graph_as_dict)
+        string += "}"
         return string
 
     @staticmethod
@@ -52,11 +50,11 @@ class GridCell:
     def extract_grid_cells(level, graph):
 
         grid_cells = []
-        tile_coords = level.get_border_coords(TILE) + level.get_platform_coords()
+        tile_coords = level.get_border_coords(TILE) + level.get_platform_coords() + level.get_goal_coords()
 
         for coord in level.get_all_possible_coords(TILE):
 
-            filled = coord in tile_coords  # blank or tile
+            filled = coord in tile_coords  # False if blank, True if tile
             cell_graph = nx.DiGraph()
 
             for node in graph.nodes():
@@ -65,7 +63,8 @@ class GridCell:
                     cell_graph = nx.compose(cell_graph, subgraph)  # adds node, neighbor nodes, edges, and edge attrs
 
             normalized_cell_graph = GridCell.get_normalized_graph(cell_graph, coord)  # normalize grid cell to coord
-            grid_cells.append(GridCell(filled, normalized_cell_graph))
+            normalized_cell_graph_dict = nx.to_dict_of_dicts(normalized_cell_graph)
+            grid_cells.append(GridCell(filled, normalized_cell_graph_dict))
 
         return grid_cells
 
