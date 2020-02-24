@@ -18,6 +18,7 @@ Setup
 
 LEVEL = 1
 RERUN_ENUMERATE_STATES = False
+RERUN_EXTRACT_METATILES = False
 
 level = level.Level(LEVEL)
 
@@ -99,7 +100,28 @@ else:
 
 # GET METATILE STATS FROM LEVEL
 
-level_metatiles = Metatile.extract_metatiles(level, G)
+metatile_filename = "metatiles_" + str(LEVEL) + ".txt"
+
+if RERUN_EXTRACT_METATILES:
+    level_metatiles = Metatile.extract_metatiles(level, G)
+
+    with open(metatile_filename, 'w') as f:
+        for metatile in level_metatiles:
+            f.write("%s\n" % metatile.to_str())
+
+    print("level metatiles saved to: " + metatile_filename)
+
+else:
+
+    print("loading level metatiles from: " + metatile_filename)
+
+    f = open(metatile_filename, 'r')
+    metatile_strs = f.readlines()
+    f.close()
+
+    level_metatiles = []
+    for metatile_str in metatile_strs:
+        level_metatiles.append(Metatile.from_str(metatile_str))
 
 total_metatiles = len(level_metatiles)
 unique_metatiles = len(set([t.to_str() for t in level_metatiles]))
@@ -118,42 +140,3 @@ print("total metatiles: " + str(total_metatiles))
 print("unique metatiles: " + str(unique_metatiles))
 print("filled metatiles: " + str(filled_metatiles))
 print("metatiles with graphs: " + str(metatiles_with_graphs))
-
-# SAVE METATILES TO TXT FILE
-metatile_filename = "metatiles_" + str(LEVEL) + ".txt"
-
-with open(metatile_filename, 'w') as f:
-    for metatile in level_metatiles:
-        f.write("%s\n" % metatile.to_str())
-
-print("level metatiles saved to: " + metatile_filename)
-
-'''
-# LOAD METATILES FROM FILE
-f = open(metatile_filename, 'r')
-metatile_strs = f.readlines()
-f.close()
-
-loaded_level_metatiles = []
-for metatile_str in metatile_strs:
-    loaded_level_metatiles.append(Metatile.from_str(metatile_str))
-
-total_metatiles = len(loaded_level_metatiles)
-unique_metatiles = len(set([t.to_str() for t in loaded_level_metatiles]))
-filled_metatiles = 0
-metatiles_with_graphs = 0
-
-for metatile in loaded_level_metatiles:
-    if metatile.filled:
-        filled_metatiles += 1
-
-    if bool(metatile.graph_as_dict):  # if metatile's graph is not empty
-        metatiles_with_graphs += 1
-
-print("---- LOADED LEVEL " + str(LEVEL) + " ----")
-print("total metatiles: " + str(total_metatiles))
-print("unique metatiles: " + str(unique_metatiles))
-print("filled metatiles: " + str(filled_metatiles))
-print("metatiles with graphs: " + str(metatiles_with_graphs))
-'''
-
