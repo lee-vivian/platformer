@@ -12,14 +12,25 @@ class Level:
 
     def __init__(self, lvl):
         self.lvl = lvl
-        self.world_x = 240 if lvl == 0 else 960
-        self.world_y = 200 if lvl == 0 else 720
+        self.world_x = self.get_world_xy(lvl)[0]
+        self.world_y = self.get_world_xy(lvl)[1]
+
+    def get_world_xy(self, lvl):
+        if lvl == 0:
+            return (240, 200)
+        elif lvl == 1:
+            return (960, 720)
+        elif lvl == 2:
+            return (800, 160)
+        else:
+            return (960, 720)
 
     def get_all_possible_coords(self, tile_dim):
         coords = []
         for x in range(int(self.world_x / tile_dim)):
             for y in range(int(self.world_y / tile_dim)):
                 coords.append((x * tile_dim, y * tile_dim))
+
         return coords
 
     def get_border_coords(self, tile_dim):
@@ -30,6 +41,7 @@ class Level:
         for ypos in range(int(self.world_y / tile_dim)):
             border_coords.append((0, ypos * tile_dim))
             border_coords.append((self.world_x - tile_dim, ypos * tile_dim))
+
         return border_coords
 
     def get_goal_coords(self):
@@ -38,8 +50,9 @@ class Level:
             goal_coords += [(160, 40)]
         elif self.lvl == 1:
             goal_coords += [(880, 120)]
-        else:
-            print("Level " + str(self.lvl))
+        elif self.lvl == 2:
+            goal_coords += [(720, 80)]
+
         return goal_coords
 
     def get_platform_coords(self):
@@ -71,8 +84,7 @@ class Level:
                 (560, 560), (600, 560), (640, 560), (680, 560), (720, 560),
                 (560, 600), (600, 600), (640, 600), (680, 600), (720, 600), (760, 600),
                 (560, 640), (600, 640), (640, 640), (680, 640), (720, 640), (760, 640), (800, 640)]
-        else:
-            print("Level " + str(self.lvl))
+
         return platform_coords
 
     def platform(self, tile_dim):

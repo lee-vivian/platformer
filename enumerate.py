@@ -17,8 +17,9 @@ Setup
 '''
 
 LEVEL = 1
-RERUN_ENUMERATE_STATES = False
-RERUN_EXTRACT_METATILES = False
+ENUMERATE_STATES = False  # if False, load in from saved file
+EXTRACT_METATILES = False  # if False, load in from saved file
+PRINT_METATILE_STATS = True
 
 level = level.Level(LEVEL)
 
@@ -75,9 +76,12 @@ def enumerate_states(start_state, graph, action_set, platform_list, goal_list):
 Enumerate
 '''
 
+print("---------------------------------------------------")
+print("Enumerating states for Level " + str(LEVEL) + "...")
+
 gpickle_filename = "graph_" + str(LEVEL) + ".gpickle"
 
-if RERUN_ENUMERATE_STATES:
+if ENUMERATE_STATES:
     action_set = []
     for left in [True, False]:
         for right in [True, False]:
@@ -96,13 +100,19 @@ if RERUN_ENUMERATE_STATES:
     print("Saved to: ", gpickle_filename)
 
 else:
+    print("Read from: ", gpickle_filename)
     G = nx.read_gpickle(gpickle_filename)
+
+print("Finished enumerating states for level " + str(LEVEL))
 
 # GET METATILE STATS FROM LEVEL
 
+print("---------------------------------------------------")
+print("Extracting metatiles for Level " + str(LEVEL) + "...")
+
 metatile_filename = "metatiles_" + str(LEVEL) + ".txt"
 
-if RERUN_EXTRACT_METATILES:
+if EXTRACT_METATILES:
     level_metatiles = Metatile.extract_metatiles(level, G)
 
     with open(metatile_filename, 'w') as f:
@@ -112,7 +122,6 @@ if RERUN_EXTRACT_METATILES:
     print("level metatiles saved to: " + metatile_filename)
 
 else:
-
     print("loading level metatiles from: " + metatile_filename)
 
     f = open(metatile_filename, 'r')
@@ -123,34 +132,36 @@ else:
     for metatile_str in metatile_strs:
         level_metatiles.append(Metatile.from_str(metatile_str))
 
-unique_metatiles_dict = {}
-for tile in level_metatiles:
-    tile_str = tile.to_str()
-    if unique_metatiles_dict.get(tile_str) is None:
-        unique_metatiles_dict[tile_str] = 1
+print("Finished extracting metatiles for level " + str(LEVEL))
 
-num_filled_metatiles = 0
-num_metatiles_with_graphs = 0
-metatiles_with_graphs = []
+if PRINT_METATILE_STATS:
 
-for metatile in level_metatiles:
-    if metatile.filled:
-        num_filled_metatiles += 1
+    print("---------------------------------------------------")
 
-    if bool(metatile.graph_as_dict):  # if metatile's graph is not empty
-        num_metatiles_with_graphs += 1
-        metatiles_with_graphs.append(metatile.to_str())
+    num_filled_metatiles = 0
+    num_metatiles_with_graphs = 0
+    unique_metatiles = []
+    num_unique_metatiles_with_graphs = 0
 
-num_unique_metatiles_with_graphs = 0
+    for metatile in level_metatiles:
 
-for metatile in metatiles_with_graphs:
-    if unique_metatiles_dict.get(metatile) is not None:
-        num_unique_metatiles_with_graphs += 1
+        graph_not_empty = bool(metatile.graph_as_dict)
 
-print("---- LEVEL " + str(LEVEL) + " ----")
-print("num total metatiles: ",  len(level_metatiles))
-print("num unique metatiles: ", len(unique_metatiles_dict.keys()))
-print("num filled metatiles: ", num_filled_metatiles)
-print("num metatiles with graphs: ", num_metatiles_with_graphs)
-print("num unique metatiles with graphs: ", num_unique_metatiles_with_graphs)
+        if metatile.filled:
+            num_filled_metatiles += 1
+
+        if graph_not_empty:
+            num_metatiles_with_graphs += 1
+
+        if metatile not in unique_metatiles:
+            unique_metatiles.append(metatile)
+            if graph_not_empty:
+                num_unique_metatiles_with_graphs += 1
+
+    print("---- Metatiles for Level " + str(LEVEL) + " ----")
+    print("num total metatiles: ",  len(level_metatiles))
+    print("num unique metatiles: ", len(unique_metatiles))
+    print("num filled metatiles: ", num_filled_metatiles)
+    print("num metatiles with graphs: ", num_metatiles_with_graphs)
+    print("num unique metatiles with graphs: ", num_unique_metatiles_with_graphs)
 

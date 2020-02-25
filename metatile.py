@@ -12,6 +12,11 @@ class Metatile:
         self.filled = filled
         self.graph_as_dict = graph_as_dict
 
+    def __eq__(self, other):
+        if isinstance(other, Metatile):
+            return self.filled == other.filled and self.graph_as_dict == other.graph_as_dict
+        return False
+
     def to_str(self):
         string = "{'filled': "
         string += "1" if self.filled else "0"
@@ -108,3 +113,4 @@ class Metatile:
             metatiles.append(Metatile(filled, metatile_graph_as_dict))
 
         return metatiles
+
