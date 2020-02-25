@@ -18,7 +18,7 @@ from action import Action
 Setup
 '''
 
-LEVEL = 2
+LEVEL = 1
 level = level.Level(LEVEL)
 
 # Use precomputed graph

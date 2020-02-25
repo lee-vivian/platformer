@@ -2,11 +2,10 @@
 Player State Object
 """
 
-
 class State:
     def __init__(self, x, y, movex, movey, facing_right, onground, goal_reached):
-        self.x = x
-        self.y = y
+        self.x = x  # x coord of center of player
+        self.y = y  # y coord of center of player
         self.movex = movex
         self.movey = movey
         self.facing_right = facing_right

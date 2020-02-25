@@ -12,8 +12,8 @@ ALPHA = (0, 0, 0)
 GRAVITY = 4
 MAX_VEL = 7 * GRAVITY
 STEPS = 5
-PLAYER_W = 74
-PLAYER_H = 40
+HALF_PLAYER_W = int(74 / 2)
+HALF_PLAYER_H = int(40 / 2)
 JUMP = 30
 
 # Level constants
@@ -37,7 +37,7 @@ class Player(pygame.sprite.Sprite):
 
     @staticmethod
     def start_state():
-        return State(TILE, TILE, 0, GRAVITY, True, False, False)
+        return State(TILE + HALF_PLAYER_W, TILE + HALF_PLAYER_H, 0, GRAVITY, True, False, False)
 
     def reset(self):
         self.state = Player.start_state()
@@ -45,8 +45,8 @@ class Player(pygame.sprite.Sprite):
     @staticmethod
     def collide(x, y, tile_list):
         for tile in tile_list:
-            x_overlap = tile.rect.x < (x + PLAYER_W) and (tile.rect.x + TILE) > x
-            y_overlap = tile.rect.y < (y + PLAYER_H) and (tile.rect.y + TILE) > y
+            x_overlap = tile.rect.x < (x + HALF_PLAYER_W) and (tile.rect.x + TILE) > (x - HALF_PLAYER_W)
+            y_overlap = tile.rect.y < (y + HALF_PLAYER_H) and (tile.rect.y + TILE) > (y - HALF_PLAYER_H)
             if x_overlap and y_overlap:
                 return True
         return False
@@ -132,5 +132,5 @@ class Player(pygame.sprite.Sprite):
 
         self.image = self.images[1] if self.state.facing_right else self.images[0]
         self.rect = self.image.get_rect()
-        self.rect.x = self.state.x
-        self.rect.y = self.state.y
+        self.rect.x = self.state.x - HALF_PLAYER_W
+        self.rect.y = self.state.y - HALF_PLAYER_H
