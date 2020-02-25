@@ -160,8 +160,8 @@ if PRINT_METATILE_STATS:
 
     print("---- Metatiles for Level " + str(LEVEL) + " ----")
     print("num total metatiles: ",  len(level_metatiles))
-    print("num unique metatiles: ", len(unique_metatiles))
     print("num filled metatiles: ", num_filled_metatiles)
-    print("num metatiles with graphs: ", num_metatiles_with_graphs)
+    print("num unique metatiles: ", len(unique_metatiles))
     print("num unique metatiles with graphs: ", num_unique_metatiles_with_graphs)
+    print("num metatiles with graphs: ", num_metatiles_with_graphs)
 
