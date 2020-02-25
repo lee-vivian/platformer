@@ -111,15 +111,23 @@ print("---------------------------------------------------")
 print("Extracting metatiles for Level " + str(LEVEL) + "...")
 
 metatile_filename = "metatiles_" + str(LEVEL) + ".txt"
+coord_metatile_dict_filename = "coord_metatile_dict_" + str(LEVEL) + ".txt"
 
 if EXTRACT_METATILES:
-    level_metatiles = Metatile.extract_metatiles(level, G)
+    level_metatiles, coord_metatile_str_dict = Metatile.extract_metatiles(level, G)
 
     with open(metatile_filename, 'w') as f:
         for metatile in level_metatiles:
             f.write("%s\n" % metatile.to_str())
+    f.close()
 
     print("level metatiles saved to: " + metatile_filename)
+
+    with open(coord_metatile_dict_filename, 'w') as f:
+        f.write(str(coord_metatile_str_dict))
+    f.close()
+
+    print("level coord_metatile_dict saved to: " + coord_metatile_dict_filename)
 
 else:
     print("loading level metatiles from: " + metatile_filename)
@@ -131,6 +139,12 @@ else:
     level_metatiles = []
     for metatile_str in metatile_strs:
         level_metatiles.append(Metatile.from_str(metatile_str))
+
+    print("loading level coord_metatile_dict from: " + coord_metatile_dict_filename)
+
+    f = open(coord_metatile_dict_filename, 'r')
+    coord_metatile_str_dict = eval(f.readline())
+    f.close()
 
 print("Finished extracting metatiles for level " + str(LEVEL))
 

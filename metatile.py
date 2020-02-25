@@ -86,6 +86,7 @@ class Metatile:
     def extract_metatiles(level, graph):
 
         metatiles = []
+        coord_metatile_str_dict = {}
 
         tile_coords = level.get_border_coords(TILE) + level.get_platform_coords() + level.get_goal_coords()
         tile_coords_dict = {}
@@ -110,7 +111,8 @@ class Metatile:
                 metatile_graph = Metatile.get_normalized_graph(metatile_graph, metatile_coord)  # normalize graph nodes to coord
 
             metatile_graph_as_dict = nx.to_dict_of_dicts(metatile_graph)
-            metatiles.append(Metatile(filled, metatile_graph_as_dict))
+            new_metatile = Metatile(filled, metatile_graph_as_dict)
+            metatiles.append(new_metatile)
+            coord_metatile_str_dict[metatile_coord] = new_metatile.to_str()
 
-        return metatiles
-
+        return metatiles, coord_metatile_str_dict
