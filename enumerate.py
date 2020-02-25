@@ -19,6 +19,7 @@ Setup
 LEVEL = 1
 ENUMERATE_STATES = False  # if False, load in from saved file
 EXTRACT_METATILES = False  # if False, load in from saved file
+COMPUTE_METATILE_COORDS_DICT = False  # if False, load in from saved file
 PRINT_METATILE_STATS = True
 
 level = level.Level(LEVEL)
@@ -112,9 +113,10 @@ print("Extracting metatiles for Level " + str(LEVEL) + "...")
 
 metatile_filename = "metatiles_" + str(LEVEL) + ".txt"
 coord_metatile_dict_filename = "coord_metatile_dict_" + str(LEVEL) + ".txt"
+metatile_coords_dict_filename = "metatile_coords_dict_" + str(LEVEL) + ".txt"
 
 if EXTRACT_METATILES:
-    level_metatiles, coord_metatile_str_dict = Metatile.extract_metatiles(level, G)
+    level_metatiles, coord_to_metatile_str_dict = Metatile.extract_metatiles(level, G)
 
     with open(metatile_filename, 'w') as f:
         for metatile in level_metatiles:
@@ -124,7 +126,7 @@ if EXTRACT_METATILES:
     print("level metatiles saved to: " + metatile_filename)
 
     with open(coord_metatile_dict_filename, 'w') as f:
-        f.write(str(coord_metatile_str_dict))
+        f.write(str(coord_to_metatile_str_dict))
     f.close()
 
     print("level coord_metatile_dict saved to: " + coord_metatile_dict_filename)
@@ -143,7 +145,7 @@ else:
     print("loading level coord_metatile_dict from: " + coord_metatile_dict_filename)
 
     f = open(coord_metatile_dict_filename, 'r')
-    coord_metatile_str_dict = eval(f.readline())
+    coord_to_metatile_str_dict = eval(f.readline())
     f.close()
 
 print("Finished extracting metatiles for level " + str(LEVEL))
@@ -167,10 +169,40 @@ if PRINT_METATILE_STATS:
         if graph_not_empty:
             num_metatiles_with_graphs += 1
 
-        if metatile not in unique_metatiles:
+        if metatile not in unique_metatiles:  # if metatile has not been seen yet
+
             unique_metatiles.append(metatile)
+
             if graph_not_empty:
                 num_unique_metatiles_with_graphs += 1
+
+    if COMPUTE_METATILE_COORDS_DICT:
+
+        metatile_to_coords_dict = {}
+
+        for metatile in unique_metatiles:
+
+            metatile_to_coords_dict[metatile.to_str()] = []
+            coords_to_check = list(coord_to_metatile_str_dict.keys())
+
+            for coord in coords_to_check:
+                metatile_at_coord = Metatile.from_str(coord_to_metatile_str_dict[coord])
+                if metatile_at_coord == metatile:
+                    metatile_to_coords_dict[metatile.to_str()].append(coord)
+                    del coord_to_metatile_str_dict[coord]  # remove coord from dict to speed up future checks
+
+        with open(metatile_coords_dict_filename, 'w') as f:
+            f.write(str(metatile_to_coords_dict))
+        f.close()
+
+        print("level metatile_to_coords_dict saved to: " + metatile_coords_dict_filename)
+
+    else:
+        print("loading level metatile_to_coords_dict from: " + metatile_coords_dict_filename)
+        f = open(metatile_coords_dict_filename, 'r')
+        metatile_to_coords_dict = eval(f.readline())
+        f.close()
+
 
     print("---- Metatiles for Level " + str(LEVEL) + " ----")
     print("num total metatiles: ",  len(level_metatiles))
@@ -179,3 +211,7 @@ if PRINT_METATILE_STATS:
     print("num unique metatiles with graphs: ", num_unique_metatiles_with_graphs)
     print("num metatiles with graphs: ", num_metatiles_with_graphs)
 
+    print("--- Tile Coords Grouped by Metatile for Level " + str(LEVEL) + " ----")
+    for coords_with_same_metatile in metatile_to_coords_dict.values():
+        if len(coords_with_same_metatile) > 1:
+            print(coords_with_same_metatile)
