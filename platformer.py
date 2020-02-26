@@ -21,15 +21,17 @@ Setup
 
 LEVEL = 1
 USE_GRAPH = True
-DRAW_METATILE_LABELS = True
+DRAW_METATILE_LABELS = False
 DRAW_DUPLICATE_METATILES_ONLY = True
+PLAYER_IMG = player.PLAYER_IMG
 
 # Create level
 level = level.Level(LEVEL)
 
 # Saved level filepaths
-graph_file_path = "level_saved_files/enumerated_state_graphs/graph_" + str(LEVEL) + ".gpickle"
-metatile_coords_dict_filepath = "level_saved_files/metatile_coords_dicts/metatile_coords_dict_" + str(LEVEL) + ".txt"
+level_saved_files_dir = "level_saved_files_" + PLAYER_IMG + "/"
+graph_file_path = level_saved_files_dir + "enumerated_state_graphs/graph_" + str(LEVEL) + ".gpickle"
+metatile_coords_dict_filepath = level_saved_files_dir + "metatile_coords_dicts/metatile_coords_dict_" + str(LEVEL) + ".txt"
 
 # Use precomputed graph
 precomputed_graph = None if not USE_GRAPH else nx.read_gpickle(graph_file_path)

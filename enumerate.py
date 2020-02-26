@@ -21,6 +21,7 @@ ENUMERATE_STATES = False  # if False, load in from saved file
 EXTRACT_METATILES = False  # if False, load in from saved file
 COMPUTE_METATILE_COORDS_DICT = False  # if False, load in from saved file
 PRINT_METATILE_STATS = True
+PLAYER_IMG = player.PLAYER_IMG  # block (40x40) or turtle (74x40)
 
 level = level.Level(LEVEL)
 
@@ -80,7 +81,7 @@ Enumerate
 print("---------------------------------------------------")
 print("Enumerating states for Level " + str(LEVEL) + "...")
 
-level_saved_files_dir = "level_saved_files/"
+level_saved_files_dir = "level_saved_files_" + PLAYER_IMG + "/"
 metatiles_dir = level_saved_files_dir + "metatiles/"
 enumerated_state_graphs_dir = level_saved_files_dir + "enumerated_state_graphs/"
 coord_metatile_dicts_dir = level_saved_files_dir + "coord_metatile_dicts/"
