@@ -22,6 +22,8 @@ class Level:
             return (960, 720)
         elif lvl == 2:
             return (800, 160)
+        elif lvl == 3:
+            return (320, 320)
         else:
             return (960, 720)
 
@@ -52,6 +54,8 @@ class Level:
             goal_coords += [(880, 120)]
         elif self.lvl == 2:
             goal_coords += [(720, 80)]
+        elif self.lvl == 3:
+            goal_coords += [(240, 240)]
 
         return goal_coords
 
