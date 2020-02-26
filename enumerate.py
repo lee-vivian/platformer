@@ -80,7 +80,20 @@ Enumerate
 print("---------------------------------------------------")
 print("Enumerating states for Level " + str(LEVEL) + "...")
 
-gpickle_filename = "graph_" + str(LEVEL) + ".gpickle"
+level_saved_files_dir = "level_saved_files/"
+metatiles_dir = level_saved_files_dir + "metatiles/"
+enumerated_state_graphs_dir = level_saved_files_dir + "enumerated_state_graphs/"
+coord_metatile_dicts_dir = level_saved_files_dir + "coord_metatile_dicts/"
+metatile_coords_dicts_dir = level_saved_files_dir + "metatile_coords_dicts/"
+
+if not os.path.exists(level_saved_files_dir):
+    os.makedirs(level_saved_files_dir)
+    os.makedirs(metatiles_dir)
+    os.makedirs(enumerated_state_graphs_dir)
+    os.makedirs(coord_metatile_dicts_dir)
+    os.makedirs(metatile_coords_dicts_dir)
+
+gpickle_filepath = enumerated_state_graphs_dir + "graph_" + str(LEVEL) + ".gpickle"
 
 if ENUMERATE_STATES:
     action_set = []
@@ -97,12 +110,12 @@ if ENUMERATE_STATES:
     print("Edges: ", G.number_of_edges())
 
     # SAVE GRAPH
-    nx.write_gpickle(G, gpickle_filename)
-    print("Saved to: ", gpickle_filename)
+    nx.write_gpickle(G, gpickle_filepath)
+    print("Saved to: ", gpickle_filepath)
 
 else:
-    print("Read from: ", gpickle_filename)
-    G = nx.read_gpickle(gpickle_filename)
+    print("Read from: ", gpickle_filepath)
+    G = nx.read_gpickle(gpickle_filepath)
 
 print("Finished enumerating states for level " + str(LEVEL))
 
@@ -111,30 +124,30 @@ print("Finished enumerating states for level " + str(LEVEL))
 print("---------------------------------------------------")
 print("Extracting metatiles for Level " + str(LEVEL) + "...")
 
-metatile_filename = "metatiles_" + str(LEVEL) + ".txt"
-coord_metatile_dict_filename = "coord_metatile_dict_" + str(LEVEL) + ".txt"
-metatile_coords_dict_filename = "metatile_coords_dict_" + str(LEVEL) + ".txt"
+metatile_filepath = metatiles_dir + "metatiles_" + str(LEVEL) + ".txt"
+coord_metatile_dict_filepath = coord_metatile_dicts_dir + "coord_metatile_dict_" + str(LEVEL) + ".txt"
+metatile_coords_dict_filepath = metatile_coords_dicts_dir + "metatile_coords_dict_" + str(LEVEL) + ".txt"
 
 if EXTRACT_METATILES:
     level_metatiles, coord_to_metatile_str_dict = Metatile.extract_metatiles(level, G)
 
-    with open(metatile_filename, 'w') as f:
+    with open(metatile_filepath, 'w') as f:
         for metatile in level_metatiles:
             f.write("%s\n" % metatile.to_str())
     f.close()
 
-    print("level metatiles saved to: " + metatile_filename)
+    print("level metatiles saved to: " + metatile_filepath)
 
-    with open(coord_metatile_dict_filename, 'w') as f:
+    with open(coord_metatile_dict_filepath, 'w') as f:
         f.write(str(coord_to_metatile_str_dict))
     f.close()
 
-    print("level coord_metatile_dict saved to: " + coord_metatile_dict_filename)
+    print("level coord_metatile_dict saved to: " + coord_metatile_dict_filepath)
 
 else:
-    print("loading level metatiles from: " + metatile_filename)
+    print("loading level metatiles from: " + metatile_filepath)
 
-    f = open(metatile_filename, 'r')
+    f = open(metatile_filepath, 'r')
     metatile_strs = f.readlines()
     f.close()
 
@@ -142,9 +155,9 @@ else:
     for metatile_str in metatile_strs:
         level_metatiles.append(Metatile.from_str(metatile_str))
 
-    print("loading level coord_metatile_dict from: " + coord_metatile_dict_filename)
+    print("loading level coord_metatile_dict from: " + coord_metatile_dict_filepath)
 
-    f = open(coord_metatile_dict_filename, 'r')
+    f = open(coord_metatile_dict_filepath, 'r')
     coord_to_metatile_str_dict = eval(f.readline())
     f.close()
 
@@ -191,18 +204,17 @@ if PRINT_METATILE_STATS:
                     metatile_to_coords_dict[metatile.to_str()].append(coord)
                     del coord_to_metatile_str_dict[coord]  # remove coord from dict to speed up future checks
 
-        with open(metatile_coords_dict_filename, 'w') as f:
+        with open(metatile_coords_dict_filepath, 'w') as f:
             f.write(str(metatile_to_coords_dict))
         f.close()
 
-        print("level metatile_to_coords_dict saved to: " + metatile_coords_dict_filename)
+        print("level metatile_to_coords_dict saved to: " + metatile_coords_dict_filepath)
 
     else:
-        print("loading level metatile_to_coords_dict from: " + metatile_coords_dict_filename)
-        f = open(metatile_coords_dict_filename, 'r')
+        print("loading level metatile_to_coords_dict from: " + metatile_coords_dict_filepath)
+        f = open(metatile_coords_dict_filepath, 'r')
         metatile_to_coords_dict = eval(f.readline())
         f.close()
-
 
     print("---- Metatiles for Level " + str(LEVEL) + " ----")
     print("num total metatiles: ",  len(level_metatiles))
