@@ -20,6 +20,7 @@ Setup
 
 LEVEL = 1
 level = level.Level(LEVEL)
+DRAW_METATILE_LABELS = False
 
 # Use precomputed graph
 USE_GRAPH = True
@@ -46,6 +47,26 @@ player_list.add(player)
 # Level
 platform_list = level.platform(TILE)
 goal_list = level.goal()
+
+if DRAW_METATILE_LABELS:
+
+    FONT_COLOR = (255, 255, 100)
+    LABEL_PADDING = (8, 12)
+    label_font = pygame.font.SysFont('Comic Sans MS', 20)
+
+    metatile_coords_dict_filename = "metatile_coords_dict_" + str(LEVEL) + ".txt"
+    f = open(metatile_coords_dict_filename, 'r')
+    metatile_to_coords_dict = eval(f.readline())
+    f.close()
+
+    metatile_labels = []
+    metatile_count = 0
+    for metatile in metatile_to_coords_dict.keys():
+        metatile_count += 1
+        label_surface = label_font.render(str(metatile_count), False, FONT_COLOR)
+        for coord in metatile_to_coords_dict[metatile]:
+            metatile_labels.append((label_surface, coord[0], coord[1]))
+
 
 '''
 Main Loop
@@ -87,8 +108,19 @@ while main:
     player.update(Action(key_left, key_right, key_jump), platform_list, goal_list, precomputed_graph, edge_actions_dict)
     key_jump = False
 
-    player_list.draw(world)  # draw player
     platform_list.draw(world)  # draw platforms tiles
-    goal_list.draw(world)  # draw goal tiles
+
+    if not DRAW_METATILE_LABELS:
+        player_list.draw(world)  # draw player
+        goal_list.draw(world)  # draw goal tiles
+
+    if DRAW_METATILE_LABELS:
+        for coord in level.get_all_possible_coords(TILE):
+            pygame.draw.rect(world, FONT_COLOR, (coord[0], coord[1], TILE, TILE), 1)
+
+        for label in metatile_labels:
+            surface, label_x, label_y = label
+            world.blit(surface, (label_x + LABEL_PADDING[0], label_y + LABEL_PADDING[1]))
+
     pygame.display.flip()
     clock.tick(FPS)
