@@ -13,19 +13,26 @@ import networkx as nx
 import player
 import level
 from action import Action
+# from metatile import Metatile
 
 '''
 Setup
 '''
 
 LEVEL = 1
+USE_GRAPH = True
+DRAW_METATILE_LABELS = True
+DRAW_DUPLICATE_METATILES_ONLY = True
+
+# Create level
 level = level.Level(LEVEL)
-DRAW_METATILE_LABELS = False
+
+# Saved level filepaths
+graph_file_path = "level_saved_files/enumerated_state_graphs/graph_" + str(LEVEL) + ".gpickle"
+metatile_coords_dict_filepath = "level_saved_files/metatile_coords_dicts/metatile_coords_dict_" + str(LEVEL) + ".txt"
 
 # Use precomputed graph
-USE_GRAPH = True
-file_path = "graph_" + str(LEVEL) + ".gpickle"
-precomputed_graph = None if not USE_GRAPH else nx.read_gpickle(file_path)
+precomputed_graph = None if not USE_GRAPH else nx.read_gpickle(graph_file_path)
 edge_actions_dict = None if not USE_GRAPH else nx.get_edge_attributes(precomputed_graph, "action")
 
 # Background
@@ -48,24 +55,47 @@ player_list.add(player)
 platform_list = level.platform(TILE)
 goal_list = level.goal()
 
+
+def get_metatile_labels_at_coords(coords, count, font, color):
+    new_labels = []
+    label_surface = font.render(str(count), False, color)
+    for coord in coords:
+        new_labels.append((label_surface, coord[0], coord[1]))
+    return new_labels
+
+
 if DRAW_METATILE_LABELS:
 
     FONT_COLOR = (255, 255, 100)
     LABEL_PADDING = (8, 12)
-    label_font = pygame.font.SysFont('Comic Sans MS', 20)
+    LABEL_FONT = pygame.font.SysFont('Comic Sans MS', 20)
 
-    metatile_coords_dict_filename = "metatile_coords_dict_" + str(LEVEL) + ".txt"
-    f = open(metatile_coords_dict_filename, 'r')
+    f = open(metatile_coords_dict_filepath, 'r')
     metatile_to_coords_dict = eval(f.readline())
     f.close()
 
     metatile_labels = []
     metatile_count = 0
+
     for metatile in metatile_to_coords_dict.keys():
-        metatile_count += 1
-        label_surface = label_font.render(str(metatile_count), False, FONT_COLOR)
-        for coord in metatile_to_coords_dict[metatile]:
-            metatile_labels.append((label_surface, coord[0], coord[1]))
+
+        coords = metatile_to_coords_dict[metatile]
+
+        if DRAW_DUPLICATE_METATILES_ONLY:
+            if len(coords) > 1:
+                metatile_count += 1
+                metatile_labels += get_metatile_labels_at_coords(coords, metatile_count, LABEL_FONT, FONT_COLOR)
+        else:
+            metatile_count += 1
+            metatile_labels += get_metatile_labels_at_coords(coords, metatile_count, LABEL_FONT, FONT_COLOR)
+
+    # if LEVEL == 1:
+    #     keys = list(metatile_to_coords_dict.keys())
+    #     print(keys[0])  # gray block
+    #     print(keys[213])  # pizza tile
+    #     gray_block_metatile = Metatile.from_str(keys[0])
+    #     pizza_metatile = Metatile.from_str(keys[213])
+    #     print(gray_block_metatile == pizza_metatile)
 
 
 '''
