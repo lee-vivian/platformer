@@ -12,8 +12,16 @@ ALPHA = (0, 0, 0)
 GRAVITY = 4
 MAX_VEL = 7 * GRAVITY
 STEPS = 5
-HALF_PLAYER_W = int(74 / 2)
-HALF_PLAYER_H = int(40 / 2)
+
+PLAYER_IMG = 'block'
+
+if PLAYER_IMG == 'turtle':
+    HALF_PLAYER_W = int(74 / 2)
+    HALF_PLAYER_H = int(40 / 2)
+else:
+    HALF_PLAYER_W = int(40 / 2)
+    HALF_PLAYER_H = int(40 / 2)
+
 JUMP = 30
 
 # Level constants
@@ -25,8 +33,8 @@ class Player(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.state = None
         self.reset()
-        img_right = pygame.image.load(os.path.join('images', 'player_right.png')).convert()
-        img_left = pygame.image.load(os.path.join('images', 'player_left.png')).convert()
+        img_right = pygame.image.load(os.path.join('images', PLAYER_IMG + '_right.png')).convert()
+        img_left = pygame.image.load(os.path.join('images', PLAYER_IMG + '_left.png')).convert()
         img_right.convert_alpha()
         img_right.set_colorkey(ALPHA)
         img_left.convert_alpha()
