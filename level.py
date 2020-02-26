@@ -55,7 +55,7 @@ class Level:
         elif self.lvl == 2:
             goal_coords += [(720, 80)]
         elif self.lvl == 3:
-            goal_coords += [(240, 240)]
+            goal_coords += [(240, 160)]
 
         return goal_coords
 
@@ -88,6 +88,10 @@ class Level:
                 (560, 560), (600, 560), (640, 560), (680, 560), (720, 560),
                 (560, 600), (600, 600), (640, 600), (680, 600), (720, 600), (760, 600),
                 (560, 640), (600, 640), (640, 640), (680, 640), (720, 640), (760, 640), (800, 640)]
+        elif self.lvl == 3:
+            platform_coords += [
+                (200, 200), (240, 200)
+            ]
 
         return platform_coords
 
