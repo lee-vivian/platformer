@@ -155,13 +155,16 @@ while main:
     for e in entities_to_draw:
         world.blit(e.image, camera.apply(e))
 
-    # if DRAW_METATILE_LABELS:
-    #     for coord in level.get_all_possible_coords():
-    #         pygame.draw.rect(world, FONT_COLOR, (coord[0], coord[1], TILE, TILE), 1)
-    #
-    #     for label in metatile_labels:
-    #         surface, label_x, label_y = label
-    #         world.blit(surface, (label_x + LABEL_PADDING[0], label_y + LABEL_PADDING[1]))
+    if DRAW_METATILE_LABELS:
+        for coord in level.get_all_possible_coords():
+            tile_rect = pygame.Rect(coord[0], coord[1], TILE, TILE)
+            tile_rect = camera.apply_to_rect(pygame.Rect(coord[0], coord[1], TILE, TILE))  # adjust based on camera
+            pygame.draw.rect(world, FONT_COLOR, tile_rect, 1)
+
+        for label in metatile_labels:
+            surface, label_x, label_y = label
+            label_x, label_y = camera.apply_to_coord((label_x, label_y))
+            world.blit(surface, (label_x + LABEL_PADDING[0], label_y + LABEL_PADDING[1]))
 
     pygame.display.flip()
     clock.tick(FPS)

@@ -14,6 +14,12 @@ class Camera:
     def apply(self, target):
         return target.rect.move(self.state.topleft)  # recalculate position of target on screen to scroll
 
+    def apply_to_rect(self, rect):
+        return pygame.Rect(rect.x + self.state.topleft[0], rect.y + self.state.topleft[1], rect.width, rect.height)
+
+    def apply_to_coord(self, coord):
+        return (coord[0] + self.state.topleft[0], coord[1] + self.state.topleft[1])
+
     def update(self, target):
         self.state = self.camera_function(self.state, target.rect, self.world_dim)
 
