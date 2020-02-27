@@ -12,8 +12,9 @@ import networkx as nx
 
 import player
 import level
-from level import TILE
+from level import TILE, MAX_WORLD_X, MAX_WORLD_Y
 from action import Action
+from camera import Camera
 # from metatile import Metatile
 
 '''
@@ -41,9 +42,11 @@ edge_actions_dict = None if not USE_GRAPH else nx.get_edge_attributes(precompute
 # Background
 FPS = 40  # frame rate
 ANI = 4  # animation cycles
+WORLD_X = min(level.world_x, MAX_WORLD_X)
+WORLD_Y = min(level.world_y, MAX_WORLD_Y)
 clock = pygame.time.Clock()
 pygame.init()
-world = pygame.display.set_mode([level.world_x, level.world_y])
+world = pygame.display.set_mode([WORLD_X, WORLD_Y])
 backdrop = pygame.image.load(os.path.join('images', 'platform_bkgd.png')).convert()
 backdropbox = world.get_rect()
 
@@ -56,6 +59,9 @@ player_list.add(player)
 # Level
 platform_list = level.platform()
 goal_list = level.goal()
+
+# Camera
+camera = Camera(Camera.camera_function, level.world_x, level.world_y, WORLD_X, WORLD_Y)
 
 
 def get_metatile_labels_at_coords(coords, count, font, color):
@@ -137,22 +143,25 @@ while main:
                 key_right = False
 
     world.blit(backdrop, backdropbox)
+    camera.update(player)  # set camera to track player
     player.update(Action(key_left, key_right, key_jump), platform_list, goal_list, precomputed_graph, edge_actions_dict)
     key_jump = False
 
-    platform_list.draw(world)  # draw platforms tiles
+    entities_to_draw = []
+    entities_to_draw += list(platform_list) # draw platforms tiles
+    entities_to_draw += list(player_list)  # draw player
+    entities_to_draw += list(goal_list)  # draw goal tiles
 
-    if not DRAW_METATILE_LABELS:
-        player_list.draw(world)  # draw player
-        goal_list.draw(world)  # draw goal tiles
+    for e in entities_to_draw:
+        world.blit(e.image, camera.apply(e))
 
-    if DRAW_METATILE_LABELS:
-        for coord in level.get_all_possible_coords():
-            pygame.draw.rect(world, FONT_COLOR, (coord[0], coord[1], TILE, TILE), 1)
-
-        for label in metatile_labels:
-            surface, label_x, label_y = label
-            world.blit(surface, (label_x + LABEL_PADDING[0], label_y + LABEL_PADDING[1]))
+    # if DRAW_METATILE_LABELS:
+    #     for coord in level.get_all_possible_coords():
+    #         pygame.draw.rect(world, FONT_COLOR, (coord[0], coord[1], TILE, TILE), 1)
+    #
+    #     for label in metatile_labels:
+    #         surface, label_x, label_y = label
+    #         world.blit(surface, (label_x + LABEL_PADDING[0], label_y + LABEL_PADDING[1]))
 
     pygame.display.flip()
     clock.tick(FPS)
