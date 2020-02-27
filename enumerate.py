@@ -8,6 +8,7 @@ import networkx as nx
 
 import player
 import level
+from level import MAX_WORLD_X, MAX_WORLD_Y
 from player import Player
 from action import Action
 from metatile import Metatile
@@ -28,9 +29,11 @@ level = level.Level(LEVEL)
 # Background
 FPS = 40  # frame rate
 ANI = 4  # animation cycles
+WORLD_X = min(level.world_x, MAX_WORLD_X)
+WORLD_Y = min(level.world_y, MAX_WORLD_Y)
 clock = pygame.time.Clock()
 pygame.init()
-world = pygame.display.set_mode([level.world_x, level.world_y])
+world = pygame.display.set_mode([WORLD_X, WORLD_Y])
 backdrop = pygame.image.load(os.path.join('images', 'platform_bkgd.png')).convert()
 backdropbox = world.get_rect()
 
