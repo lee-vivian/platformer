@@ -21,8 +21,20 @@ from camera import Camera
 Setup
 '''
 
-LEVEL = 5
-USE_GRAPH = True
+'''
+Levels
+
+0 = mini level
+1 = default level
+2 = long hallway level
+3 = mini level with simlar goal platform setup as level 1
+4 = default level with different goal position
+5 = extra-long hallway level (requires x-scrolling)
+6 = large level (requires xy-scrolling)
+'''
+
+LEVEL = 6
+USE_GRAPH = False
 DRAW_METATILE_LABELS = False
 DRAW_DUPLICATE_METATILES_ONLY = True
 PLAYER_IMG = player.PLAYER_IMG
