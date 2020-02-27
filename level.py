@@ -5,6 +5,9 @@ Level Object
 import pygame
 import tile
 
+TILE = 40
+MAX_WORLD_X = 960
+MAX_WORLD_Y = 720
 PIZZA_ALPHA = (255, 255, 255)
 
 
@@ -18,31 +21,31 @@ class Level:
     def get_world_xy(self, lvl):
         if lvl == 0:
             return (240, 200)
-        elif lvl == 1:
-            return (960, 720)
         elif lvl == 2:
             return (800, 160)
         elif lvl == 3:
             return (320, 320)
+        elif lvl == 5:
+            return (1000, 160)
         else:
-            return (960, 720)
+            return (MAX_WORLD_X, MAX_WORLD_Y)
 
-    def get_all_possible_coords(self, tile_dim):
+    def get_all_possible_coords(self):
         coords = []
-        for x in range(int(self.world_x / tile_dim)):
-            for y in range(int(self.world_y / tile_dim)):
-                coords.append((x * tile_dim, y * tile_dim))
+        for x in range(int(self.world_x / TILE)):
+            for y in range(int(self.world_y / TILE)):
+                coords.append((x * TILE, y * TILE))
 
         return coords
 
-    def get_border_coords(self, tile_dim):
+    def get_border_coords(self):
         border_coords = []
-        for xpos in range(int(self.world_x / tile_dim)):
-            border_coords.append((xpos * tile_dim, 0))
-            border_coords.append((xpos * tile_dim, self.world_y - tile_dim))
-        for ypos in range(int(self.world_y / tile_dim)):
-            border_coords.append((0, ypos * tile_dim))
-            border_coords.append((self.world_x - tile_dim, ypos * tile_dim))
+        for xpos in range(int(self.world_x / TILE)):
+            border_coords.append((xpos * TILE, 0))
+            border_coords.append((xpos * TILE, self.world_y - TILE))
+        for ypos in range(int(self.world_y / TILE)):
+            border_coords.append((0, ypos * TILE))
+            border_coords.append((self.world_x - TILE, ypos * TILE))
 
         return border_coords
 
@@ -56,6 +59,10 @@ class Level:
             goal_coords += [(720, 80)]
         elif self.lvl == 3:
             goal_coords += [(240, 160)]
+        elif self.lvl == 4:
+            goal_coords += [(880, 240)]
+        elif self.lvl == 5:
+            goal_coords += [(920, 80)]
 
         return goal_coords
 
@@ -66,7 +73,7 @@ class Level:
                 (120, 120), (160, 120),
                 (160, 80)
             ]
-        elif self.lvl == 1:
+        elif self.lvl in [1, 4]:
             platform_coords += [
                 (0, 400), (40, 400), (80, 400), (120, 400),
                 (240, 320), (280, 320), (320, 320),
@@ -95,9 +102,9 @@ class Level:
 
         return platform_coords
 
-    def platform(self, tile_dim):
+    def platform(self):
         platform_list = pygame.sprite.Group()
-        platform_coords = self.get_border_coords(tile_dim) + self.get_platform_coords()
+        platform_coords = self.get_border_coords() + self.get_platform_coords()
         for (x, y) in platform_coords:
             platform = tile.Tile(x, y, 'tile.png')
             platform_list.add(platform)

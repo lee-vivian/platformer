@@ -2,6 +2,7 @@ import pygame
 import os
 
 from state import State
+from level import TILE
 
 '''
 Player Object
@@ -23,9 +24,6 @@ else:
     HALF_PLAYER_H = int(40 / 2)
 
 JUMP = 30
-
-# Level constants
-TILE = 40
 
 
 class Player(pygame.sprite.Sprite):

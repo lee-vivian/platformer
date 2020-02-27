@@ -12,6 +12,7 @@ import networkx as nx
 
 import player
 import level
+from level import TILE
 from action import Action
 # from metatile import Metatile
 
@@ -19,7 +20,7 @@ from action import Action
 Setup
 '''
 
-LEVEL = 1
+LEVEL = 5
 USE_GRAPH = True
 DRAW_METATILE_LABELS = False
 DRAW_DUPLICATE_METATILES_ONLY = True
@@ -38,7 +39,6 @@ precomputed_graph = None if not USE_GRAPH else nx.read_gpickle(graph_file_path)
 edge_actions_dict = None if not USE_GRAPH else nx.get_edge_attributes(precomputed_graph, "action")
 
 # Background
-TILE = 40
 FPS = 40  # frame rate
 ANI = 4  # animation cycles
 clock = pygame.time.Clock()
@@ -54,7 +54,7 @@ player_list = pygame.sprite.Group()
 player_list.add(player)
 
 # Level
-platform_list = level.platform(TILE)
+platform_list = level.platform()
 goal_list = level.goal()
 
 
@@ -147,7 +147,7 @@ while main:
         goal_list.draw(world)  # draw goal tiles
 
     if DRAW_METATILE_LABELS:
-        for coord in level.get_all_possible_coords(TILE):
+        for coord in level.get_all_possible_coords():
             pygame.draw.rect(world, FONT_COLOR, (coord[0], coord[1], TILE, TILE), 1)
 
         for label in metatile_labels:

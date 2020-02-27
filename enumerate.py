@@ -16,7 +16,7 @@ from metatile import Metatile
 Setup
 '''
 
-LEVEL = 1
+LEVEL = 5
 ENUMERATE_STATES = False  # if False, load in from saved file
 EXTRACT_METATILES = False  # if False, load in from saved file
 COMPUTE_METATILE_COORDS_DICT = False  # if False, load in from saved file
@@ -26,7 +26,6 @@ PLAYER_IMG = player.PLAYER_IMG  # block (40x40) or turtle (74x40)
 level = level.Level(LEVEL)
 
 # Background
-TILE = 40
 FPS = 40  # frame rate
 ANI = 4  # animation cycles
 clock = pygame.time.Clock()
@@ -42,7 +41,7 @@ player_list = pygame.sprite.Group()
 player_list.add(player)
 
 # Level
-platform_list = level.platform(TILE)
+platform_list = level.platform()
 goal_list = level.goal()
 
 

@@ -4,7 +4,7 @@ Metatile Object that describes each grid cell in a Level
 
 import networkx as nx
 
-TILE = 40
+from level import TILE
 
 
 class Metatile:
@@ -88,12 +88,12 @@ class Metatile:
         metatiles = []
         coord_to_metatile_str_dict = {}
 
-        tile_coords = level.get_border_coords(TILE) + level.get_platform_coords() + level.get_goal_coords()
+        tile_coords = level.get_border_coords() + level.get_platform_coords() + level.get_goal_coords()
         tile_coords_dict = {}
         for coord in tile_coords:
             tile_coords_dict[coord] = 1
 
-        all_possible_coords = level.get_all_possible_coords(TILE)
+        all_possible_coords = level.get_all_possible_coords()
         node_spatial_hash = Metatile.get_node_spatial_hash(graph, all_possible_coords)
 
         for metatile_coord in all_possible_coords:
