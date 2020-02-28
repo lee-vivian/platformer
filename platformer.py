@@ -32,7 +32,6 @@ Setup
 # 5 = extra-long hallway level (requires x-scrolling)
 # 6 = large level (requires xy-scrolling)
 
-
 LEVEL = "mario-1-1.txt"
 
 USE_GRAPH = False
@@ -58,13 +57,14 @@ edge_actions_dict = None if not USE_GRAPH else nx.get_edge_attributes(precompute
 # Background
 FPS = 40  # frame rate
 ANI = 4  # animation cycles
-WORLD_X = min(level.width, MAX_HEIGHT)
-WORLD_Y = min(level.height, MAX_WIDTH)
+WORLD_X = min(level.width, MAX_WIDTH)
+WORLD_Y = min(level.height, MAX_HEIGHT)
 clock = pygame.time.Clock()
 pygame.init()
 world = pygame.display.set_mode([WORLD_X, WORLD_Y])
-backdrop = pygame.image.load(os.path.join('images', 'platform_bkgd.png')).convert()
-backdropbox = world.get_rect()
+BACKGROUND_COLOR = (23, 23, 23)
+# backdrop = pygame.image.load(os.path.join('images', 'platform_bkgd.png')).convert()
+# backdropbox = world.get_rect()
 
 # Player
 player = player.Player()
@@ -162,7 +162,7 @@ while main:
             elif event.key in [pygame.K_RIGHT, ord('d')]:
                 key_right = False
 
-    world.blit(backdrop, backdropbox)
+    world.fill(BACKGROUND_COLOR)
     camera.update(player)  # set camera to track player
     player.update(Action(key_left, key_right, key_jump), platform_list, goal_list, precomputed_graph, edge_actions_dict)
     key_jump = False

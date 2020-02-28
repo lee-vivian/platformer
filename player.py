@@ -11,8 +11,8 @@ Player Object
 # Player constants
 ALPHA = (0, 0, 0)
 GRAVITY = 4
-MAX_VEL = 7 * GRAVITY
-STEPS = 5
+MAX_VEL = 10 * GRAVITY
+STEPS = 8
 
 PLAYER_IMG = 'block'
 
@@ -22,8 +22,6 @@ if PLAYER_IMG == 'turtle':
 else:
     HALF_PLAYER_W = int(40 / 2)
     HALF_PLAYER_H = int(40 / 2)
-
-JUMP = 30
 
 
 class Player(pygame.sprite.Sprite):

@@ -4,7 +4,7 @@ Level Object
 
 TILE_DIM = 40
 TILE_CHARS = ['#', '?', 'B']
-GOAL_CHARS = ['*']
+GOAL_CHARS = ['!']
 
 MAX_WIDTH = 1200
 MAX_HEIGHT = 360
@@ -37,7 +37,9 @@ class Level:
 
         f = open(LEVEL_STRUCTURES_DIR + filepath, 'r')
 
-        for line in f:
+        for cur_line in f:
+
+            line = cur_line.rstrip()
 
             # Setup
             if level_width == 0:
@@ -51,13 +53,10 @@ class Level:
 
                 char_coord = (char_index * TILE_DIM, level_height * TILE_DIM)
 
-                if char_index in [0, level_width-1]:  # add left and right border tiles
+                if char_index == 0 or char_index == level_width-1:  # add left and right border tiles
                     platform_coords.append(char_coord)
                 else:
-                    print("char index: ", char_index - 1)
-                    print("line len: ", len(line))
                     char = line[char_index - 1]
-                    print(char_index - 1)
                     if char in TILE_CHARS:
                         platform_coords.append(char_coord)
                     elif char in GOAL_CHARS:
@@ -66,6 +65,11 @@ class Level:
             level_height += 1
 
         f.close()
+
+        # add floor tiles
+        for x in range(level_width):
+            platform_coords.append((x * TILE_DIM, level_height * TILE_DIM))
+        level_height += 1
 
         return Level(filepath, level_width * TILE_DIM, level_height * TILE_DIM, platform_coords, goal_coords)
 
