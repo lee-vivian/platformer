@@ -5,6 +5,7 @@ Enumerate the state space of a level and extract level metatiles
 import pygame
 import os
 import networkx as nx
+import datetime
 
 import player
 import level
@@ -17,7 +18,7 @@ from metatile import Metatile
 Setup
 '''
 
-LEVEL = 5
+LEVEL = 6
 ENUMERATE_STATES = False  # if False, load in from saved file
 EXTRACT_METATILES = False  # if False, load in from saved file
 COMPUTE_METATILE_COORDS_DICT = False  # if False, load in from saved file
@@ -80,6 +81,8 @@ def enumerate_states(start_state, graph, action_set, platform_list, goal_list):
 Enumerate
 '''
 
+print("Start: ", datetime.datetime.now())
+
 print("---------------------------------------------------")
 print("Enumerating states for Level " + str(LEVEL) + "...")
 
@@ -121,6 +124,7 @@ else:
     G = nx.read_gpickle(gpickle_filepath)
 
 print("Finished enumerating states for level " + str(LEVEL))
+print("Time: ", datetime.datetime.now())
 
 # GET METATILE STATS FROM LEVEL
 
@@ -165,10 +169,12 @@ else:
     f.close()
 
 print("Finished extracting metatiles for level " + str(LEVEL))
+print("Time: ", datetime.datetime.now())
 
 if PRINT_METATILE_STATS:
 
     print("---------------------------------------------------")
+    print("Printing metatile stats for level " + str(LEVEL))
 
     num_filled_metatiles = 0
     num_metatiles_with_graphs = 0
@@ -230,3 +236,6 @@ if PRINT_METATILE_STATS:
     for coords_with_same_metatile in metatile_to_coords_dict.values():
         if len(coords_with_same_metatile) > 1:
             print(coords_with_same_metatile)
+
+    print("Finished printing metatile stats for level " + str(LEVEL))
+    print("Time: ", datetime.datetime.now())
