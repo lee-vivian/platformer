@@ -7,7 +7,6 @@ acknowledgements: followed tutorial from opensource.com
 
 import pygame
 import sys
-import os
 import networkx as nx
 
 import player
@@ -21,17 +20,7 @@ from camera import Camera
 Setup
 '''
 
-
-# Levels
-#
-# 0 = mini level
-# 1 = default level
-# 2 = long hallway level
-# 3 = mini level with simlar goal platform setup as level 1
-# 4 = default level with different goal position
-# 5 = extra-long hallway level (requires x-scrolling)
-# 6 = large level (requires xy-scrolling)
-
+GAME = "super_mario_bros"
 LEVEL = "mario-1-1.txt"
 
 USE_GRAPH = False
@@ -43,7 +32,7 @@ PIZZA_ALPHA = (255, 255, 255)
 
 
 # Create level
-level = Level.generate_level_from_file(LEVEL)
+level = Level.generate_level_from_file(GAME + "/" + LEVEL)
 
 # Saved level filepaths
 level_saved_files_dir = "level_saved_files_" + PLAYER_IMG + "/"

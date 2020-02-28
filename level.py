@@ -7,7 +7,7 @@ TILE_CHARS = ['#', '?', 'B']
 GOAL_CHARS = ['!']
 
 MAX_WIDTH = 1200
-MAX_HEIGHT = 360
+MAX_HEIGHT = 600
 
 LEVEL_STRUCTURES_DIR = "level_structural_layers/"
 
