@@ -1,8 +1,8 @@
 import pygame
 import os
 
-from state import State
-from level import TILE_DIM
+from model.state import State
+from model.level import TILE_DIM
 
 '''
 Player Object

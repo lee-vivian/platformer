@@ -8,11 +8,11 @@ import networkx as nx
 import datetime
 
 import player
-import level
-from level import MAX_WORLD_X, MAX_WORLD_Y
+from model import level
+from model.level import MAX_WORLD_X, MAX_WORLD_Y
 from player import Player
-from action import Action
-from metatile import Metatile
+from model.action import Action
+from model.metatile import Metatile
 
 '''
 Setup

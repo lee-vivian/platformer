@@ -4,7 +4,7 @@ Metatile Object that describes each grid cell in a Level
 
 import networkx as nx
 
-from level import TILE_DIM
+from model.level import TILE_DIM
 
 
 class Metatile:

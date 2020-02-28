@@ -11,9 +11,9 @@ import networkx as nx
 
 import player
 from tile import Tile
-from level import TILE_DIM, MAX_WIDTH, MAX_HEIGHT
-from level import Level
-from action import Action
+from model.level import TILE_DIM, MAX_WIDTH, MAX_HEIGHT
+from model.level import Level
+from model.action import Action
 from camera import Camera
 
 '''
@@ -109,13 +109,6 @@ if DRAW_METATILE_LABELS:
             metatile_count += 1
             metatile_labels += get_metatile_labels_at_coords(coords, metatile_count, LABEL_FONT, FONT_COLOR)
 
-    # if LEVEL == 1:
-    #     keys = list(metatile_to_coords_dict.keys())
-    #     print(keys[0])  # gray block
-    #     print(keys[213])  # pizza tile
-    #     gray_block_metatile = Metatile.from_str(keys[0])
-    #     pizza_metatile = Metatile.from_str(keys[213])
-    #     print(gray_block_metatile == pizza_metatile)
 
 '''
 Main Loop
