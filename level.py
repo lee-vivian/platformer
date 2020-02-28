@@ -3,7 +3,7 @@ Level Object
 """
 
 TILE_DIM = 40
-TILE_CHARS = ['#', '?', 'B']
+TILE_CHARS = ['#', '?', 'B', 'T']
 GOAL_CHARS = ['!']
 
 MAX_WIDTH = 1200

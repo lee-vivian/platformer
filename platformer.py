@@ -20,8 +20,10 @@ from camera import Camera
 Setup
 '''
 
-GAME = "super_mario_bros"
-LEVEL = "mario-1-1.txt"
+GAME = "kid_icarus"
+LEVEL = "kidicarus_1.txt"
+# GAME = "super_mario_bros"
+# LEVEL = "mario-4-1.txt"
 
 USE_GRAPH = False
 DRAW_METATILE_LABELS = False
