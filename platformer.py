@@ -20,8 +20,10 @@ from camera import Camera
 Setup
 '''
 
-GAME = "kid_icarus"
-LEVEL = "kidicarus_1.txt"
+GAME = "sample"
+LEVEL = "sample_hallway.txt"
+# GAME = "kid_icarus"
+# LEVEL = "kidicarus_1.txt"
 # GAME = "super_mario_bros"
 # LEVEL = "mario-4-1.txt"
 
