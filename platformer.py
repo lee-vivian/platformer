@@ -11,36 +11,40 @@ import os
 import networkx as nx
 
 import player
-import level
-from level import TILE, MAX_WORLD_X, MAX_WORLD_Y
+from tile import Tile
+from level import TILE_DIM, MAX_WIDTH, MAX_HEIGHT
+from level import Level
 from action import Action
 from camera import Camera
-# from metatile import Metatile
 
 '''
 Setup
 '''
 
-'''
-Levels
 
-0 = mini level
-1 = default level
-2 = long hallway level
-3 = mini level with simlar goal platform setup as level 1
-4 = default level with different goal position
-5 = extra-long hallway level (requires x-scrolling)
-6 = large level (requires xy-scrolling)
-'''
+# Levels
+#
+# 0 = mini level
+# 1 = default level
+# 2 = long hallway level
+# 3 = mini level with simlar goal platform setup as level 1
+# 4 = default level with different goal position
+# 5 = extra-long hallway level (requires x-scrolling)
+# 6 = large level (requires xy-scrolling)
 
-LEVEL = 6
-USE_GRAPH = True
+
+LEVEL = "mario-1-1.txt"
+
+USE_GRAPH = False
 DRAW_METATILE_LABELS = False
-DRAW_DUPLICATE_METATILES_ONLY = True
+DRAW_DUPLICATE_METATILES_ONLY = False
+
 PLAYER_IMG = player.PLAYER_IMG
+PIZZA_ALPHA = (255, 255, 255)
+
 
 # Create level
-level = level.Level(LEVEL)
+level = Level.generate_level_from_file(LEVEL)
 
 # Saved level filepaths
 level_saved_files_dir = "level_saved_files_" + PLAYER_IMG + "/"
@@ -54,8 +58,8 @@ edge_actions_dict = None if not USE_GRAPH else nx.get_edge_attributes(precompute
 # Background
 FPS = 40  # frame rate
 ANI = 4  # animation cycles
-WORLD_X = min(level.world_x, MAX_WORLD_X)
-WORLD_Y = min(level.world_y, MAX_WORLD_Y)
+WORLD_X = min(level.width, MAX_HEIGHT)
+WORLD_Y = min(level.height, MAX_WIDTH)
 clock = pygame.time.Clock()
 pygame.init()
 world = pygame.display.set_mode([WORLD_X, WORLD_Y])
@@ -69,11 +73,16 @@ player_list = pygame.sprite.Group()
 player_list.add(player)
 
 # Level
-platform_list = level.platform()
-goal_list = level.goal()
+platform_list = pygame.sprite.Group()
+for (x, y) in level.platform_coords:
+    platform_list.add(Tile(x, y, 'tile.png'))
+
+goal_list = pygame.sprite.Group()
+for (x, y) in level.goal_coords:
+    goal_list.add(Tile(x, y, 'pizza.png', PIZZA_ALPHA))
 
 # Camera
-camera = Camera(Camera.camera_function, level.world_x, level.world_y, WORLD_X, WORLD_Y)
+camera = Camera(Camera.camera_function, level.width, level.height, WORLD_X, WORLD_Y)
 
 
 def get_metatile_labels_at_coords(coords, count, font, color):
@@ -116,7 +125,6 @@ if DRAW_METATILE_LABELS:
     #     gray_block_metatile = Metatile.from_str(keys[0])
     #     pizza_metatile = Metatile.from_str(keys[213])
     #     print(gray_block_metatile == pizza_metatile)
-
 
 '''
 Main Loop
@@ -169,8 +177,8 @@ while main:
 
     if DRAW_METATILE_LABELS:
         for coord in level.get_all_possible_coords():
-            tile_rect = pygame.Rect(coord[0], coord[1], TILE, TILE)
-            tile_rect = camera.apply_to_rect(pygame.Rect(coord[0], coord[1], TILE, TILE))  # adjust based on camera
+            tile_rect = pygame.Rect(coord[0], coord[1], TILE_DIM, TILE_DIM)
+            tile_rect = camera.apply_to_rect(pygame.Rect(coord[0], coord[1], TILE_DIM, TILE_DIM))  # adjust based on camera
             pygame.draw.rect(world, FONT_COLOR, tile_rect, 1)
 
         for label in metatile_labels:

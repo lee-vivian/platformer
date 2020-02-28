@@ -2,7 +2,7 @@ import pygame
 import os
 
 from state import State
-from level import TILE
+from level import TILE_DIM
 
 '''
 Player Object
@@ -43,7 +43,7 @@ class Player(pygame.sprite.Sprite):
 
     @staticmethod
     def start_state():
-        return State(TILE + HALF_PLAYER_W, TILE + HALF_PLAYER_H, 0, GRAVITY, True, False, False)
+        return State(TILE_DIM + HALF_PLAYER_W, TILE_DIM + HALF_PLAYER_H, 0, GRAVITY, True, False, False)
 
     def reset(self):
         self.state = Player.start_state()
@@ -51,8 +51,8 @@ class Player(pygame.sprite.Sprite):
     @staticmethod
     def collide(x, y, tile_list):
         for tile in tile_list:
-            x_overlap = tile.rect.x < (x + HALF_PLAYER_W) and (tile.rect.x + TILE) > (x - HALF_PLAYER_W)
-            y_overlap = tile.rect.y < (y + HALF_PLAYER_H) and (tile.rect.y + TILE) > (y - HALF_PLAYER_H)
+            x_overlap = tile.rect.x < (x + HALF_PLAYER_W) and (tile.rect.x + TILE_DIM) > (x - HALF_PLAYER_W)
+            y_overlap = tile.rect.y < (y + HALF_PLAYER_H) and (tile.rect.y + TILE_DIM) > (y - HALF_PLAYER_H)
             if x_overlap and y_overlap:
                 return True
         return False
