@@ -9,43 +9,37 @@ import pygame
 import sys
 import networkx as nx
 
-import player
-from tile import Tile
+from view.player import Player as PlayerView
+from view.tile import Tile
+from view.camera import Camera
+from model.player import Player as PlayerModel
 from model.level import TILE_DIM, MAX_WIDTH, MAX_HEIGHT
 from model.level import Level
 from model.action import Action
-from camera import Camera
 
 '''
 Setup
 '''
 
 GAME = "sample"
-LEVEL = "sample_hallway.txt"
-# GAME = "kid_icarus"
-# LEVEL = "kidicarus_1.txt"
-# GAME = "super_mario_bros"
-# LEVEL = "mario-4-1.txt"
+LEVEL = "sample_hallway"
 
-USE_GRAPH = False
+PLAYER_IMG = 'block'
+LEVEL_SAVED_FILES_DIR = "level_saved_files_" + PLAYER_IMG + "/"
+
+USE_STATE_GRAPH = False
 DRAW_METATILE_LABELS = False
 DRAW_DUPLICATE_METATILES_ONLY = False
 
-PLAYER_IMG = player.PLAYER_IMG
-PIZZA_ALPHA = (255, 255, 255)
+# Create Level
+level = Level.generate_level_from_file(GAME + "/" + LEVEL + ".txt")
 
+# Level saved files
+state_graph_file = LEVEL_SAVED_FILES_DIR + "enumerated_state_graphs/" + str(LEVEL) + ".gpickle"
+metatile_coords_dict_file = LEVEL_SAVED_FILES_DIR + "metatile_coords_dicts/" + str(LEVEL) + ".txt"
 
-# Create level
-level = Level.generate_level_from_file(GAME + "/" + LEVEL)
-
-# Saved level filepaths
-level_saved_files_dir = "level_saved_files_" + PLAYER_IMG + "/"
-graph_file_path = level_saved_files_dir + "enumerated_state_graphs/graph_" + str(LEVEL) + ".gpickle"
-metatile_coords_dict_filepath = level_saved_files_dir + "metatile_coords_dicts/metatile_coords_dict_" + str(LEVEL) + ".txt"
-
-# Use precomputed graph
-precomputed_graph = None if not USE_GRAPH else nx.read_gpickle(graph_file_path)
-edge_actions_dict = None if not USE_GRAPH else nx.get_edge_attributes(precomputed_graph, "action")
+state_graph = None if not USE_STATE_GRAPH else nx.read_gpickle(state_graph_file)
+edge_actions_dict = None if not USE_STATE_GRAPH else nx.get_edge_attributes(state_graph, "action")
 
 # Background
 FPS = 40  # frame rate
@@ -56,14 +50,12 @@ clock = pygame.time.Clock()
 pygame.init()
 world = pygame.display.set_mode([WORLD_X, WORLD_Y])
 BACKGROUND_COLOR = (23, 23, 23)
-# backdrop = pygame.image.load(os.path.join('images', 'platform_bkgd.png')).convert()
-# backdropbox = world.get_rect()
 
 # Player
-player = player.Player()
-player.reset()
+player_model = PlayerModel(PLAYER_IMG)
+player_view = PlayerView(PLAYER_IMG)
 player_list = pygame.sprite.Group()
-player_list.add(player)
+player_list.add(player_view)
 
 # Level
 platform_list = pygame.sprite.Group()
@@ -72,7 +64,7 @@ for (x, y) in level.platform_coords:
 
 goal_list = pygame.sprite.Group()
 for (x, y) in level.goal_coords:
-    goal_list.add(Tile(x, y, 'pizza.png', PIZZA_ALPHA))
+    goal_list.add(Tile(x, y, 'pizza.png'))
 
 # Camera
 camera = Camera(Camera.camera_function, level.width, level.height, WORLD_X, WORLD_Y)
@@ -92,7 +84,7 @@ if DRAW_METATILE_LABELS:
     LABEL_PADDING = (8, 12)
     LABEL_FONT = pygame.font.SysFont('Comic Sans MS', 20)
 
-    f = open(metatile_coords_dict_filepath, 'r')
+    f = open(metatile_coords_dict_file, 'r')
     metatile_to_coords_dict = eval(f.readline())
     f.close()
 
@@ -134,7 +126,7 @@ while main:
                 main = False
                 sys.exit()
             elif event.key == ord('r'):
-                player.reset()
+                player_model.reset()
             elif event.key in [pygame.K_LEFT, ord('a')]:
                 key_left = True
             elif event.key in [pygame.K_RIGHT, ord('d')]:
@@ -149,8 +141,9 @@ while main:
                 key_right = False
 
     world.fill(BACKGROUND_COLOR)
-    camera.update(player)  # set camera to track player
-    player.update(Action(key_left, key_right, key_jump), platform_list, goal_list, precomputed_graph, edge_actions_dict)
+    camera.update(player_view)  # set camera to track player
+    player_model.update(Action(key_left, key_right, key_jump), platform_list, goal_list, state_graph, edge_actions_dict)
+    player_view.update(player_model)
     key_jump = False
 
     entities_to_draw = []
