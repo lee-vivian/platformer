@@ -16,17 +16,14 @@ Setup
 '''
 
 GAME = "sample"
-LEVEL = "sample_hallway"
+LEVEL = "sample_1"
 
 PLAYER_IMG = 'block'
 
-ENUMERATE_STATES = False  # if False, load in from saved file
-EXTRACT_METATILES = False  # if False, load in from saved file
-COMPUTE_METATILE_COORDS_DICT = False  # if False, load in from saved file
+ENUMERATE_STATES = True  # if False, load in from saved file
+EXTRACT_METATILES = True  # if False, load in from saved file
+COMPUTE_METATILE_COORDS_DICT = True  # if False, load in from saved file
 PRINT_METATILE_STATS = True
-
-# Player
-player_model = PlayerModel(PLAYER_IMG)
 
 # Create Level
 level = Level.generate_level_from_file(GAME + "/" + LEVEL + ".txt")
@@ -90,14 +87,16 @@ print("---------------------------------------------------")
 print("Enumerating states for level: " + str(LEVEL) + "...")
 
 if ENUMERATE_STATES:
+
+    player_model = PlayerModel(PLAYER_IMG)
+    start_state = player_model.start_state()
+    graph = nx.DiGraph()
     action_set = []
     for left in [True, False]:
         for right in [True, False]:
             for jump in [True, False]:
                 action_set.append(Action(left, right, jump))
-    start_state = player_model.start_state()
-    graph = nx.DiGraph()
-    G = enumerate_states(start_state, graph, action_set, level.platform_coords, level.goal_coords)
+    G = enumerate_states(player_model, start_state, graph, action_set, level.platform_coords, level.goal_coords)
 
     print("--- State Graph for Level " + str(LEVEL) + "---")
     print("Nodes: ", G.number_of_nodes())
