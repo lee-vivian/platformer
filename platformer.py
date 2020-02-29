@@ -142,7 +142,8 @@ while main:
 
     world.fill(BACKGROUND_COLOR)
     camera.update(player_view)  # set camera to track player
-    player_model.update(Action(key_left, key_right, key_jump), platform_list, goal_list, state_graph, edge_actions_dict)
+    player_model.update(Action(key_left, key_right, key_jump), level.platform_coords, level.goal_coords,
+                        state_graph, edge_actions_dict)
     player_view.update(player_model)
     key_jump = False
 

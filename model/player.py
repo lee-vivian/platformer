@@ -10,6 +10,7 @@ GRAVITY = 4
 MAX_VEL = 10 * GRAVITY
 STEPS = 8
 
+
 class Player:
 
     def __init__(self, img):
@@ -34,15 +35,15 @@ class Player:
     def reset(self):
         self.state = self.start_state()
 
-    def collide(self, x, y, tile_list):
-        for tile in tile_list:
-            x_overlap = tile.rect.x < (x + self.half_player_w) and (tile.rect.x + TILE_DIM) > (x - self.half_player_w)
-            y_overlap = tile.rect.y < (y + self.half_player_h) and (tile.rect.y + TILE_DIM) > (y - self.half_player_h)
+    def collide(self, x, y, tile_coords):
+        for tile_coord in tile_coords:
+            x_overlap = tile_coord[0] < (x + self.half_player_w) and (tile_coord[0] + TILE_DIM) > (x - self.half_player_w)
+            y_overlap = tile_coord[1] < (y + self.half_player_h) and (tile_coord[1] + TILE_DIM) > (y - self.half_player_h)
             if x_overlap and y_overlap:
                 return True
         return False
 
-    def next_state(self, state, action, platform_list, goal_list):
+    def next_state(self, state, action, platform_coords, goal_coords):
 
         new_state = state.clone()
 
@@ -75,7 +76,7 @@ class Player:
             elif new_state.movex > 0:
                 new_state.x += 1
 
-            if self.collide(new_state.x, new_state.y, platform_list):
+            if self.collide(new_state.x, new_state.y, platform_coords):
                 new_state.x = old_x
                 new_state.movex = 0
                 break
@@ -89,21 +90,21 @@ class Player:
             elif new_state.movey > 0:
                 new_state.y += 1
 
-            if self.collide(new_state.x, new_state.y, platform_list):
+            if self.collide(new_state.x, new_state.y, platform_coords):
                 new_state.y = old_y
                 if new_state.movey > 0:
                     new_state.onground = True
                 new_state.movey = 0
                 break
 
-        if self.collide(new_state.x, new_state.y, goal_list):
+        if self.collide(new_state.x, new_state.y, goal_coords):
             new_state.goal_reached = True
 
         return new_state
 
-    def update(self, action, platform_list, goal_list, precomputed_graph, edge_actions_dict):
+    def update(self, action, platform_coords, goal_coords, precomputed_graph, edge_actions_dict):
         if precomputed_graph is None or edge_actions_dict is None:
-            self.state = self.next_state(self.state, action, platform_list, goal_list)
+            self.state = self.next_state(self.state, action, platform_coords, goal_coords)
         else:
             action_str = action.to_str()
             state_edges = precomputed_graph.edges(self.state.to_str())
