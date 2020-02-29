@@ -25,7 +25,7 @@ GAME = "sample"
 LEVEL = "sample_hallway"
 
 PLAYER_IMG = 'block'
-LEVEL_SAVED_FILES_DIR = "level_saved_files_" + PLAYER_IMG + "/"
+level_saved_files_dir = "level_saved_files_" + PLAYER_IMG + "/"
 
 USE_STATE_GRAPH = False
 DRAW_METATILE_LABELS = False
@@ -35,8 +35,8 @@ DRAW_DUPLICATE_METATILES_ONLY = False
 level = Level.generate_level_from_file(GAME + "/" + LEVEL + ".txt")
 
 # Level saved files
-state_graph_file = LEVEL_SAVED_FILES_DIR + "enumerated_state_graphs/" + str(LEVEL) + ".gpickle"
-metatile_coords_dict_file = LEVEL_SAVED_FILES_DIR + "metatile_coords_dicts/" + str(LEVEL) + ".txt"
+state_graph_file = level_saved_files_dir + "enumerated_state_graphs/" + str(LEVEL) + ".gpickle"
+metatile_coords_dict_file = level_saved_files_dir + "metatile_coords_dicts/" + str(LEVEL) + ".txt"
 
 state_graph = None if not USE_STATE_GRAPH else nx.read_gpickle(state_graph_file)
 edge_actions_dict = None if not USE_STATE_GRAPH else nx.get_edge_attributes(state_graph, "action")

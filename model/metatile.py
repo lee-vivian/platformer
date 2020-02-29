@@ -59,7 +59,7 @@ class Metatile:
                     if coord_node_dict.get(temp_coord) is not None:
                         spatial_hash[metatile_coord] += coord_node_dict[temp_coord]
 
-        return spatial_hash
+        return spatial_hash  # {metatile coord: nodes (states) at coord}
 
     @staticmethod
     def get_normalized_graph(graph, coord):
@@ -88,7 +88,7 @@ class Metatile:
         metatiles = []
         coord_to_metatile_str_dict = {}
 
-        tile_coords = level.get_border_coords() + level.get_platform_coords() + level.get_goal_coords()
+        tile_coords = level.platform_coords + level.goal_coords
         tile_coords_dict = {}
         for coord in tile_coords:
             tile_coords_dict[coord] = 1
