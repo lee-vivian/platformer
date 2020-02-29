@@ -81,7 +81,8 @@ def enumerate_states(player_model, start_state, graph, action_set, platform_coor
 Enumerate State Graph
 '''
 
-print("Start: ", datetime.datetime.now())
+time1 = datetime.datetime.now()
+print("Start: ", time1)
 
 print("---------------------------------------------------")
 print("Enumerating states for level: " + str(LEVEL) + "...")
@@ -111,7 +112,8 @@ else:
     G = nx.read_gpickle(state_graph_file)
 
 print("Finished enumerating states for level: " + str(LEVEL))
-print("Time: ", datetime.datetime.now())
+time2 = datetime.datetime.now()
+print("Runtime: ", time2-time1)
 
 '''
 Extract Metatiles
@@ -155,7 +157,8 @@ else:
     f.close()
 
 print("Finished extracting metatiles for level: " + str(LEVEL))
-print("Time: ", datetime.datetime.now())
+time3 = datetime.datetime.now()
+print("Runtime: ", time3-time2)
 
 if PRINT_METATILE_STATS:
 
@@ -184,6 +187,8 @@ if PRINT_METATILE_STATS:
             if graph_not_empty:
                 num_unique_metatiles_with_graphs += 1
 
+    print("Retrieving {metatile: coords} dict for level: " + str(LEVEL))
+
     if COMPUTE_METATILE_COORDS_DICT:  # {metatile: list-of-tile-coords}
 
         metatile_to_coords_dict = {}
@@ -211,6 +216,9 @@ if PRINT_METATILE_STATS:
         metatile_to_coords_dict = eval(f.readline())
         f.close()
 
+    time4 = datetime.datetime.now()
+    print("Runtime: ", time4 - time3)
+
     print("---- Metatiles for Level " + str(LEVEL) + " ----")
     print("num total metatiles: ",  len(level_metatiles))
     print("num filled metatiles: ", num_filled_metatiles)
@@ -223,5 +231,6 @@ if PRINT_METATILE_STATS:
         if len(coords_with_same_metatile) > 1:
             print(coords_with_same_metatile)
 
-    print("Finished printing metatile stats for level " + str(LEVEL))
-    print("Time: ", datetime.datetime.now())
+    time5 = datetime.datetime.now()
+    print("\n Total Runtime: ", time5-time1)
+
