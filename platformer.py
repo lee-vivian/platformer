@@ -22,7 +22,9 @@ Setup
 '''
 
 GAME = "sample"
-LEVEL = "sample_hallway"
+LEVEL = "sample_1"
+# GAME = "sample"
+# LEVEL = "sample_hallway"
 
 PLAYER_IMG = 'block'
 level_saved_files_dir = "level_saved_files_" + PLAYER_IMG + "/"
@@ -144,7 +146,8 @@ while main:
     camera.update(player_view)  # set camera to track player
     player_model.update(Action(key_left, key_right, key_jump), level.platform_coords, level.goal_coords,
                         state_graph, edge_actions_dict)
-    player_view.update(player_model)
+    player_view.update(player_model.state.x, player_model.state.y,
+                       player_model.half_player_w, player_model.half_player_h, player_model.state.facing_right)
     key_jump = False
 
     entities_to_draw = []

@@ -22,8 +22,8 @@ class Player(pygame.sprite.Sprite):
         self.image = self.images[1]
         self.rect = self.image.get_rect()
 
-    def update(self, player_model):
-        self.image = self.images[1] if player_model.state.facing_right else self.images[0]
+    def update(self, x, y, half_w, half_h, facing_right):
+        self.image = self.images[1] if facing_right else self.images[0]
         self.rect = self.image.get_rect()
-        self.rect.x = player_model.state.x - player_model.half_player_w
-        self.rect.y = player_model.state.y - player_model.half_player_h
+        self.rect.x = x - half_w
+        self.rect.y = y - half_h
