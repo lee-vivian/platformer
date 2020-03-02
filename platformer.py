@@ -21,15 +21,16 @@ from model.action import Action
 Setup
 '''
 
+
 GAME = "sample"
-LEVEL = "sample_hallway"
+LEVEL = "sample_mini"
 
 PLAYER_IMG = 'block'
 level_saved_files_dir = "level_saved_files_" + PLAYER_IMG + "/"
 
 USE_STATE_GRAPH = True
-DRAW_METATILE_LABELS = False
-DRAW_DUPLICATE_METATILES_ONLY = False
+DRAW_METATILE_LABELS = True
+DRAW_DUPLICATE_METATILES_ONLY = True
 
 # Create Level
 level = Level.generate_level_from_file(GAME + "/" + LEVEL + ".txt")

@@ -1,0 +1,12 @@
+{
+  "contents": [
+    {
+      "level_name": "sample_mini",
+      "num_filled_metatiles": 36,
+      "num_metatiles_with_graphs": 18,
+      "num_total_metatiles": 54,
+      "num_unique_metatiles": 14,
+      "num_unique_metatiles_with_graphs": 13
+    }
+  ]
+}
