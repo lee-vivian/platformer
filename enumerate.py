@@ -20,22 +20,19 @@ def get_saved_file_paths(level_name, player_img):
     level_saved_files_dir = "level_saved_files_" + player_img + "/"
     enumerated_state_graphs_dir = level_saved_files_dir + "enumerated_state_graphs/"
     metatiles_dir = level_saved_files_dir + "metatiles/"
-    coord_metatile_dicts_dir = level_saved_files_dir + "coord_metatile_dicts/"
     metatile_coords_dict_dir = level_saved_files_dir + "metatile_coords_dicts/"
 
     if not os.path.exists(level_saved_files_dir):
         os.makedirs(level_saved_files_dir)
         os.makedirs(enumerated_state_graphs_dir)
         os.makedirs(metatiles_dir)
-        os.makedirs(coord_metatile_dicts_dir)
         os.makedirs(metatile_coords_dict_dir)
 
     state_graph_file = enumerated_state_graphs_dir + str(level_name) + ".gpickle"
     metatiles_file = metatiles_dir + str(level_name) + ".txt"
-    coord_metatile_dict_file = coord_metatile_dicts_dir + str(level_name) + ".txt"
     metatile_coords_dict_file = metatile_coords_dict_dir + str(level_name) + ".txt"
 
-    return state_graph_file, metatiles_file, coord_metatile_dict_file, metatile_coords_dict_file
+    return state_graph_file, metatiles_file, metatile_coords_dict_file
 
 
 def get_action_set():
@@ -91,37 +88,25 @@ def get_state_graph(level, state_graph_file, player_img, recompute_graph):
     return state_graph
 
 
-def get_metatiles(level, state_graph, metatiles_file, coord_metatile_dict_file, recompute_metatiles):
+def get_metatiles(level, state_graph, metatiles_file, metatile_coords_dict_file, recompute_metatiles):
+
     if recompute_metatiles:
-
-        level_metatiles, coord_to_metatile_str_dict = Metatile.extract_metatiles(level, state_graph)
-
+        level_metatiles = Metatile.extract_metatiles(level, state_graph, metatile_coords_dict_file)
         with open(metatiles_file, 'w') as f:
             for metatile in level_metatiles:
                 f.write("%s\n" % metatile.to_str())
         f.close()
         print("Saved to: ", metatiles_file)
 
-        with open(coord_metatile_dict_file, 'w') as f:
-            f.write(str(coord_to_metatile_str_dict))
-        f.close()
-        print("Saved to: ", coord_metatile_dict_file)
-
     else:
-
         f = open(metatiles_file, 'r')
         metatile_strs = f.readlines()
         f.close()
-
         level_metatiles = []
         for metatile_str in metatile_strs:
             level_metatiles.append(Metatile.from_str(metatile_str))
 
-        f = open(coord_metatile_dict_file, 'r')
-        coord_to_metatile_str_dict = eval(f.readline())
-        f.close()
-
-    return level_metatiles, coord_to_metatile_str_dict
+    return level_metatiles
 
 
 def get_metatile_stats_dict(level_metatiles):
@@ -148,25 +133,6 @@ def get_metatile_stats_dict(level_metatiles):
     return stats_dict
 
 
-def construct_metatile_coords_dict(unique_metatiles, coord_to_metatile_str_dict, metatile_coords_dict_file):
-    metatile_to_coords_dict = {}
-
-    for metatile in unique_metatiles:
-        metatile_to_coords_dict[metatile.to_str()] = []
-        coords_to_check = list(coord_to_metatile_str_dict.keys())
-
-        for coord in coords_to_check:
-            metatile_at_coord = Metatile.from_str(coord_to_metatile_str_dict[coord])
-            if metatile_at_coord == metatile:
-                metatile_to_coords_dict[metatile.to_str()].append(coord)
-                del coord_to_metatile_str_dict[coord]  # remove coord from dict to speed up future checks
-
-    with open(metatile_coords_dict_file, 'w') as f:
-        f.write(str(metatile_to_coords_dict))
-    f.close()
-    print("Saved to: ", metatile_coords_dict_file)
-
-
 def main(game_name, level_name, player_img):
 
     main_start_time = datetime.datetime.now()
@@ -175,37 +141,27 @@ def main(game_name, level_name, player_img):
     level = Level.generate_level_from_file(game_name + "/" + level_name + ".txt")
 
     # Level saved file paths
-    state_graph_file, metatiles_file, coord_metatile_dict_file, metatile_coords_dict_file = get_saved_file_paths(level_name, player_img)
+    state_graph_file, metatiles_file, metatile_coords_dict_file = get_saved_file_paths(level_name, player_img)
 
     # Enumerate State Graph
-    print("Enumerating states for level: " + str(level_name) + "...")
+    print("Enumerating states for level: " + str(level_name) + " ...")
     start_time = datetime.datetime.now()
     state_graph = get_state_graph(level, state_graph_file, ENUMERATE_STATES, player_img)
     end_time = datetime.datetime.now()
     print("Runtime: ", end_time - start_time, "\n")
 
     # Extract Metatiles
-    print("Extracting metatiles for level: " + str(level_name) + "...")
+    print("Extracting metatiles for level: " + str(level_name) + " ...")
     start_time = datetime.datetime.now()
-    level_metatiles, coord_to_metatile_str_dict = get_metatiles(level, state_graph, metatiles_file,
-                                                                coord_metatile_dict_file, EXTRACT_METATILES)
+    level_metatiles = get_metatiles(level, state_graph, metatiles_file, metatile_coords_dict_file, EXTRACT_METATILES)
     end_time = datetime.datetime.now()
     print("Runtime: ", end_time - start_time, "\n")
 
-    print("Calculating metatile stats for level: " + str(level_name))
+    print("Calculating metatile stats for level: " + str(level_name) + " ...")
     start_time = datetime.datetime.now()
     metatile_stats_dict = get_metatile_stats_dict(level_metatiles)
     end_time = datetime.datetime.now()
     print("Runtime: ", end_time - start_time, "\n")
-
-    # Compute {Metatile: Coords} Dict (used to view metatiles on level foreground)
-    if COMPUTE_METATILE_COORDS_DICT:
-        start_time = datetime.datetime.now()
-        print("Constructing {metatile: coords} dict for level: " + str(level))
-        construct_metatile_coords_dict(metatile_stats_dict.get("unique_metatiles"), coord_to_metatile_str_dict,
-                                       metatile_coords_dict_file)
-        end_time = datetime.datetime.now()
-        print("Runtime: ", end_time - start_time, "\n")
 
     main_end_time = datetime.datetime.now()
 
@@ -239,16 +195,21 @@ def main(game_name, level_name, player_img):
 
 if __name__ == "__main__":
 
-    GAME = "sample"
-    LEVEL = "sample_mini"
     PLAYER_IMG = "block"
+
+    GAME_AND_LEVEL = [("sample", "sample_hallway"), ("kid_icarus", "kidicarus_1")]
+    mario_levels = [(1, 1), (2, 1), (3, 1), (3, 2), (4, 1), (5, 1), (5, 2),
+                    (6, 1), (6, 2), (7, 1), (8, 1), (8, 2), (8, 3)]
+    for x1, x2 in mario_levels:
+        mario_level_name = "mario-%s-%s" % (x1, x2)
+        GAME_AND_LEVEL.append(("super_mario_bros", mario_level_name))
 
     ENUMERATE_STATES = True  # if False, load in from saved file
     EXTRACT_METATILES = True  # if False, load in from saved file
-    COMPUTE_METATILE_COORDS_DICT = True  # if False, load in from saved file
     PRINT_METATILE_STATS = True
 
-    main(GAME, LEVEL, PLAYER_IMG)
+    for game, level in GAME_AND_LEVEL:
+        main(game, level, PLAYER_IMG)
 
 
 

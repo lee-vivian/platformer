@@ -86,15 +86,15 @@ if DRAW_METATILE_LABELS:
     LABEL_FONT = pygame.font.SysFont('Comic Sans MS', 20)
 
     f = open(metatile_coords_dict_file, 'r')
-    metatile_to_coords_dict = eval(f.readline())
+    metatile_coords_dict = eval(f.readline())
     f.close()
 
     metatile_labels = []
     metatile_count = 0
 
-    for metatile in metatile_to_coords_dict.keys():
+    for metatile in metatile_coords_dict.keys():
 
-        coords = metatile_to_coords_dict[metatile]
+        coords = metatile_coords_dict[metatile]
 
         if DRAW_DUPLICATE_METATILES_ONLY:
             if len(coords) > 1:

@@ -83,10 +83,10 @@ class Metatile:
         return normalized_graph
 
     @staticmethod
-    def extract_metatiles(level, graph):
+    def extract_metatiles(level, graph, metatile_coords_dict_file):
 
         metatiles = []
-        coord_to_metatile_str_dict = {}
+        metatile_coords_dict = {}
 
         tile_coords = level.platform_coords + level.goal_coords
         tile_coords_dict = {}
@@ -94,7 +94,7 @@ class Metatile:
             tile_coords_dict[coord] = 1
 
         all_possible_coords = level.get_all_possible_coords()
-        node_spatial_hash = Metatile.get_node_spatial_hash(graph, all_possible_coords)
+        node_spatial_hash = Metatile.get_node_spatial_hash(graph, all_possible_coords)  # {metatile coord: nodes (states) at coord}
 
         for metatile_coord in all_possible_coords:
 
@@ -102,7 +102,6 @@ class Metatile:
             metatile_graph = nx.DiGraph()
 
             nodes_in_metatile = node_spatial_hash.get(metatile_coord)
-
             if len(nodes_in_metatile) > 0:
                 for node in nodes_in_metatile:
                     subgraph = graph.edge_subgraph(graph.edges(node)).copy()
@@ -111,10 +110,21 @@ class Metatile:
                 metatile_graph = Metatile.get_normalized_graph(metatile_graph, metatile_coord)  # normalize graph nodes to coord
 
             metatile_graph_as_dict = nx.to_dict_of_dicts(metatile_graph)
+
             new_metatile = Metatile(filled, metatile_graph_as_dict)
             metatiles.append(new_metatile)
-            coord_to_metatile_str_dict[metatile_coord] = new_metatile.to_str()
 
-        return metatiles, coord_to_metatile_str_dict
+            # Construct {metatile: coords} dict
+            new_metatile_str = new_metatile.to_str()
+            if metatile_coords_dict.get(new_metatile_str) is None:
+                metatile_coords_dict[new_metatile_str] = [metatile_coord]
+            else:
+                metatile_coords_dict[new_metatile_str].append(metatile_coord)
 
+        # Save metatile_coords_dict
+        with open(metatile_coords_dict_file, 'w') as f:
+            f.write(str(metatile_coords_dict))
+        f.close()
+        print("Saved to: ", metatile_coords_dict_file)
 
+        return metatiles
