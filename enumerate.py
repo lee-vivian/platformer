@@ -144,7 +144,7 @@ def main(game_name, level_name, player_img):
     state_graph_file, metatiles_file, metatile_coords_dict_file = get_saved_file_paths(level_name, player_img)
 
     # Enumerate State Graph
-    print("Enumerating states for level: " + str(level_name) + " ...")
+    print("\nEnumerating states for level: " + str(level_name) + " ...")
     start_time = datetime.datetime.now()
     state_graph = get_state_graph(level, state_graph_file, player_img, ENUMERATE_STATES)
     end_time = datetime.datetime.now()
@@ -205,7 +205,10 @@ if __name__ == "__main__":
 
     PLAYER_IMG = "block"
 
-    GAME_AND_LEVEL = [("sample", "sample_hallway")]
+    GAME_AND_LEVEL = []
+    # GAME_AND_LEVEL.append(("sample", "sample_hallway"))
+    # GAME_AND_LEVEL.append(("kid_icarus", "kidicarus_1"))
+    GAME_AND_LEVEL.append(("super_mario_bros", "mario-1-1"))
 
     # mario_levels = [(1, 1), (2, 1), (3, 1), (3, 2), (4, 1), (5, 1), (5, 2),
     #                 (6, 1), (6, 2), (7, 1), (8, 1), (8, 2), (8, 3)]

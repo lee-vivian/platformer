@@ -1,13 +1,40 @@
 {
   "contents": [
     {
+      "level_name": "sample_hallway",
+      "num_filled_metatiles": 1185,
+      "num_metatiles_with_graphs": 1287,
+      "num_total_metatiles": 3296,
+      "num_unique_metatiles": 174,
+      "num_unique_metatiles_with_graphs": 172,
+      "total_runtime": "0:00:18.229872"
+    },
+    {
+      "level_name": "kidicarus_1",
+      "num_filled_metatiles": 1077,
+      "num_metatiles_with_graphs": 1974,
+      "num_total_metatiles": 3150,
+      "num_unique_metatiles": 1365,
+      "num_unique_metatiles_with_graphs": 1363,
+      "total_runtime": "10:51:14.460523"
+    },
+    {
       "level_name": "sample_mini",
       "num_filled_metatiles": 36,
       "num_metatiles_with_graphs": 18,
       "num_total_metatiles": 54,
       "num_unique_metatiles": 14,
       "num_unique_metatiles_with_graphs": 13,
-      "total_runtime": "0:00:02.262077"
+      "total_runtime": "0:00:02.582219"
+    },
+    {
+      "level_name": "mario-1-1",
+      "num_filled_metatiles": 767,
+      "num_metatiles_with_graphs": 1732,
+      "num_total_metatiles": 3264,
+      "num_unique_metatiles": 689,
+      "num_unique_metatiles_with_graphs": 687,
+      "total_runtime": "1:07:45.517323"
     }
   ]
 }
