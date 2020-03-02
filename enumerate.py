@@ -146,7 +146,7 @@ def main(game_name, level_name, player_img):
     # Enumerate State Graph
     print("Enumerating states for level: " + str(level_name) + " ...")
     start_time = datetime.datetime.now()
-    state_graph = get_state_graph(level, state_graph_file, ENUMERATE_STATES, player_img)
+    state_graph = get_state_graph(level, state_graph_file, player_img, ENUMERATE_STATES)
     end_time = datetime.datetime.now()
     print("Runtime: ", end_time - start_time, "\n")
 
@@ -181,6 +181,12 @@ def main(game_name, level_name, player_img):
     # Remove duplicate entries per level
     prev_contents = all_levels_metatile_stats["contents"]
     new_contents = [x for x in prev_contents if x["level_name"] != level_name]
+
+    # Save original runtime (max time req to enumerate state graph and extract metatiles)
+    for level_stats in prev_contents:
+        if level_stats["level_name"] == level_name:
+            level_metatile_stats["total_runtime"] = level_stats["total_runtime"]
+
     new_contents.append(level_metatile_stats)
     all_levels_metatile_stats["contents"] = new_contents
 
@@ -192,17 +198,21 @@ def main(game_name, level_name, player_img):
         for key in level_metatile_stats.keys():
             print(key, ": ", level_metatile_stats.get(key))
 
+    print("\nProgram Runtime: ", main_end_time - main_start_time)
+
 
 if __name__ == "__main__":
 
     PLAYER_IMG = "block"
 
-    GAME_AND_LEVEL = [("sample", "sample_hallway"), ("kid_icarus", "kidicarus_1")]
-    mario_levels = [(1, 1), (2, 1), (3, 1), (3, 2), (4, 1), (5, 1), (5, 2),
-                    (6, 1), (6, 2), (7, 1), (8, 1), (8, 2), (8, 3)]
-    for x1, x2 in mario_levels:
-        mario_level_name = "mario-%s-%s" % (x1, x2)
-        GAME_AND_LEVEL.append(("super_mario_bros", mario_level_name))
+    GAME_AND_LEVEL = [("sample", "sample_hallway")]
+
+    # mario_levels = [(1, 1), (2, 1), (3, 1), (3, 2), (4, 1), (5, 1), (5, 2),
+    #                 (6, 1), (6, 2), (7, 1), (8, 1), (8, 2), (8, 3)]
+
+    # for x1, x2 in mario_levels:
+    #     mario_level_name = "mario-%s-%s" % (x1, x2)
+    #     GAME_AND_LEVEL.append(("super_mario_bros", mario_level_name))
 
     ENUMERATE_STATES = True  # if False, load in from saved file
     EXTRACT_METATILES = True  # if False, load in from saved file
