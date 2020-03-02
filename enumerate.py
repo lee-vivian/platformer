@@ -11,12 +11,14 @@ from model.level import Level
 from model.action import Action
 from model.metatile import Metatile
 
+# use pypy3 to run; use pip_pypy3 to install third-party packages (e.g. networkx)
+
 '''
 Setup
 '''
 
 GAME = "sample"
-LEVEL = "sample_1"
+LEVEL = "sample_hallway"
 
 PLAYER_IMG = 'block'
 

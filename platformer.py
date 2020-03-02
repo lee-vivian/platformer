@@ -22,14 +22,12 @@ Setup
 '''
 
 GAME = "sample"
-LEVEL = "sample_1"
-# GAME = "sample"
-# LEVEL = "sample_hallway"
+LEVEL = "sample_hallway"
 
 PLAYER_IMG = 'block'
 level_saved_files_dir = "level_saved_files_" + PLAYER_IMG + "/"
 
-USE_STATE_GRAPH = False
+USE_STATE_GRAPH = True
 DRAW_METATILE_LABELS = False
 DRAW_DUPLICATE_METATILES_ONLY = False
 
