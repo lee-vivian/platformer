@@ -207,6 +207,8 @@ def main(game_name, level_name, player_img):
         end_time = datetime.datetime.now()
         print("Runtime: ", end_time - start_time, "\n")
 
+    main_end_time = datetime.datetime.now()
+
     # Save Metatile Stats for Level
     all_levels_metatile_stats_file = "level_saved_files_" + player_img + "/all_levels_metatile_stats.json"
     level_metatile_stats = {"level_name": str(level_name),
@@ -214,7 +216,8 @@ def main(game_name, level_name, player_img):
                             "num_filled_metatiles": metatile_stats_dict.get("num_filled_metatiles"),
                             "num_unique_metatiles": len(metatile_stats_dict.get("unique_metatiles")),
                             "num_unique_metatiles_with_graphs": metatile_stats_dict.get("num_unique_metatiles_with_graphs"),
-                            "num_metatiles_with_graphs": metatile_stats_dict.get("num_metatiles_with_graphs")}
+                            "num_metatiles_with_graphs": metatile_stats_dict.get("num_metatiles_with_graphs"),
+                            "total_runtime": str(main_end_time - main_start_time)}
 
     with open(all_levels_metatile_stats_file, 'r') as all_levels_file:
         all_levels_metatile_stats = json.load(all_levels_file)
@@ -232,9 +235,6 @@ def main(game_name, level_name, player_img):
         print("---- Metatiles for Level " + str(level_name) + " ----")
         for key in level_metatile_stats.keys():
             print(key, ": ", level_metatile_stats.get(key))
-
-    main_end_time = datetime.datetime.now()
-    print("\nTotal Program Runtime: ", main_end_time - main_start_time)
 
 
 if __name__ == "__main__":
