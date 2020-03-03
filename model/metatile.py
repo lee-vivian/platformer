@@ -85,7 +85,9 @@ class Metatile:
     @staticmethod
     def extract_metatiles(level, graph, metatile_coords_dict_file):
 
-        metatiles = []
+        all_metatiles = []
+        unique_metatiles = []
+        metatile_str_metatile_dict = {}
         metatile_coords_dict = {}
 
         tile_coords = level.platform_coords + level.goal_coords
@@ -112,10 +114,21 @@ class Metatile:
             metatile_graph_as_dict = nx.to_dict_of_dicts(metatile_graph)
 
             new_metatile = Metatile(filled, metatile_graph_as_dict)
-            metatiles.append(new_metatile)
+            all_metatiles.append(new_metatile)
 
             # Construct {metatile: coords} dict
+
             new_metatile_str = new_metatile.to_str()
+
+            if new_metatile not in unique_metatiles:  # have not seen this metatile yet, add to dict
+                unique_metatiles.append(new_metatile)
+                metatile_str_metatile_dict[new_metatile_str] = new_metatile
+
+            for key, value in metatile_str_metatile_dict.items():  # get standardized string of new_metatile
+                if value == new_metatile:
+                    new_metatile_str = key
+                    break
+
             if metatile_coords_dict.get(new_metatile_str) is None:
                 metatile_coords_dict[new_metatile_str] = [metatile_coord]
             else:
@@ -127,4 +140,4 @@ class Metatile:
         f.close()
         print("Saved to: ", metatile_coords_dict_file)
 
-        return metatiles
+        return all_metatiles

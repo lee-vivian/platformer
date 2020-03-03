@@ -109,26 +109,40 @@ def get_metatiles(level, state_graph, metatiles_file, metatile_coords_dict_file,
     return level_metatiles
 
 
-def get_metatile_stats_dict(level_metatiles):
-    stats_dict = {"num_filled_metatiles": 0,
+def get_unique_metatile_strs(metatile_coords_dict_file):
+    f = open(metatile_coords_dict_file, 'r')
+    metatile_coords_dict = eval(f.readline())
+    f.close()
+    return list(metatile_coords_dict.keys())
+
+
+def get_metatile_stats_dict(level_metatiles, metatile_coords_dict_file):
+
+    stats_dict = {"num_total_metatiles": 0,
+                  "num_filled_metatiles": 0,
                   "num_metatiles_with_graphs": 0,
-                  "unique_metatiles": [],
+                  "num_unique_metatiles": 0,
                   "num_unique_metatiles_with_graphs": 0}
 
     for metatile in level_metatiles:
 
-        graph_not_empty = bool(metatile.graph_as_dict)
+        stats_dict["num_total_metatiles"] += 1
 
         if metatile.filled:
             stats_dict["num_filled_metatiles"] += 1
 
-        if graph_not_empty:
+        if bool(metatile.graph_as_dict):  # graph not empty
             stats_dict["num_metatiles_with_graphs"] += 1
 
-        if metatile not in stats_dict.get("unique_metatiles"):  # if metatile has not been seen yet
-            stats_dict["unique_metatiles"].append(metatile)
-            if graph_not_empty:
-                stats_dict["num_unique_metatiles_with_graphs"] += 1
+    unique_metatile_strs = get_unique_metatile_strs(metatile_coords_dict_file)
+
+    for metatile_str in unique_metatile_strs:
+
+        stats_dict["num_unique_metatiles"] += 1
+
+        metatile = Metatile.from_str(metatile_str)
+        if bool(metatile.graph_as_dict):  # graph not empty
+            stats_dict["num_unique_metatiles_with_graphs"] += 1
 
     return stats_dict
 
@@ -159,21 +173,16 @@ def main(game_name, level_name, player_img):
 
     print("Calculating metatile stats for level: " + str(level_name) + " ...")
     start_time = datetime.datetime.now()
-    metatile_stats_dict = get_metatile_stats_dict(level_metatiles)
+    metatile_stats_dict = get_metatile_stats_dict(level_metatiles, metatile_coords_dict_file)
     end_time = datetime.datetime.now()
     print("Runtime: ", end_time - start_time, "\n")
 
     main_end_time = datetime.datetime.now()
+    metatile_stats_dict["level_name"] = str(level_name)
+    metatile_stats_dict["total_runtime"] = str(main_end_time - main_start_time)
 
     # Save Metatile Stats for Level
     all_levels_metatile_stats_file = "level_saved_files_" + player_img + "/all_levels_metatile_stats.json"
-    level_metatile_stats = {"level_name": str(level_name),
-                            "num_total_metatiles": len(level_metatiles),
-                            "num_filled_metatiles": metatile_stats_dict.get("num_filled_metatiles"),
-                            "num_unique_metatiles": len(metatile_stats_dict.get("unique_metatiles")),
-                            "num_unique_metatiles_with_graphs": metatile_stats_dict.get("num_unique_metatiles_with_graphs"),
-                            "num_metatiles_with_graphs": metatile_stats_dict.get("num_metatiles_with_graphs"),
-                            "total_runtime": str(main_end_time - main_start_time)}
 
     with open(all_levels_metatile_stats_file, 'r') as all_levels_file:
         all_levels_metatile_stats = json.load(all_levels_file)
@@ -185,9 +194,9 @@ def main(game_name, level_name, player_img):
     # Save original runtime (max time req to enumerate state graph and extract metatiles)
     for level_stats in prev_contents:
         if level_stats["level_name"] == level_name:
-            level_metatile_stats["total_runtime"] = level_stats["total_runtime"]
+            metatile_stats_dict["total_runtime"] = level_stats["total_runtime"]
 
-    new_contents.append(level_metatile_stats)
+    new_contents.append(metatile_stats_dict)
     all_levels_metatile_stats["contents"] = new_contents
 
     with open(all_levels_metatile_stats_file, "w") as all_levels_file:
@@ -195,8 +204,8 @@ def main(game_name, level_name, player_img):
 
     if PRINT_METATILE_STATS:
         print("---- Metatiles for Level " + str(level_name) + " ----")
-        for key in level_metatile_stats.keys():
-            print(key, ": ", level_metatile_stats.get(key))
+        for key in metatile_stats_dict.keys():
+            print(key, ": ", metatile_stats_dict.get(key))
 
     print("\nProgram Runtime: ", main_end_time - main_start_time)
 
@@ -206,13 +215,15 @@ if __name__ == "__main__":
     PLAYER_IMG = "block"
 
     GAME_AND_LEVEL = []
-    # GAME_AND_LEVEL.append(("sample", "sample_hallway"))
+    GAME_AND_LEVEL.append(("sample", "sample_mini"))
+    GAME_AND_LEVEL.append(("sample", "sample_hallway_flat"))
+    GAME_AND_LEVEL.append(("sample", "sample_hallway"))
+
     # GAME_AND_LEVEL.append(("kid_icarus", "kidicarus_1"))
-    GAME_AND_LEVEL.append(("super_mario_bros", "mario-1-1"))
 
     # mario_levels = [(1, 1), (2, 1), (3, 1), (3, 2), (4, 1), (5, 1), (5, 2),
     #                 (6, 1), (6, 2), (7, 1), (8, 1), (8, 2), (8, 3)]
-
+    #
     # for x1, x2 in mario_levels:
     #     mario_level_name = "mario-%s-%s" % (x1, x2)
     #     GAME_AND_LEVEL.append(("super_mario_bros", mario_level_name))
@@ -223,6 +234,4 @@ if __name__ == "__main__":
 
     for game, level in GAME_AND_LEVEL:
         main(game, level, PLAYER_IMG)
-
-
 
