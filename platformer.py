@@ -17,13 +17,14 @@ from model.level import TILE_DIM, MAX_WIDTH, MAX_HEIGHT
 from model.level import Level
 from model.action import Action
 
+
 '''
 Setup
 '''
 
 
 GAME = "sample"
-LEVEL = "sample_mini"
+LEVEL = "sample_hallway_flat"
 
 PLAYER_IMG = 'block'
 level_saved_files_dir = "level_saved_files_" + PLAYER_IMG + "/"
@@ -71,9 +72,14 @@ for (x, y) in level.goal_coords:
 camera = Camera(Camera.camera_function, level.width, level.height, WORLD_X, WORLD_Y)
 
 
-def get_metatile_labels_at_coords(coords, count, font, color):
+def get_metatile_labels_at_coords(coords, count, graph_is_empty, font, color):
     new_labels = []
-    label_surface = font.render(str(count), False, color)
+
+    label_text = str(count)
+    if graph_is_empty:
+        label_text += "E"
+
+    label_surface = font.render(label_text, False, color)
     for coord in coords:
         new_labels.append((label_surface, coord[0], coord[1]))
     return new_labels
@@ -92,18 +98,28 @@ if DRAW_METATILE_LABELS:
     metatile_labels = []
     metatile_count = 0
 
-    for metatile in metatile_coords_dict.keys():
+    # print("Level: %s" % LEVEL)
 
-        coords = metatile_coords_dict[metatile]
+    for metatile_str in metatile_coords_dict.keys():
+
+        coords = metatile_coords_dict[metatile_str]
+
+        metatile = eval(metatile_str)
+        graph_is_empty = not bool(metatile['graph'])
 
         if DRAW_DUPLICATE_METATILES_ONLY:
             if len(coords) > 1:
                 metatile_count += 1
-                metatile_labels += get_metatile_labels_at_coords(coords, metatile_count, LABEL_FONT, FONT_COLOR)
+                metatile_labels += get_metatile_labels_at_coords(coords, metatile_count, graph_is_empty, LABEL_FONT, FONT_COLOR)
         else:
             metatile_count += 1
-            metatile_labels += get_metatile_labels_at_coords(coords, metatile_count, LABEL_FONT, FONT_COLOR)
+            metatile_labels += get_metatile_labels_at_coords(coords, metatile_count, graph_is_empty, LABEL_FONT, FONT_COLOR)
 
+    #     if metatile_count in [10, 15, 20]:  # sample_hallway_level
+    #         m = eval(metatile)
+    #         m_graph = nx.from_dict_of_dicts(m['graph'])
+    #         print("Metatile %d: nodes = %d, edges = %d" % (metatile_count, len(m_graph.nodes()), len(m_graph.edges())))
+    # exit(0)
 
 '''
 Main Loop
