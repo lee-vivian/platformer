@@ -1,15 +1,6 @@
 {
   "contents": [
     {
-      "level_name": "sample_hallway",
-      "num_filled_metatiles": 1185,
-      "num_metatiles_with_graphs": 1287,
-      "num_total_metatiles": 3296,
-      "num_unique_metatiles": 174,
-      "num_unique_metatiles_with_graphs": 172,
-      "total_runtime": "0:00:18.229872"
-    },
-    {
       "level_name": "kidicarus_1",
       "num_filled_metatiles": 1077,
       "num_metatiles_with_graphs": 1974,
@@ -17,15 +8,6 @@
       "num_unique_metatiles": 1365,
       "num_unique_metatiles_with_graphs": 1363,
       "total_runtime": "10:51:14.460523"
-    },
-    {
-      "level_name": "sample_mini",
-      "num_filled_metatiles": 36,
-      "num_metatiles_with_graphs": 18,
-      "num_total_metatiles": 54,
-      "num_unique_metatiles": 14,
-      "num_unique_metatiles_with_graphs": 13,
-      "total_runtime": "0:00:02.582219"
     },
     {
       "level_name": "mario-1-1",
@@ -37,13 +19,40 @@
       "total_runtime": "1:07:45.517323"
     },
     {
+      "level_name": "mario-2-1",
+      "num_filled_metatiles": 713,
+      "num_metatiles_with_graphs": 1661,
+      "num_total_metatiles": 3184,
+      "num_unique_metatiles": 735,
+      "num_unique_metatiles_with_graphs": 733,
+      "total_runtime": "0:45:55.477325"
+    },
+    {
+      "level_name": "sample_mini",
+      "num_filled_metatiles": 36,
+      "num_metatiles_with_graphs": 18,
+      "num_total_metatiles": 54,
+      "num_unique_metatiles": 14,
+      "num_unique_metatiles_with_graphs": 13,
+      "total_runtime": "0:00:01.786655"
+    },
+    {
       "level_name": "sample_hallway_flat",
       "num_filled_metatiles": 645,
       "num_metatiles_with_graphs": 1240,
       "num_total_metatiles": 3296,
       "num_unique_metatiles": 53,
       "num_unique_metatiles_with_graphs": 51,
-      "total_runtime": "5:32:21.752190"
+      "total_runtime": "0:26:33.732124"
+    },
+    {
+      "level_name": "sample_hallway",
+      "num_filled_metatiles": 1185,
+      "num_metatiles_with_graphs": 1287,
+      "num_total_metatiles": 3296,
+      "num_unique_metatiles": 174,
+      "num_unique_metatiles_with_graphs": 172,
+      "total_runtime": "0:18:36.996382"
     }
   ]
 }
