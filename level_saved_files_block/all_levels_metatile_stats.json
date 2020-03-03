@@ -47,11 +47,11 @@
     },
     {
       "level_name": "mario-2-1",
-      "num_filled_metatiles": 713,
-      "num_metatiles_with_graphs": 1661,
+      "num_filled_metatiles": 701,
+      "num_metatiles_with_graphs": 1747,
       "num_total_metatiles": 3184,
-      "num_unique_metatiles": 735,
-      "num_unique_metatiles_with_graphs": 733,
+      "num_unique_metatiles": 783,
+      "num_unique_metatiles_with_graphs": 781,
       "total_runtime": "0:45:55.477325"
     }
   ]
