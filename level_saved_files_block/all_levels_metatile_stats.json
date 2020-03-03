@@ -35,6 +35,15 @@
       "num_unique_metatiles": 689,
       "num_unique_metatiles_with_graphs": 687,
       "total_runtime": "1:07:45.517323"
+    },
+    {
+      "level_name": "sample_hallway_flat",
+      "num_filled_metatiles": 645,
+      "num_metatiles_with_graphs": 1240,
+      "num_total_metatiles": 3296,
+      "num_unique_metatiles": 53,
+      "num_unique_metatiles_with_graphs": 51,
+      "total_runtime": "5:32:21.752190"
     }
   ]
 }
