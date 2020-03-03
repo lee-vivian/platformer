@@ -1,33 +1,6 @@
 {
   "contents": [
     {
-      "level_name": "kidicarus_1",
-      "num_filled_metatiles": 1077,
-      "num_metatiles_with_graphs": 1974,
-      "num_total_metatiles": 3150,
-      "num_unique_metatiles": 1365,
-      "num_unique_metatiles_with_graphs": 1363,
-      "total_runtime": "10:51:14.460523"
-    },
-    {
-      "level_name": "mario-1-1",
-      "num_filled_metatiles": 767,
-      "num_metatiles_with_graphs": 1732,
-      "num_total_metatiles": 3264,
-      "num_unique_metatiles": 689,
-      "num_unique_metatiles_with_graphs": 687,
-      "total_runtime": "1:07:45.517323"
-    },
-    {
-      "level_name": "mario-2-1",
-      "num_filled_metatiles": 713,
-      "num_metatiles_with_graphs": 1661,
-      "num_total_metatiles": 3184,
-      "num_unique_metatiles": 735,
-      "num_unique_metatiles_with_graphs": 733,
-      "total_runtime": "0:45:55.477325"
-    },
-    {
       "level_name": "sample_mini",
       "num_filled_metatiles": 36,
       "num_metatiles_with_graphs": 18,
@@ -53,6 +26,33 @@
       "num_unique_metatiles": 174,
       "num_unique_metatiles_with_graphs": 172,
       "total_runtime": "0:18:36.996382"
+    },
+    {
+      "level_name": "kidicarus_1",
+      "num_filled_metatiles": 1077,
+      "num_metatiles_with_graphs": 1974,
+      "num_total_metatiles": 3150,
+      "num_unique_metatiles": 1365,
+      "num_unique_metatiles_with_graphs": 1363,
+      "total_runtime": "10:51:14.460523"
+    },
+    {
+      "level_name": "mario-1-1",
+      "num_filled_metatiles": 767,
+      "num_metatiles_with_graphs": 1732,
+      "num_total_metatiles": 3264,
+      "num_unique_metatiles": 689,
+      "num_unique_metatiles_with_graphs": 687,
+      "total_runtime": "1:07:45.517323"
+    },
+    {
+      "level_name": "mario-2-1",
+      "num_filled_metatiles": 713,
+      "num_metatiles_with_graphs": 1661,
+      "num_total_metatiles": 3184,
+      "num_unique_metatiles": 735,
+      "num_unique_metatiles_with_graphs": 733,
+      "total_runtime": "0:45:55.477325"
     }
   ]
 }
