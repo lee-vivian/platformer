@@ -174,6 +174,7 @@ def main(game_name, level_name, player_img):
     end_time = datetime.datetime.now()
     print("Runtime: ", end_time - start_time, "\n")
 
+    # Calculate Level Metatile Stats
     print("Calculating metatile stats for level: " + str(level_name) + " ...")
     start_time = datetime.datetime.now()
     metatile_stats_dict = get_metatile_stats_dict(level_metatiles, metatile_coords_dict_file)
@@ -182,6 +183,8 @@ def main(game_name, level_name, player_img):
 
     main_end_time = datetime.datetime.now()
     metatile_stats_dict["level_name"] = str(level_name)
+    metatile_stats_dict['level_width'] = level.width
+    metatile_stats_dict['level_height'] = level.height
     metatile_stats_dict["total_runtime"] = str(main_end_time - main_start_time)
 
     # Save Metatile Stats for Level
@@ -235,7 +238,7 @@ if __name__ == "__main__":
     #     GAME_AND_LEVEL.append(("super_mario_bros", mario_level_name))
 
     ENUMERATE_STATES = False  # if False, load in from saved file
-    EXTRACT_METATILES = True  # if False, load in from saved file
+    EXTRACT_METATILES = False  # if False, load in from saved file
     PRINT_METATILE_STATS = True
 
     for game, level in GAME_AND_LEVEL:
