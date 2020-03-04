@@ -31,6 +31,40 @@ class Metatile:
         return Metatile(metatile_dict['filled'], metatile_dict['graph'])
 
     @staticmethod
+    def get_unique_metatiles(metatiles):
+        unique_metatiles = []
+        for metatile in metatiles:
+            if metatile not in unique_metatiles:
+                unique_metatiles.append(metatile)
+        return unique_metatiles
+
+    @staticmethod
+    def get_unique_metatiles_for_level(level_name, player_img='block'):
+        level_saved_files_dir = "level_saved_files_" + player_img + "/"
+        metatile_coords_dict_dir = level_saved_files_dir + "metatile_coords_dicts/"
+        metatile_coords_dict_file = metatile_coords_dict_dir + level_name + ".txt"
+
+        f = open(metatile_coords_dict_file, 'r')
+        metatile_coords_dict = eval(f.readline())
+        f.close()
+
+        metatiles = [Metatile.from_str(key) for key in metatile_coords_dict.keys()]
+        return metatiles
+
+    @staticmethod
+    def get_unique_metatiles_for_levels(levels_list, player_img='block'):
+        all_metatiles = []
+        for level in levels_list:
+            all_metatiles += Metatile.get_unique_metatiles_for_level(level, player_img)
+        unique_metatiles = Metatile.get_unique_metatiles(all_metatiles)
+
+        print("levels:", str(levels_list))
+        print("all metatiles count:", str(len(all_metatiles)))
+        print("unique metatiles count:", str(len(unique_metatiles)))
+        return unique_metatiles
+
+
+    @staticmethod
     def get_coord_node_dict(graph):
         coord_node_dict = {}
         for node in graph.nodes():
