@@ -21,18 +21,21 @@ def get_saved_file_paths(level_name, player_img):
     enumerated_state_graphs_dir = level_saved_files_dir + "enumerated_state_graphs/"
     metatiles_dir = level_saved_files_dir + "metatiles/"
     metatile_coords_dict_dir = level_saved_files_dir + "metatile_coords_dicts/"
+    coord_metatile_dict_dir = level_saved_files_dir + "coord_metatile_dicts/"
 
-    if not os.path.exists(level_saved_files_dir):
-        os.makedirs(level_saved_files_dir)
-        os.makedirs(enumerated_state_graphs_dir)
-        os.makedirs(metatiles_dir)
-        os.makedirs(metatile_coords_dict_dir)
+    saved_files_directories = [level_saved_files_dir, enumerated_state_graphs_dir, metatiles_dir,
+                               metatile_coords_dict_dir, coord_metatile_dict_dir]
+
+    for directory in saved_files_directories:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
     state_graph_file = enumerated_state_graphs_dir + str(level_name) + ".gpickle"
     metatiles_file = metatiles_dir + str(level_name) + ".txt"
     metatile_coords_dict_file = metatile_coords_dict_dir + str(level_name) + ".txt"
+    coord_metatile_dict_file = coord_metatile_dict_dir + str(level_name) + ".txt"
 
-    return state_graph_file, metatiles_file, metatile_coords_dict_file
+    return state_graph_file, metatiles_file, metatile_coords_dict_file, coord_metatile_dict_file
 
 
 def get_action_set():
@@ -88,10 +91,10 @@ def get_state_graph(level, state_graph_file, player_img, recompute_graph):
     return state_graph
 
 
-def get_metatiles(level, state_graph, metatiles_file, metatile_coords_dict_file, recompute_metatiles):
+def get_metatiles(level, state_graph, metatiles_file, metatile_coords_dict_file, coord_metatile_dict_file, recompute_metatiles):
 
     if recompute_metatiles:
-        level_metatiles = Metatile.extract_metatiles(level, state_graph, metatile_coords_dict_file)
+        level_metatiles = Metatile.extract_metatiles(level, state_graph, metatile_coords_dict_file, coord_metatile_dict_file)
         with open(metatiles_file, 'w') as f:
             for metatile in level_metatiles:
                 f.write("%s\n" % metatile.to_str())
@@ -155,7 +158,7 @@ def main(game_name, level_name, player_img):
     level = Level.generate_level_from_file(game_name + "/" + level_name + ".txt")
 
     # Level saved file paths
-    state_graph_file, metatiles_file, metatile_coords_dict_file = get_saved_file_paths(level_name, player_img)
+    state_graph_file, metatiles_file, metatile_coords_dict_file, coord_metatile_dict_file = get_saved_file_paths(level_name, player_img)
 
     # Enumerate State Graph
     print("\nEnumerating states for level: " + str(level_name) + " ...")
@@ -167,7 +170,7 @@ def main(game_name, level_name, player_img):
     # Extract Metatiles
     print("Extracting metatiles for level: " + str(level_name) + " ...")
     start_time = datetime.datetime.now()
-    level_metatiles = get_metatiles(level, state_graph, metatiles_file, metatile_coords_dict_file, EXTRACT_METATILES)
+    level_metatiles = get_metatiles(level, state_graph, metatiles_file, metatile_coords_dict_file, coord_metatile_dict_file, EXTRACT_METATILES)
     end_time = datetime.datetime.now()
     print("Runtime: ", end_time - start_time, "\n")
 
@@ -219,7 +222,10 @@ if __name__ == "__main__":
     GAME_AND_LEVEL.append(("sample", "sample_hallway_flat"))
     GAME_AND_LEVEL.append(("sample", "sample_hallway"))
 
-    # GAME_AND_LEVEL.append(("kid_icarus", "kidicarus_1"))
+    GAME_AND_LEVEL.append(("kid_icarus", "kidicarus_1"))
+
+    GAME_AND_LEVEL.append(("super_mario_bros", "mario-1-1"))
+    GAME_AND_LEVEL.append(("super_mario_bros", "mario-2-1"))
 
     # mario_levels = [(1, 1), (2, 1), (3, 1), (3, 2), (4, 1), (5, 1), (5, 2),
     #                 (6, 1), (6, 2), (7, 1), (8, 1), (8, 2), (8, 3)]
@@ -228,7 +234,7 @@ if __name__ == "__main__":
     #     mario_level_name = "mario-%s-%s" % (x1, x2)
     #     GAME_AND_LEVEL.append(("super_mario_bros", mario_level_name))
 
-    ENUMERATE_STATES = True  # if False, load in from saved file
+    ENUMERATE_STATES = False  # if False, load in from saved file
     EXTRACT_METATILES = True  # if False, load in from saved file
     PRINT_METATILE_STATS = True
 

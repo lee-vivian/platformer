@@ -117,12 +117,13 @@ class Metatile:
         return normalized_graph
 
     @staticmethod
-    def extract_metatiles(level, graph, metatile_coords_dict_file):
+    def extract_metatiles(level, graph, metatile_coords_dict_file, coord_metatile_dict_file):
 
         all_metatiles = []
         unique_metatiles = []
         metatile_str_metatile_dict = {}
         metatile_coords_dict = {}
+        coord_metatile_dict = {}
 
         tile_coords = level.platform_coords + level.goal_coords
         tile_coords_dict = {}
@@ -150,9 +151,12 @@ class Metatile:
             new_metatile = Metatile(filled, metatile_graph_as_dict)
             all_metatiles.append(new_metatile)
 
-            # Construct {metatile: coords} dict
-
             new_metatile_str = new_metatile.to_str()
+
+            # Construct {coord: metatile} dict
+            coord_metatile_dict[metatile_coord] = new_metatile_str
+
+            # Construct {metatile: coords} dict
 
             if new_metatile not in unique_metatiles:  # have not seen this metatile yet, add to dict
                 unique_metatiles.append(new_metatile)
@@ -167,6 +171,12 @@ class Metatile:
                 metatile_coords_dict[new_metatile_str] = [metatile_coord]
             else:
                 metatile_coords_dict[new_metatile_str].append(metatile_coord)
+
+        # Save coord_metatile_dict
+        with open(coord_metatile_dict_file, 'w') as f:
+            f.write(str(coord_metatile_dict))
+        f.close()
+        print("Saved to: ", coord_metatile_dict_file)
 
         # Save metatile_coords_dict
         with open(metatile_coords_dict_file, 'w') as f:
