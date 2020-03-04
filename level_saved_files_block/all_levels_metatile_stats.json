@@ -34,6 +34,17 @@
       "total_runtime": "0:18:36.996382"
     },
     {
+      "level_height": 7000,
+      "level_name": "kidicarus_1",
+      "level_width": 720,
+      "num_filled_metatiles": 1077,
+      "num_metatiles_with_graphs": 1974,
+      "num_total_metatiles": 3150,
+      "num_unique_metatiles": 1365,
+      "num_unique_metatiles_with_graphs": 1363,
+      "total_runtime": "10:51:14.460523"
+    },
+    {
       "level_height": 640,
       "level_name": "mario-1-1",
       "level_width": 8160,
@@ -54,15 +65,6 @@
       "num_unique_metatiles": 783,
       "num_unique_metatiles_with_graphs": 781,
       "total_runtime": "0:45:55.477325"
-    },
-    {
-      "level_name": "kidicarus_1",
-      "num_filled_metatiles": 1077,
-      "num_metatiles_with_graphs": 1974,
-      "num_total_metatiles": 3150,
-      "num_unique_metatiles": 1365,
-      "num_unique_metatiles_with_graphs": 1363,
-      "total_runtime": "10:51:14.460523"
     }
   ]
 }
