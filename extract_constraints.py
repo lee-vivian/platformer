@@ -4,6 +4,7 @@ Generates a json file representing a tileset and the constraints for each tile's
 
 import os
 import json
+import datetime
 
 from model.level import Level
 from model.metatile import Metatile
@@ -57,6 +58,8 @@ def get_neighbor_metatiles_dict(coord, coord_metatile_str_dict, level_width, lev
 
 def get_tiles_dict(game_name, level_name, player_img):
 
+    start_time = datetime.datetime.now()
+
     tiles_dict = {}
 
     # Generate level from txt file
@@ -74,7 +77,24 @@ def get_tiles_dict(game_name, level_name, player_img):
     coord_metatile_str_dict = eval(f.readline())
     f.close()
 
-    for metatile_coord in level.get_all_possible_coords():
+    all_possible_coords = level.get_all_possible_coords()
+    count = 0
+    total = len(all_possible_coords)
+    first_quarter = int(0.25 * total)
+    second_quarter = int(0.50 * total)
+    third_quarter = int(0.75 * total)
+
+    print("total num coords:", total)
+
+    for metatile_coord in all_possible_coords:
+
+        count += 1
+        if count == first_quarter:
+            print("25% complete...")
+        elif count == second_quarter:
+            print("50% complete...")
+        elif count == third_quarter:
+            print("75% complete...")
 
         cur_metatile = Metatile.from_str(coord_metatile_str_dict.get(metatile_coord))
         cur_metatile_neighbors_dict = get_neighbor_metatiles_dict(metatile_coord, coord_metatile_str_dict, level.width, level.height)
@@ -125,6 +145,11 @@ def get_tiles_dict(game_name, level_name, player_img):
 
         tiles_dict[cur_metatile_str]['adjacent'] = adjacent_neighbors_dict
 
+        print("100% complete ...")
+
+        end_time = datetime.datetime.now()
+        print("Get tiles dict runtime:", str(end_time-start_time))
+
     return tiles_dict
 
 
@@ -141,11 +166,35 @@ def get_tileset(game, level):
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-    metatile_constraints_file = metatile_constraints_dir + str(level) + ".json"
-    with open(metatile_constraints_file, 'w') as file:
-        json.dump(tileset_dict, file, indent=2, sort_keys=True)
+    "Saving to json ..."
 
-    print(str(tileset_dict))
+    start_time = datetime.datetime.now()
+
+    metatile_constraints_file = metatile_constraints_dir + str(level) + ".json"
+    metatile_constraints_str = json.dumps(tileset_dict, indent=2)
+    with open(metatile_constraints_file, 'w') as f:
+        f.write(metatile_constraints_str)
+    f.close()
+
+    end_time = datetime.datetime.now()
+    print("Save to json runtime:", str(end_time-start_time))
+
     return tileset_dict
 
+
+def main(game, level):
+    get_tileset(game, level)
+
+
+if __name__ == "__main__":
+
+    GAME = "sample"
+    LEVEL = "sample_hallway"
+
+    print("Extracting tileset for [" + GAME + ": " + LEVEL + "]")
+
+    start_time = datetime.datetime.now()
+    main(GAME, LEVEL)
+    end_time = datetime.datetime.now()
+    print("Program runtime: " + str(end_time - start_time))
 
