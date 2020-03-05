@@ -23,11 +23,11 @@ Setup
 '''
 
 
-GAME = "sample"
-LEVEL = "sample_hallway_flat"
+GAME = "super_mario_bros"
+LEVEL = "mario-2-1"
 
 PLAYER_IMG = 'block'
-level_saved_files_dir = "level_saved_files_" + PLAYER_IMG + "/"
+level_saved_files_dir = "level_saved_files_%s/" % PLAYER_IMG
 
 USE_STATE_GRAPH = True
 DRAW_METATILE_LABELS = True
@@ -37,8 +37,8 @@ DRAW_DUPLICATE_METATILES_ONLY = True
 level = Level.generate_level_from_file(GAME + "/" + LEVEL + ".txt")
 
 # Level saved files
-state_graph_file = level_saved_files_dir + "enumerated_state_graphs/" + str(LEVEL) + ".gpickle"
-metatile_coords_dict_file = level_saved_files_dir + "metatile_coords_dicts/" + str(LEVEL) + ".txt"
+state_graph_file = level_saved_files_dir + "enumerated_state_graphs/" + GAME + "/" + LEVEL + ".gpickle"
+metatile_coords_dict_file = level_saved_files_dir + "metatile_coords_dicts/" + GAME + "/" + LEVEL + ".txt"
 
 state_graph = None if not USE_STATE_GRAPH else nx.read_gpickle(state_graph_file)
 edge_actions_dict = None if not USE_STATE_GRAPH else nx.get_edge_attributes(state_graph, "action")
@@ -114,12 +114,6 @@ if DRAW_METATILE_LABELS:
         else:
             metatile_count += 1
             metatile_labels += get_metatile_labels_at_coords(coords, metatile_count, graph_is_empty, LABEL_FONT, FONT_COLOR)
-
-    #     if metatile_count in [10, 15, 20]:  # sample_hallway_level
-    #         m = eval(metatile)
-    #         m_graph = nx.from_dict_of_dicts(m['graph'])
-    #         print("Metatile %d: nodes = %d, edges = %d" % (metatile_count, len(m_graph.nodes()), len(m_graph.edges())))
-    # exit(0)
 
 '''
 Main Loop

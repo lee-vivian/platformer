@@ -15,25 +15,32 @@ from model.action import Action
 from model.metatile import Metatile
 
 
-def get_saved_file_paths(level_name, player_img):
+def get_saved_file_paths(game_name, level_name, player_img):
 
     level_saved_files_dir = "level_saved_files_" + player_img + "/"
+
     enumerated_state_graphs_dir = level_saved_files_dir + "enumerated_state_graphs/"
     metatiles_dir = level_saved_files_dir + "metatiles/"
     metatile_coords_dict_dir = level_saved_files_dir + "metatile_coords_dicts/"
     coord_metatile_dict_dir = level_saved_files_dir + "coord_metatile_dicts/"
 
-    saved_files_directories = [level_saved_files_dir, enumerated_state_graphs_dir, metatiles_dir,
-                               metatile_coords_dict_dir, coord_metatile_dict_dir]
+    game_enumerated_state_graphs_dir = enumerated_state_graphs_dir + game_name + "/"
+    game_metatiles_dir = metatiles_dir + game_name + "/"
+    game_metatile_coords_dict_dir = metatile_coords_dict_dir + game_name + "/"
+    game_coord_metatile_dict_dir = coord_metatile_dict_dir + game_name + "/"
+
+    saved_files_directories = [level_saved_files_dir,
+                               enumerated_state_graphs_dir, metatiles_dir, metatile_coords_dict_dir, coord_metatile_dict_dir,
+                               game_enumerated_state_graphs_dir, game_metatiles_dir, game_metatile_coords_dict_dir, game_coord_metatile_dict_dir]
 
     for directory in saved_files_directories:
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-    state_graph_file = enumerated_state_graphs_dir + str(level_name) + ".gpickle"
-    metatiles_file = metatiles_dir + str(level_name) + ".txt"
-    metatile_coords_dict_file = metatile_coords_dict_dir + str(level_name) + ".txt"
-    coord_metatile_dict_file = coord_metatile_dict_dir + str(level_name) + ".txt"
+    state_graph_file = game_enumerated_state_graphs_dir + str(level_name) + ".gpickle"
+    metatiles_file = game_metatiles_dir + str(level_name) + ".txt"
+    metatile_coords_dict_file = game_metatile_coords_dict_dir + str(level_name) + ".txt"
+    coord_metatile_dict_file = game_coord_metatile_dict_dir + str(level_name) + ".txt"
 
     return state_graph_file, metatiles_file, metatile_coords_dict_file, coord_metatile_dict_file
 
@@ -158,7 +165,7 @@ def main(game_name, level_name, player_img):
     level = Level.generate_level_from_file(game_name + "/" + level_name + ".txt")
 
     # Level saved file paths
-    state_graph_file, metatiles_file, metatile_coords_dict_file, coord_metatile_dict_file = get_saved_file_paths(level_name, player_img)
+    state_graph_file, metatiles_file, metatile_coords_dict_file, coord_metatile_dict_file = get_saved_file_paths(game_name, level_name, player_img)
 
     # Enumerate State Graph
     print("\nEnumerating states for level: " + str(level_name) + " ...")
@@ -182,20 +189,26 @@ def main(game_name, level_name, player_img):
     print("Runtime: ", end_time - start_time, "\n")
 
     main_end_time = datetime.datetime.now()
-    metatile_stats_dict["level_name"] = str(level_name)
+    metatile_stats_dict["game_name"] = game_name
+    metatile_stats_dict["level_name"] = level_name
     metatile_stats_dict['level_width'] = level.width
     metatile_stats_dict['level_height'] = level.height
+    metatile_stats_dict['goal_coords'] = str(level.goal_coords)
     metatile_stats_dict["total_runtime"] = str(main_end_time - main_start_time)
 
     # Save Metatile Stats for Level
-    all_levels_metatile_stats_file = "level_saved_files_" + player_img + "/all_levels_metatile_stats.json"
+    all_levels_info_file = "level_saved_files_" + player_img + "/all_levels_info.json"
 
-    with open(all_levels_metatile_stats_file, 'r') as all_levels_file:
-        all_levels_metatile_stats = json.load(all_levels_file)
+    with open(all_levels_info_file, 'r') as all_levels_file:
+        all_levels_info = json.load(all_levels_file)
 
     # Remove duplicate entries per level
-    prev_contents = all_levels_metatile_stats["contents"]
-    new_contents = [x for x in prev_contents if x["level_name"] != level_name]
+    prev_contents = all_levels_info["contents"]
+
+    new_contents = []
+    for x in prev_contents:
+        if not (x["game_name"] == game_name and x["level_name"] == level_name):
+            new_contents.append(x)
 
     # Save original runtime (max time req to enumerate state graph and extract metatiles)
     for level_stats in prev_contents:
@@ -203,10 +216,10 @@ def main(game_name, level_name, player_img):
             metatile_stats_dict["total_runtime"] = level_stats["total_runtime"]
 
     new_contents.append(metatile_stats_dict)
-    all_levels_metatile_stats["contents"] = new_contents
+    all_levels_info["contents"] = new_contents
 
-    with open(all_levels_metatile_stats_file, "w") as all_levels_file:
-        json.dump(all_levels_metatile_stats, all_levels_file, indent=2, sort_keys=True)
+    with open(all_levels_info_file, "w") as all_levels_file:
+        json.dump(all_levels_info, all_levels_file, indent=2, sort_keys=True)
 
     if PRINT_METATILE_STATS:
         print("---- Metatiles for Level " + str(level_name) + " ----")
@@ -220,22 +233,14 @@ if __name__ == "__main__":
 
     PLAYER_IMG = "block"
 
-    GAME_AND_LEVEL = []
-    GAME_AND_LEVEL.append(("sample", "sample_mini"))
-    GAME_AND_LEVEL.append(("sample", "sample_hallway_flat"))
-    GAME_AND_LEVEL.append(("sample", "sample_hallway"))
-
-    GAME_AND_LEVEL.append(("kid_icarus", "kidicarus_1"))
-
-    GAME_AND_LEVEL.append(("super_mario_bros", "mario-1-1"))
-    GAME_AND_LEVEL.append(("super_mario_bros", "mario-2-1"))
-
-    # mario_levels = [(1, 1), (2, 1), (3, 1), (3, 2), (4, 1), (5, 1), (5, 2),
-    #                 (6, 1), (6, 2), (7, 1), (8, 1), (8, 2), (8, 3)]
-    #
-    # for x1, x2 in mario_levels:
-    #     mario_level_name = "mario-%s-%s" % (x1, x2)
-    #     GAME_AND_LEVEL.append(("super_mario_bros", mario_level_name))
+    GAME_AND_LEVEL = [
+        ('sample', 'sample_mini'),
+        ('sample', 'sample_hallway_flat'),
+        ('sample', 'sample_hallway'),
+        ('kid_icarus', 'kidicarus_1'),
+        ('super_mario_bros', 'mario-1-1'),
+        ('super_mario_bros', 'mario-2-1')
+    ]
 
     ENUMERATE_STATES = False  # if False, load in from saved file
     EXTRACT_METATILES = False  # if False, load in from saved file
@@ -243,4 +248,3 @@ if __name__ == "__main__":
 
     for game, level in GAME_AND_LEVEL:
         main(game, level, PLAYER_IMG)
-

@@ -39,9 +39,9 @@ class Metatile:
         return unique_metatiles
 
     @staticmethod
-    def get_unique_metatiles_for_level(level_name, player_img='block'):
+    def get_unique_metatiles_for_level(game_name, level_name, player_img='block'):
         level_saved_files_dir = "level_saved_files_" + player_img + "/"
-        metatile_coords_dict_dir = level_saved_files_dir + "metatile_coords_dicts/"
+        metatile_coords_dict_dir = level_saved_files_dir + "metatile_coords_dicts/" + game_name + "/"
         metatile_coords_dict_file = metatile_coords_dict_dir + level_name + ".txt"
 
         f = open(metatile_coords_dict_file, 'r')
@@ -50,14 +50,6 @@ class Metatile:
 
         metatiles = [Metatile.from_str(key) for key in metatile_coords_dict.keys()]
         return metatiles
-
-    @staticmethod
-    def get_unique_metatiles_for_levels(levels_list, player_img='block'):
-        all_metatiles = []
-        for level in levels_list:
-            all_metatiles += Metatile.get_unique_metatiles_for_level(level, player_img)
-        unique_metatiles = Metatile.get_unique_metatiles(all_metatiles)
-        return unique_metatiles
 
     @staticmethod
     def get_coord_node_dict(graph):

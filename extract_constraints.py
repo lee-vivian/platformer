@@ -78,13 +78,13 @@ def get_tileset_dict(game_name, level_name):
     level = Level.generate_level_from_file(game_name + "/" + level_name + ".txt")
 
     # Get {metatile_str: metatile} dict
-    unique_metatiles = Metatile.get_unique_metatiles_for_level(level_name, PLAYER_IMG)
+    unique_metatiles = Metatile.get_unique_metatiles_for_level(game_name, level_name, PLAYER_IMG)
     metatile_str_metatile_dict = {}
     for metatile in unique_metatiles:
         metatile_str_metatile_dict[metatile.to_str()] = metatile
 
     # Get {coord: metatile_str} dictionary for current level
-    coord_metatile_dict_file = "level_saved_files_%s/coord_metatile_dicts/%s.txt" % (PLAYER_IMG, level_name)
+    coord_metatile_dict_file = "level_saved_files_%s/coord_metatile_dicts/%s/%s.txt" % (PLAYER_IMG, game_name, level_name)
     f = open(coord_metatile_dict_file, 'r')
     coord_metatile_str_dict = eval(f.readline())
     f.close()
@@ -195,9 +195,14 @@ def merge_tileset_dicts(combined_tileset_dict, level_tileset_dict):
     }
 
 
-def save_tileset_to_json(metatile_constraints_dir, tileset_dict, constraint_filename):
+def save_tileset_to_json(metatile_constraints_dir, subdir, tileset_dict, constraint_filename):
+
+    directory_to_save_file = metatile_constraints_dir + subdir + "/"
+    if not os.path.exists(directory_to_save_file):
+        os.makedirs(directory_to_save_file)
+
     metatile_constraints_str = json.dumps(tileset_dict, indent=2)
-    metatile_constraints_filepath = metatile_constraints_dir + str(constraint_filename) + ".json"
+    metatile_constraints_filepath = directory_to_save_file + str(constraint_filename) + ".json"
     with open(metatile_constraints_filepath, 'w') as f:
         f.write(metatile_constraints_str)
     f.close()
@@ -214,7 +219,7 @@ def main(game_level_pairs, combine_levels_tile_constraints, combined_constraints
             start_time = datetime.datetime.now()
 
             tileset_dict = get_tileset_dict(game, level)
-            save_tileset_to_json(metatile_constraints_dir, tileset_dict, constraint_filename=level)
+            save_tileset_to_json(metatile_constraints_dir, game, tileset_dict, constraint_filename=level)
 
             end_time = datetime.datetime.now()
             print("Runtime:", str(end_time-start_time))
@@ -235,7 +240,7 @@ def main(game_level_pairs, combine_levels_tile_constraints, combined_constraints
             level_tileset_dict = get_tileset_dict(game, level)
             combined_tileset_dict = merge_tileset_dicts(combined_tileset_dict, level_tileset_dict)
 
-        save_tileset_to_json(metatile_constraints_dir, combined_tileset_dict, constraint_filename=combined_constraints_filename)
+        save_tileset_to_json(metatile_constraints_dir, "combined_levels", combined_tileset_dict, constraint_filename=combined_constraints_filename)
 
         end_time = datetime.datetime.now()
         print("Runtime:", str(end_time-start_time))
