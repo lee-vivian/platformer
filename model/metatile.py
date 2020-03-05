@@ -57,12 +57,7 @@ class Metatile:
         for level in levels_list:
             all_metatiles += Metatile.get_unique_metatiles_for_level(level, player_img)
         unique_metatiles = Metatile.get_unique_metatiles(all_metatiles)
-
-        print("levels:", str(levels_list))
-        print("all metatiles count:", str(len(all_metatiles)))
-        print("unique metatiles count:", str(len(unique_metatiles)))
         return unique_metatiles
-
 
     @staticmethod
     def get_coord_node_dict(graph):
