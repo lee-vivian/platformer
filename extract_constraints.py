@@ -141,19 +141,20 @@ def get_tiles_dict(game_name, level_name, player_img):
 
         adjacent_neighbors_dict = tiles_dict.get(cur_metatile_str).get("adjacent").copy()
         for pos, metatile_str in pos_std_metatile_str_dict.items():
-            adjacent_neighbors_dict[pos] += metatile_str
+            if metatile_str not in adjacent_neighbors_dict.get(pos):
+                adjacent_neighbors_dict[pos].append(metatile_str)
 
         tiles_dict[cur_metatile_str]['adjacent'] = adjacent_neighbors_dict
 
-        print("100% complete ...")
+    print("100% complete ...")
 
-        end_time = datetime.datetime.now()
-        print("Get tiles dict runtime:", str(end_time-start_time))
+    end_time = datetime.datetime.now()
+    print("Get tiles dict runtime:", str(end_time-start_time))
 
     return tiles_dict
 
 
-def get_tileset(game, level):
+def main(game, level):
 
     tileset_dict = {"tileSize": "%d,%d" % (TILE_DIM, TILE_DIM),
                     "tiles": get_tiles_dict(game, level, PLAYER_IMG)}
@@ -166,24 +167,17 @@ def get_tileset(game, level):
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-    "Saving to json ..."
-
+    print("Saving to json ...")
     start_time = datetime.datetime.now()
 
-    metatile_constraints_file = metatile_constraints_dir + str(level) + ".json"
+    metatile_constraints_json_file = metatile_constraints_dir + str(level) + ".json"
     metatile_constraints_str = json.dumps(tileset_dict, indent=2)
-    with open(metatile_constraints_file, 'w') as f:
-        f.write(metatile_constraints_str)
+    with open(metatile_constraints_json_file, 'w') as f:
+        f.write(str(metatile_constraints_str))
     f.close()
-
     end_time = datetime.datetime.now()
-    print("Save to json runtime:", str(end_time-start_time))
-
-    return tileset_dict
-
-
-def main(game, level):
-    get_tileset(game, level)
+    print("Saved to:", metatile_constraints_json_file)
+    print("Runtime:", str(end_time-start_time))
 
 
 if __name__ == "__main__":
