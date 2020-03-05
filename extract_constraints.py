@@ -70,6 +70,8 @@ def get_neighbor_metatiles_dict(coord, coord_metatile_str_dict, level_width, lev
 
 def get_tileset_dict(game_name, level_name):
 
+    print("Constructing tileset for level %s ..." % level_name)
+
     tiles_dict = {}
 
     # Generate level from txt file
@@ -241,7 +243,7 @@ def main(game_level_pairs, combine_levels_tile_constraints, combined_constraints
 
 if __name__ == "__main__":
 
-    COMBINED_CONSTRAINTS_FILENAME = None  # specify name of combined constraint file
+    COMBINED_CONSTRAINTS_FILENAME = "all_levels"  # specify name of combined constraint file
     COMBINE_LEVEL_TILE_CONSTRAINTS = False  # if False, generate individual tile constraint file for each level
     GAME_LEVEL_PAIRS = [
         ('sample', 'sample_hallway'),
