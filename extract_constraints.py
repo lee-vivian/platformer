@@ -163,13 +163,34 @@ def get_tileset_dict(game_name, level_name):
 
     return tileset_dict
 
+
 def merge_tileset_dicts(combined_tileset_dict, level_tileset_dict):
 
-    new_tile_size = combined_tileset_dict.get("tileSize")
+    combined_tile_size = combined_tileset_dict.get("tileSize")
+    combined_tiles_dict = combined_tileset_dict.get("tiles").copy()
 
-    new_tiles_dict = combined_tileset_dict.get("tiles").copy()
+    level_tiles_dict = level_tileset_dict.get("tiles")
 
+    for tile_key, tile_value in level_tiles_dict.items():
 
+        if combined_tiles_dict.get(tile_key) is None:  # tile not already in combined_tiles_dict
+            combined_tiles_dict[tile_key] = tile_value
+
+        else:
+            combined_tile_neighbors_dict = combined_tiles_dict[tile_key]['adjacent']
+            level_tile_neighbors_dict = tile_value['adjacent']
+
+            for pos, neighbor_tiles in level_tile_neighbors_dict.items():
+                if combined_tile_neighbors_dict.get(pos) is None:  # pos not seen for this tile yet
+                    combined_tile_neighbors_dict[pos] = neighbor_tiles
+                else:
+                    combined_tile_neighbors_dict[pos] = \
+                        list(set(combined_tile_neighbors_dict.get(pos) + neighbor_tiles))
+
+    return {
+        "tileSize": combined_tile_size,
+        "tiles": combined_tiles_dict
+    }
 
 
 def save_tileset_to_json(metatile_constraints_dir, tileset_dict, constraint_filename):
