@@ -52,6 +52,13 @@ class Metatile:
         return metatiles
 
     @staticmethod
+    def get_unique_metatiles_for_levels(game_level_pairs, player_img='block'):
+        combined_metatiles = []
+        for game, level in game_level_pairs:
+            combined_metatiles += Metatile.get_unique_metatiles_for_level(game, level, player_img)
+        return Metatile.get_unique_metatiles(combined_metatiles)
+
+    @staticmethod
     def get_coord_node_dict(graph):
         coord_node_dict = {}
         for node in graph.nodes():
