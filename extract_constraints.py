@@ -10,7 +10,7 @@ from model.level import Level
 from model.metatile import Metatile
 
 PLAYER_IMG = 'block'
-TILE_IMG = "images/tile.png"
+TILE_IMG = "tiles/platformer/tile.png"
 TILE_TOP_LEFT = "0,0"
 TILE_DIM = 40
 
