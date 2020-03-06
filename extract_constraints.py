@@ -201,7 +201,7 @@ def save_tileset_to_json(metatile_constraints_dir, subdir, tileset_dict, constra
     if not os.path.exists(directory_to_save_file):
         os.makedirs(directory_to_save_file)
 
-    metatile_constraints_str = json.dumps(tileset_dict, indent=2)
+    metatile_constraints_str = json.dumps({"tileset": tileset_dict}, indent=2)
     metatile_constraints_filepath = directory_to_save_file + str(constraint_filename) + ".json"
     with open(metatile_constraints_filepath, 'w') as f:
         f.write(metatile_constraints_str)
@@ -237,7 +237,16 @@ def main(game_level_pairs, combine_levels_tile_constraints, combined_constraints
                                  "tiles": {}}
 
         for game, level in game_level_pairs:
-            level_tileset_dict = get_tileset_dict(game, level)
+            # Check if tileset for individual level already exists
+            level_tileset_filepath = metatile_constraints_dir + game + "/" + level + ".json"
+            if os.path.exists(level_tileset_filepath):
+                print("Loading tileset from:", level_tileset_filepath)
+                with open(level_tileset_filepath) as file:
+                    level_tileset_dict = json.load(file)["tileset"]
+                file.close()
+            else:
+                level_tileset_dict = get_tileset_dict(game, level)
+
             combined_tileset_dict = merge_tileset_dicts(combined_tileset_dict, level_tileset_dict)
 
         save_tileset_to_json(metatile_constraints_dir, "combined_levels", combined_tileset_dict, constraint_filename=combined_constraints_filename)
