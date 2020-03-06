@@ -11,7 +11,8 @@ import json
 from model.level import Level
 from model.metatile import Metatile
 
-TILE_IMG = "tiles/platformer/tile.png"
+TILE_IMG = "tiles/platformer/gray_tile.png"
+BLANK_TILE_IMG = "tiles/platformer/blank_tile.png"
 TILE_TOP_LEFT = "0,0"
 TILE_DIM = 40
 
@@ -163,8 +164,13 @@ def get_tileset_dict(metatile_id_map, game, level, player_img):
         # Update adjacent neighbors for cur_metatile
 
         if tiles_dict.get(cur_metatile_id) is None:
+
+            tmp_metatile = Metatile.from_str(cur_metatile_str)
+            graph_is_empty = not bool(tmp_metatile.graph_as_dict)
+            path = TILE_IMG if graph_is_empty else BLANK_TILE_IMG
+
             tiles_dict[cur_metatile_id] = {
-                "path": TILE_IMG,
+                "path": path,
                 "pos": TILE_TOP_LEFT,
                 "adjacent": {
                     TOP: [],
@@ -279,3 +285,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args.metatile_id_file, args.games, args.levels, args.player_img, args.outfile)
+
+#   pypy3 extract_constraints.py level_saved_files_block/metatile_id_maps/all_levels.pickle --games sample super_mario_bros super_mario_bros kid_icarus --levels sample_hallway mario-1-1 mario-2-1 kidicarus_1 --outfile all_levels
+
+

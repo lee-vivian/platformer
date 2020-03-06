@@ -30,7 +30,7 @@ PLAYER_IMG = 'block'
 level_saved_files_dir = "level_saved_files_%s/" % PLAYER_IMG
 
 USE_STATE_GRAPH = True
-DRAW_METATILE_LABELS = True
+DRAW_METATILE_LABELS = False
 DRAW_DUPLICATE_METATILES_ONLY = True
 
 # Create Level
@@ -62,7 +62,7 @@ player_list.add(player_view)
 # Level
 platform_list = pygame.sprite.Group()
 for (x, y) in level.platform_coords:
-    platform_list.add(Tile(x, y, 'tile.png'))
+    platform_list.add(Tile(x, y, 'gray_tile.png'))
 
 goal_list = pygame.sprite.Group()
 for (x, y) in level.goal_coords:

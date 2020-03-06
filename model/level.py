@@ -248,7 +248,7 @@ class Level:
     #     platform_list = pygame.sprite.Group()
     #     platform_coords = self.get_border_coords() + self.get_platform_coords()
     #     for (x, y) in platform_coords:
-    #         platform = tile.Tile(x, y, 'tile.png')
+    #         platform = tile.Tile(x, y, 'gray_tile.png')
     #         platform_list.add(platform)
     #     return platform_list
     #
