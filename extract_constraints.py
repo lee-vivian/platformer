@@ -238,12 +238,14 @@ def main(metatile_id_file, games, levels, player_img, outfile):
         level_tileset_file = metatile_constraints_dir + level + ".json"
         if os.path.exists(level_tileset_file):
             print("Loading tileset constrints from:", level_tileset_file)
-            level_tileset_dict = read_json(level_tileset_file)
+            level_tileset_dict = read_json(level_tileset_file).get("tileset")
         else:
             print("Constructing tileset constraints for level %s ..." % level)
             level_tileset_dict = get_tileset_dict(metatile_id_map, game, level, player_img)
 
         combined_tileset_dict = merge_tileset_dicts(combined_tileset_dict, level_tileset_dict)
+
+    output_tileset = {"tileset": combined_tileset_dict}
 
     end_time = datetime.datetime.now()
     print("Runtime:", str(end_time - start_time))
@@ -252,7 +254,7 @@ def main(metatile_id_file, games, levels, player_img, outfile):
         outfile = '_'.join(levels)
     outfile_path = metatile_constraints_dir + outfile + ".json"
 
-    return write_json(outfile_path, combined_tileset_dict)
+    return write_json(outfile_path, output_tileset)
 
 
 if __name__ == "__main__":
