@@ -70,6 +70,7 @@ def main(games, levels, player_img, outfile):
 
 
 if __name__ == '__main__':
+
     parser = argparse.ArgumentParser(description='Get metatile_id maps for the given game levels')
     parser.add_argument('--games', type=str, nargs="+", help='List of games', default="")
     parser.add_argument('--levels', type=str, nargs="+", help='List of game levels', default="")
@@ -79,3 +80,4 @@ if __name__ == '__main__':
 
     main(args.games, args.levels, args.player_img, args.outfile)
 
+# pypy3 get_metatile_id_map.py --games sample sample sample super_mario_bros super_mario_bros kid_icarus --levels sample_mini sample_hallway_flat sample_hallway mario-1-1 mario-2-1 kidicarus_1 --outfile all_levels

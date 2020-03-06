@@ -56,10 +56,8 @@ class Metatile:
 
     @staticmethod
     def get_unique_metatiles_for_level(game_name, level_name, player_img='block'):
-        level_saved_files_dir = "level_saved_files_" + player_img + "/"
-        metatile_coords_dict_dir = level_saved_files_dir + "metatile_coords_dicts/" + game_name + "/"
-        metatile_coords_dict_file = metatile_coords_dict_dir + level_name + ".txt"
-
+        metatile_coords_dict_file = "level_saved_files_%s/metatile_coords_dicts/%s/%s.pickle" % \
+                                    (player_img, game_name, level_name)
         metatile_coords_dict = read_pickle(metatile_coords_dict_file)
         metatiles = [Metatile.from_str(key) for key in metatile_coords_dict.keys()]
         return metatiles

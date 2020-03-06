@@ -109,10 +109,8 @@ def get_tileset_dict(metatile_id_map, game, level, player_img):
         metatile_str_metatile_dict[metatile.to_str()] = metatile
 
     # Get {coord: metatile_str} dictionary for current level
-    coord_metatile_dict_file = "level_saved_files_%s/coord_metatile_dicts/%s/%s.txt" % (player_img, game, level)
-    f = open(coord_metatile_dict_file, 'r')
-    coord_metatile_str_dict = eval(f.readline())
-    f.close()
+    coord_metatile_dict_file = "level_saved_files_%s/coord_metatile_dicts/%s/%s.pickle" % (player_img, game, level)
+    coord_metatile_str_dict = read_pickle(coord_metatile_dict_file)
 
     all_possible_coords = level_obj.get_all_possible_coords()
     count = 0
@@ -265,17 +263,6 @@ def main(metatile_id_file, games, levels, player_img, outfile):
 
 if __name__ == "__main__":
 
-    # GAME_LEVEL_PAIRS = [
-    #     ('sample', 'sample_hallway'),
-    #     ('super_mario_bros', 'mario-1-1'),
-    #     ('super_mario_bros', 'mario-2-1'),
-    #     ('kid_icarus', 'kidicarus_1')
-    # ]
-    #
-    # for game, level in GAME_LEVEL_PAIRS:
-    #     main('level_saved_files_block/metatile_id_maps/%s.pickle' % level,
-    #          [game], [level], 'block', None)
-
     parser = argparse.ArgumentParser(description='Extract combined tileset constraints json for the specified levels')
     parser.add_argument('metatile_id_file', type=str, help='Filepath for metatile_id map')
     parser.add_argument('--games', type=str, nargs="+", help='List of games', default="")
@@ -286,6 +273,6 @@ if __name__ == "__main__":
 
     main(args.metatile_id_file, args.games, args.levels, args.player_img, args.outfile)
 
-#   pypy3 extract_constraints.py level_saved_files_block/metatile_id_maps/all_levels.pickle --games sample super_mario_bros super_mario_bros kid_icarus --levels sample_hallway mario-1-1 mario-2-1 kidicarus_1 --outfile all_levels
+#   pypy3 extract_constraints.py level_saved_files_block/metatile_id_maps/all_levels.pickle --games sample sample sample super_mario_bros super_mario_bros kid_icarus --levels sample_mini sample_hallway_flat sample_hallway mario-1-1 mario-2-1 kidicarus_1 --outfile all_levels
 
 
