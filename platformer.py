@@ -30,6 +30,35 @@ def get_metatile_labels_at_coords(coords, count, graph_is_empty, font, color):
     return new_labels
 
 
+def setup_metatile_labels(metatile_coords_dict_file, draw_dup_labels_only=True):
+
+    font_color = (255, 255, 100)
+    label_padding = (8, 12)
+    label_font = pygame.font.SysFont('Comic Sans MS', 20)
+
+    f = open(metatile_coords_dict_file, 'r')
+    metatile_coords_dict = eval(f.readline())
+    f.close()
+
+    metatile_labels = []
+    metatile_count = 0
+
+    for metatile_str in metatile_coords_dict.keys():
+        coords = metatile_coords_dict.get(metatile_str)
+        metatile = eval(metatile_str)
+        graph_is_empty = not bool(metatile.get('graph'))
+
+        if draw_dup_labels_only:
+            if len(coords) > 1:
+                metatile_count += 1
+                metatile_labels += get_metatile_labels_at_coords(coords, metatile_count, graph_is_empty, label_font, font_color)
+        else:
+            metatile_count += 1
+            metatile_labels += get_metatile_labels_at_coords(coords, metatile_count, graph_is_empty, label_font, font_color)
+
+    return metatile_labels, font_color, label_padding
+
+
 def main(game, level, player_img, use_graph, draw_labels, draw_dup_labels_only):
 
     # Create the Level
@@ -71,42 +100,11 @@ def main(game, level, player_img, use_graph, draw_labels, draw_dup_labels_only):
     # Camera
     camera = Camera(Camera.camera_function, level.width, level.height, WORLD_X, WORLD_Y)
 
+    # Setup drawing metatile labels
     if draw_labels:
-
-        FONT_COLOR = (255, 255, 100)
-        LABEL_PADDING = (8, 12)
-        LABEL_FONT = pygame.font.SysFont('Comic Sans MS', 20)
-
-        if draw_labels:
-
-            FONT_COLOR = (255, 255, 100)
-            LABEL_PADDING = (8, 12)
-            LABEL_FONT = pygame.font.SysFont('Comic Sans MS', 20)
-
-            f = open(metatile_coords_dict_file, 'r')
-            metatile_coords_dict = eval(f.readline())
-            f.close()
-
-            metatile_labels = []
-            metatile_count = 0
-
-            for metatile_str in metatile_coords_dict.keys():
-
-                coords = metatile_coords_dict[metatile_str]
-
-                metatile = eval(metatile_str)
-                graph_is_empty = not bool(metatile['graph'])
-
-                if draw_dup_labels_only:
-                    if len(coords) > 1:
-                        metatile_count += 1
-                        metatile_labels += get_metatile_labels_at_coords(coords, metatile_count, graph_is_empty, LABEL_FONT, FONT_COLOR)
-                else:
-                    metatile_count += 1
-                    metatile_labels += get_metatile_labels_at_coords(coords, metatile_count, graph_is_empty, LABEL_FONT, FONT_COLOR)
+        metatile_labels, font_color, label_padding = setup_metatile_labels(metatile_coords_dict_file, draw_dup_labels_only)
 
     # Main Loop
-
     main = True
 
     key_left = False
@@ -159,28 +157,18 @@ def main(game, level, player_img, use_graph, draw_labels, draw_dup_labels_only):
             for coord in level.get_all_possible_coords():
                 tile_rect = pygame.Rect(coord[0], coord[1], TILE_DIM, TILE_DIM)
                 tile_rect = camera.apply_to_rect(tile_rect)  # adjust based on camera
-                pygame.draw.rect(world, FONT_COLOR, tile_rect, 1)
+                pygame.draw.rect(world, font_color, tile_rect, 1)
 
             for label in metatile_labels:
                 surface, label_x, label_y = label
                 label_x, label_y = camera.apply_to_coord((label_x, label_y))
-                world.blit(surface, (label_x + LABEL_PADDING[0], label_y + LABEL_PADDING[1]))
+                world.blit(surface, (label_x + label_padding[0], label_y + label_padding[1]))
 
         pygame.display.flip()
         clock.tick(FPS)
 
 
 if __name__ == "__main__":
-
-    GAME = "kid_icarus"
-    LEVEL = "kidicarus_1"
-
-    PLAYER_IMG = 'block'
-    level_saved_files_dir = "level_saved_files_%s/" % PLAYER_IMG
-
-    USE_STATE_GRAPH = False
-    DRAW_METATILE_LABELS = False
-    DRAW_DUPLICATE_METATILES_ONLY = True
 
     parser = argparse.ArgumentParser(description='Play platformer game')
     parser.add_argument('game', type=str, help='The game to play')
