@@ -62,7 +62,7 @@ def setup_metatile_labels(metatile_coords_dict_file, draw_dup_labels_only=True):
 def main(game, level, player_img, use_graph, draw_labels, draw_dup_labels_only):
 
     # Create the Level
-    level = Level.generate_level_from_file("%s/%s.txt" % (game, level))
+    level_obj = Level.generate_level_from_file("%s/%s.txt" % (game, level))
 
     # Level saved files
     level_saved_files_dir = "level_saved_files_%s/" % player_img
@@ -75,30 +75,30 @@ def main(game, level, player_img, use_graph, draw_labels, draw_dup_labels_only):
     # Background
     FPS = 40  # frame rate
     ANI = 4  # animation cycles
-    WORLD_X = min(level.width, MAX_WIDTH)
-    WORLD_Y = min(level.height, MAX_HEIGHT)
+    WORLD_X = min(level_obj.width, MAX_WIDTH)
+    WORLD_Y = min(level_obj.height, MAX_HEIGHT)
     clock = pygame.time.Clock()
     pygame.init()
     world = pygame.display.set_mode([WORLD_X, WORLD_Y])
     BACKGROUND_COLOR = (23, 23, 23)
 
     # Player
-    player_model = PlayerModel(player_img, level.start_coord)
+    player_model = PlayerModel(player_img, level_obj.start_coord)
     player_view = PlayerView(player_img)
     player_list = pygame.sprite.Group()
     player_list.add(player_view)
 
     # Level
     platform_list = pygame.sprite.Group()
-    for (x, y) in level.platform_coords:
+    for (x, y) in level_obj.platform_coords:
         platform_list.add(Tile(x, y, 'gray_tile.png'))
 
     goal_list = pygame.sprite.Group()
-    for (x, y) in level.goal_coords:
+    for (x, y) in level_obj.goal_coords:
         goal_list.add(Tile(x, y, 'pizza.png'))
 
     # Camera
-    camera = Camera(Camera.camera_function, level.width, level.height, WORLD_X, WORLD_Y)
+    camera = Camera(Camera.camera_function, level_obj.width, level_obj.height, WORLD_X, WORLD_Y)
 
     # Setup drawing metatile labels
     if draw_labels:
@@ -139,7 +139,7 @@ def main(game, level, player_img, use_graph, draw_labels, draw_dup_labels_only):
 
         world.fill(BACKGROUND_COLOR)
         camera.update(player_view)  # set camera to track player
-        player_model.update(Action(key_left, key_right, key_jump), level.platform_coords, level.goal_coords,
+        player_model.update(Action(key_left, key_right, key_jump), level_obj.platform_coords, level_obj.goal_coords,
                             state_graph, edge_actions_dict)
         player_view.update(player_model.state.x, player_model.state.y,
                            player_model.half_player_w, player_model.half_player_h, player_model.state.facing_right)
@@ -154,7 +154,7 @@ def main(game, level, player_img, use_graph, draw_labels, draw_dup_labels_only):
             world.blit(e.image, camera.apply(e))
 
         if draw_labels:
-            for coord in level.get_all_possible_coords():
+            for coord in level_obj.get_all_possible_coords():
                 tile_rect = pygame.Rect(coord[0], coord[1], TILE_DIM, TILE_DIM)
                 tile_rect = camera.apply_to_rect(tile_rect)  # adjust based on camera
                 pygame.draw.rect(world, font_color, tile_rect, 1)
