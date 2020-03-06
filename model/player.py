@@ -13,13 +13,14 @@ STEPS = 8
 
 class Player:
 
-    def __init__(self, img):
+    def __init__(self, img, start_tile_coord):
         self.state = None
         self.half_player_h = int(40 / 2)
         if img == 'turtle':
             self.half_player_w = int(74 / 2)
         else:
             self.half_player_w = int(40 / 2)
+        self.start_tile_coord = start_tile_coord
         self.reset()
 
     @staticmethod
@@ -30,7 +31,10 @@ class Player:
                      state_dict['facing_right'], state_dict['onground'], state_dict['goal_reached'])
 
     def start_state(self):
-        return State(TILE_DIM + self.half_player_w, TILE_DIM + self.half_player_h, 0, GRAVITY, True, False, False)
+        start_x = self.start_tile_coord[0]
+        start_y = self.start_tile_coord[1]
+        return State(start_x + self.half_player_w, start_y + self.half_player_h,
+                     0, GRAVITY, True, True, False)
 
     def reset(self):
         self.state = self.start_state()

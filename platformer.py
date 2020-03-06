@@ -8,6 +8,7 @@ acknowledgements: followed tutorial from opensource.com
 import pygame
 import sys
 import networkx as nx
+import argparse
 
 from view.player import Player as PlayerView
 from view.tile import Tile
@@ -18,165 +19,176 @@ from model.level import Level
 from model.action import Action
 
 
-'''
-Setup
-'''
-
-
-GAME = "super_mario_bros"
-LEVEL = "mario-2-1"
-
-PLAYER_IMG = 'block'
-level_saved_files_dir = "level_saved_files_%s/" % PLAYER_IMG
-
-USE_STATE_GRAPH = True
-DRAW_METATILE_LABELS = False
-DRAW_DUPLICATE_METATILES_ONLY = True
-
-# Create Level
-level = Level.generate_level_from_file(GAME + "/" + LEVEL + ".txt")
-
-# Level saved files
-state_graph_file = level_saved_files_dir + "enumerated_state_graphs/" + GAME + "/" + LEVEL + ".gpickle"
-metatile_coords_dict_file = level_saved_files_dir + "metatile_coords_dicts/" + GAME + "/" + LEVEL + ".txt"
-
-state_graph = None if not USE_STATE_GRAPH else nx.read_gpickle(state_graph_file)
-edge_actions_dict = None if not USE_STATE_GRAPH else nx.get_edge_attributes(state_graph, "action")
-
-# Background
-FPS = 40  # frame rate
-ANI = 4  # animation cycles
-WORLD_X = min(level.width, MAX_WIDTH)
-WORLD_Y = min(level.height, MAX_HEIGHT)
-clock = pygame.time.Clock()
-pygame.init()
-world = pygame.display.set_mode([WORLD_X, WORLD_Y])
-BACKGROUND_COLOR = (23, 23, 23)
-
-# Player
-player_model = PlayerModel(PLAYER_IMG)
-player_view = PlayerView(PLAYER_IMG)
-player_list = pygame.sprite.Group()
-player_list.add(player_view)
-
-# Level
-platform_list = pygame.sprite.Group()
-for (x, y) in level.platform_coords:
-    platform_list.add(Tile(x, y, 'gray_tile.png'))
-
-goal_list = pygame.sprite.Group()
-for (x, y) in level.goal_coords:
-    goal_list.add(Tile(x, y, 'pizza.png'))
-
-# Camera
-camera = Camera(Camera.camera_function, level.width, level.height, WORLD_X, WORLD_Y)
-
-
 def get_metatile_labels_at_coords(coords, count, graph_is_empty, font, color):
     new_labels = []
-
     label_text = str(count)
     if graph_is_empty:
         label_text += "E"
-
     label_surface = font.render(label_text, False, color)
     for coord in coords:
         new_labels.append((label_surface, coord[0], coord[1]))
     return new_labels
 
 
-if DRAW_METATILE_LABELS:
+def main(game, level, player_img, use_graph, draw_labels, draw_dup_labels_only):
 
-    FONT_COLOR = (255, 255, 100)
-    LABEL_PADDING = (8, 12)
-    LABEL_FONT = pygame.font.SysFont('Comic Sans MS', 20)
+    # Create the Level
+    level = Level.generate_level_from_file("%s/%s.txt" % (game, level))
 
-    f = open(metatile_coords_dict_file, 'r')
-    metatile_coords_dict = eval(f.readline())
-    f.close()
+    # Level saved files
+    level_saved_files_dir = "level_saved_files_%s/" % player_img
+    state_graph_file = level_saved_files_dir + "enumerated_state_graphs/%s/%s.gpickle" % (game, level)
+    metatile_coords_dict_file = level_saved_files_dir + "metatile_coords_dicts/%s/%s.pickle" % (game, level)
 
-    metatile_labels = []
-    metatile_count = 0
+    state_graph = None if not use_graph else nx.read_gpickle(state_graph_file)
+    edge_actions_dict = None if not use_graph else nx.get_edge_attributes(state_graph, 'action')
 
-    # print("Level: %s" % LEVEL)
+    # Background
+    FPS = 40  # frame rate
+    ANI = 4  # animation cycles
+    WORLD_X = min(level.width, MAX_WIDTH)
+    WORLD_Y = min(level.height, MAX_HEIGHT)
+    clock = pygame.time.Clock()
+    pygame.init()
+    world = pygame.display.set_mode([WORLD_X, WORLD_Y])
+    BACKGROUND_COLOR = (23, 23, 23)
 
-    for metatile_str in metatile_coords_dict.keys():
+    # Player
+    player_model = PlayerModel(player_img, level.start_coord)
+    player_view = PlayerView(player_img)
+    player_list = pygame.sprite.Group()
+    player_list.add(player_view)
 
-        coords = metatile_coords_dict[metatile_str]
+    # Level
+    platform_list = pygame.sprite.Group()
+    for (x, y) in level.platform_coords:
+        platform_list.add(Tile(x, y, 'gray_tile.png'))
 
-        metatile = eval(metatile_str)
-        graph_is_empty = not bool(metatile['graph'])
+    goal_list = pygame.sprite.Group()
+    for (x, y) in level.goal_coords:
+        goal_list.add(Tile(x, y, 'pizza.png'))
 
-        if DRAW_DUPLICATE_METATILES_ONLY:
-            if len(coords) > 1:
-                metatile_count += 1
-                metatile_labels += get_metatile_labels_at_coords(coords, metatile_count, graph_is_empty, LABEL_FONT, FONT_COLOR)
-        else:
-            metatile_count += 1
-            metatile_labels += get_metatile_labels_at_coords(coords, metatile_count, graph_is_empty, LABEL_FONT, FONT_COLOR)
+    # Camera
+    camera = Camera(Camera.camera_function, level.width, level.height, WORLD_X, WORLD_Y)
 
-'''
-Main Loop
-'''
+    if draw_labels:
 
-main = True
+        FONT_COLOR = (255, 255, 100)
+        LABEL_PADDING = (8, 12)
+        LABEL_FONT = pygame.font.SysFont('Comic Sans MS', 20)
 
-key_left = False
-key_right = False
-key_jump = False
+        if draw_labels:
 
-while main:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            main = False
+            FONT_COLOR = (255, 255, 100)
+            LABEL_PADDING = (8, 12)
+            LABEL_FONT = pygame.font.SysFont('Comic Sans MS', 20)
 
-        if event.type == pygame.KEYDOWN:
-            if event.key == ord('q'):
-                pygame.quit()
-                main = False
-                sys.exit()
-            elif event.key == ord('r'):
-                player_model.reset()
-            elif event.key in [pygame.K_LEFT, ord('a')]:
-                key_left = True
-            elif event.key in [pygame.K_RIGHT, ord('d')]:
-                key_right = True
-            elif event.key in [pygame.K_SPACE, pygame.K_UP, ord('w')]:
-                key_jump = True
+            f = open(metatile_coords_dict_file, 'r')
+            metatile_coords_dict = eval(f.readline())
+            f.close()
 
-        if event.type == pygame.KEYUP:
-            if event.key in [pygame.K_LEFT, ord('a')]:
-                key_left = False
-            elif event.key in [pygame.K_RIGHT, ord('d')]:
-                key_right = False
+            metatile_labels = []
+            metatile_count = 0
 
-    world.fill(BACKGROUND_COLOR)
-    camera.update(player_view)  # set camera to track player
-    player_model.update(Action(key_left, key_right, key_jump), level.platform_coords, level.goal_coords,
-                        state_graph, edge_actions_dict)
-    player_view.update(player_model.state.x, player_model.state.y,
-                       player_model.half_player_w, player_model.half_player_h, player_model.state.facing_right)
+            for metatile_str in metatile_coords_dict.keys():
+
+                coords = metatile_coords_dict[metatile_str]
+
+                metatile = eval(metatile_str)
+                graph_is_empty = not bool(metatile['graph'])
+
+                if draw_dup_labels_only:
+                    if len(coords) > 1:
+                        metatile_count += 1
+                        metatile_labels += get_metatile_labels_at_coords(coords, metatile_count, graph_is_empty, LABEL_FONT, FONT_COLOR)
+                else:
+                    metatile_count += 1
+                    metatile_labels += get_metatile_labels_at_coords(coords, metatile_count, graph_is_empty, LABEL_FONT, FONT_COLOR)
+
+    # Main Loop
+
+    main = True
+
+    key_left = False
+    key_right = False
     key_jump = False
 
-    entities_to_draw = []
-    entities_to_draw += list(platform_list) # draw platforms tiles
-    entities_to_draw += list(player_list)  # draw player
-    entities_to_draw += list(goal_list)  # draw goal tiles
+    while main:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                main = False
 
-    for e in entities_to_draw:
-        world.blit(e.image, camera.apply(e))
+            if event.type == pygame.KEYDOWN:
+                if event.key == ord('q'):
+                    pygame.quit()
+                    main = False
+                    sys.exit()
+                elif event.key == ord('r'):
+                    player_model.reset()
+                elif event.key in [pygame.K_LEFT, ord('a')]:
+                    key_left = True
+                elif event.key in [pygame.K_RIGHT, ord('d')]:
+                    key_right = True
+                elif event.key in [pygame.K_SPACE, pygame.K_UP, ord('w')]:
+                    key_jump = True
 
-    if DRAW_METATILE_LABELS:
-        for coord in level.get_all_possible_coords():
-            tile_rect = pygame.Rect(coord[0], coord[1], TILE_DIM, TILE_DIM)
-            tile_rect = camera.apply_to_rect(pygame.Rect(coord[0], coord[1], TILE_DIM, TILE_DIM))  # adjust based on camera
-            pygame.draw.rect(world, FONT_COLOR, tile_rect, 1)
+            if event.type == pygame.KEYUP:
+                if event.key in [pygame.K_LEFT, ord('a')]:
+                    key_left = False
+                elif event.key in [pygame.K_RIGHT, ord('d')]:
+                    key_right = False
 
-        for label in metatile_labels:
-            surface, label_x, label_y = label
-            label_x, label_y = camera.apply_to_coord((label_x, label_y))
-            world.blit(surface, (label_x + LABEL_PADDING[0], label_y + LABEL_PADDING[1]))
+        world.fill(BACKGROUND_COLOR)
+        camera.update(player_view)  # set camera to track player
+        player_model.update(Action(key_left, key_right, key_jump), level.platform_coords, level.goal_coords,
+                            state_graph, edge_actions_dict)
+        player_view.update(player_model.state.x, player_model.state.y,
+                           player_model.half_player_w, player_model.half_player_h, player_model.state.facing_right)
+        key_jump = False
 
-    pygame.display.flip()
-    clock.tick(FPS)
+        entities_to_draw = []
+        entities_to_draw += list(platform_list) # draw platforms tiles
+        entities_to_draw += list(player_list)  # draw player
+        entities_to_draw += list(goal_list)  # draw goal tiles
+
+        for e in entities_to_draw:
+            world.blit(e.image, camera.apply(e))
+
+        if draw_labels:
+            for coord in level.get_all_possible_coords():
+                tile_rect = pygame.Rect(coord[0], coord[1], TILE_DIM, TILE_DIM)
+                tile_rect = camera.apply_to_rect(tile_rect)  # adjust based on camera
+                pygame.draw.rect(world, FONT_COLOR, tile_rect, 1)
+
+            for label in metatile_labels:
+                surface, label_x, label_y = label
+                label_x, label_y = camera.apply_to_coord((label_x, label_y))
+                world.blit(surface, (label_x + LABEL_PADDING[0], label_y + LABEL_PADDING[1]))
+
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
+if __name__ == "__main__":
+
+    GAME = "kid_icarus"
+    LEVEL = "kidicarus_1"
+
+    PLAYER_IMG = 'block'
+    level_saved_files_dir = "level_saved_files_%s/" % PLAYER_IMG
+
+    USE_STATE_GRAPH = False
+    DRAW_METATILE_LABELS = False
+    DRAW_DUPLICATE_METATILES_ONLY = True
+
+    parser = argparse.ArgumentParser(description='Play platformer game')
+    parser.add_argument('game', type=str, help='The game to play')
+    parser.add_argument('level', type=str, help='The game level to play')
+    parser.add_argument('--player_img', type=str, help='Player image', default='block')
+    parser.add_argument('--use_graph', type=bool, help='Use the level enumerated state graph', default=False)
+    parser.add_argument('--draw_labels', type=bool, help='Draw the metatile labels', default=False)
+    parser.add_argument('--draw_dup_labels_only', type=bool, help='Draw duplicate metatile labels only', default=True)
+    args = parser.parse_args()
+
+    main(args.game, args.level, args.player_img, args.use_graph, args.draw_labels, args.draw_dup_labels_only)
