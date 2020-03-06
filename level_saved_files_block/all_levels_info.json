@@ -2,29 +2,16 @@
   "contents": [
     {
       "game_name": "sample",
-      "goal_coords": "[]",
+      "goal_coords": "[(160, 40)]",
       "level_height": 240,
       "level_name": "sample_mini",
       "level_width": 360,
-      "num_filled_metatiles": 36,
-      "num_metatiles_with_graphs": 18,
+      "num_filled_metatiles": 37,
+      "num_metatiles_with_graphs": 17,
       "num_total_metatiles": 54,
-      "num_unique_metatiles": 14,
-      "num_unique_metatiles_with_graphs": 13,
-      "total_runtime": "0:00:01.786655"
-    },
-    {
-      "game_name": "sample",
-      "goal_coords": "[(8160, 400)]",
-      "level_height": 640,
-      "level_name": "sample_hallway_flat",
-      "level_width": 8240,
-      "num_filled_metatiles": 645,
-      "num_metatiles_with_graphs": 1240,
-      "num_total_metatiles": 3296,
-      "num_unique_metatiles": 53,
-      "num_unique_metatiles_with_graphs": 51,
-      "total_runtime": "0:26:33.732124"
+      "num_unique_metatiles": 16,
+      "num_unique_metatiles_with_graphs": 15,
+      "start_coord": "(40, 120)"
     },
     {
       "game_name": "sample",
@@ -37,46 +24,59 @@
       "num_total_metatiles": 3296,
       "num_unique_metatiles": 174,
       "num_unique_metatiles_with_graphs": 172,
-      "total_runtime": "0:18:36.996382"
+      "start_coord": "(40, 400)"
     },
     {
-      "game_name": "kid_icarus",
-      "goal_coords": "[(480, 6880)]",
-      "level_height": 7000,
-      "level_name": "kidicarus_1",
-      "level_width": 720,
-      "num_filled_metatiles": 1077,
-      "num_metatiles_with_graphs": 1974,
-      "num_total_metatiles": 3150,
-      "num_unique_metatiles": 1365,
-      "num_unique_metatiles_with_graphs": 1363,
-      "total_runtime": "10:51:14.460523"
+      "game_name": "sample",
+      "goal_coords": "[(8160, 400)]",
+      "level_height": 640,
+      "level_name": "sample_hallway_flat",
+      "level_width": 8240,
+      "num_filled_metatiles": 645,
+      "num_metatiles_with_graphs": 1240,
+      "num_total_metatiles": 3296,
+      "num_unique_metatiles": 53,
+      "num_unique_metatiles_with_graphs": 51,
+      "start_coord": "(40, 520)"
     },
     {
       "game_name": "super_mario_bros",
-      "goal_coords": "[(7960, 160), (7960, 200), (7960, 240), (7960, 280), (7960, 320), (7960, 360), (7960, 400), (7960, 440), (7960, 480)]",
+      "goal_coords": "[(7960, 480)]",
       "level_height": 640,
       "level_name": "mario-1-1",
       "level_width": 8160,
-      "num_filled_metatiles": 767,
+      "num_filled_metatiles": 759,
       "num_metatiles_with_graphs": 1732,
       "num_total_metatiles": 3264,
       "num_unique_metatiles": 689,
       "num_unique_metatiles_with_graphs": 687,
-      "total_runtime": "1:07:45.517323"
+      "start_coord": "(40, 520)"
     },
     {
       "game_name": "super_mario_bros",
-      "goal_coords": "[(7760, 160), (7760, 200), (7760, 240), (7760, 280), (7760, 320), (7760, 360), (7760, 400), (7760, 440), (7760, 480)]",
+      "goal_coords": "[(7760, 480)]",
       "level_height": 640,
       "level_name": "mario-2-1",
       "level_width": 7960,
-      "num_filled_metatiles": 701,
+      "num_filled_metatiles": 693,
       "num_metatiles_with_graphs": 1747,
       "num_total_metatiles": 3184,
       "num_unique_metatiles": 783,
       "num_unique_metatiles_with_graphs": 781,
-      "total_runtime": "0:45:55.477325"
+      "start_coord": "(40, 520)"
+    },
+    {
+      "game_name": "kid_icarus",
+      "goal_coords": "[(320, 200)]",
+      "level_height": 7000,
+      "level_name": "kidicarus_1",
+      "level_width": 720,
+      "num_filled_metatiles": 1063,
+      "num_metatiles_with_graphs": 1974,
+      "num_total_metatiles": 3150,
+      "num_unique_metatiles": 1378,
+      "num_unique_metatiles_with_graphs": 1376,
+      "start_coord": "(120, 6840)"
     }
   ]
 }

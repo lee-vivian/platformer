@@ -3,8 +3,24 @@ Metatile Object that describes each grid cell in a Level
 '''
 
 import networkx as nx
+import pickle
 
 from model.level import TILE_DIM
+
+
+def read_pickle(filepath):
+    with open(filepath, 'rb') as file:
+        contents = pickle.load(file)
+    file.close()
+    return contents
+
+
+def write_pickle(filepath, contents):
+    with open(filepath, 'wb') as file:
+        pickle.dump(contents, file, protocol=pickle.HIGHEST_PROTOCOL)
+    file.close()
+    print("Saved to:", filepath)
+    return filepath
 
 
 class Metatile:
@@ -44,10 +60,7 @@ class Metatile:
         metatile_coords_dict_dir = level_saved_files_dir + "metatile_coords_dicts/" + game_name + "/"
         metatile_coords_dict_file = metatile_coords_dict_dir + level_name + ".txt"
 
-        f = open(metatile_coords_dict_file, 'r')
-        metatile_coords_dict = eval(f.readline())
-        f.close()
-
+        metatile_coords_dict = read_pickle(metatile_coords_dict_file)
         metatiles = [Metatile.from_str(key) for key in metatile_coords_dict.keys()]
         return metatiles
 
@@ -167,15 +180,12 @@ class Metatile:
                 metatile_coords_dict[new_metatile_str].append(metatile_coord)
 
         # Save coord_metatile_dict
-        with open(coord_metatile_dict_file, 'w') as f:
-            f.write(str(coord_metatile_dict))
-        f.close()
-        print("Saved to: ", coord_metatile_dict_file)
+        write_pickle(coord_metatile_dict_file, coord_metatile_dict)
 
         # Save metatile_coords_dict
-        with open(metatile_coords_dict_file, 'w') as f:
-            f.write(str(metatile_coords_dict))
-        f.close()
-        print("Saved to: ", metatile_coords_dict_file)
+        write_pickle(metatile_coords_dict_file, metatile_coords_dict)
 
         return all_metatiles
+
+
+
