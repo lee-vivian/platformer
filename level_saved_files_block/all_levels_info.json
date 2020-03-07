@@ -20,10 +20,10 @@
       "level_name": "sample_hallway",
       "level_width": 8240,
       "num_filled_metatiles": 1185,
-      "num_metatiles_with_graphs": 1287,
+      "num_metatiles_with_graphs": 1280,
       "num_total_metatiles": 3296,
-      "num_unique_metatiles": 174,
-      "num_unique_metatiles_with_graphs": 172,
+      "num_unique_metatiles": 157,
+      "num_unique_metatiles_with_graphs": 155,
       "start_coord": "(40, 400)"
     },
     {
@@ -33,10 +33,10 @@
       "level_name": "sample_hallway_flat",
       "level_width": 8240,
       "num_filled_metatiles": 645,
-      "num_metatiles_with_graphs": 1240,
+      "num_metatiles_with_graphs": 1224,
       "num_total_metatiles": 3296,
-      "num_unique_metatiles": 53,
-      "num_unique_metatiles_with_graphs": 51,
+      "num_unique_metatiles": 26,
+      "num_unique_metatiles_with_graphs": 24,
       "start_coord": "(40, 520)"
     },
     {
@@ -46,10 +46,10 @@
       "level_name": "mario-1-1",
       "level_width": 8160,
       "num_filled_metatiles": 759,
-      "num_metatiles_with_graphs": 1732,
+      "num_metatiles_with_graphs": 1738,
       "num_total_metatiles": 3264,
-      "num_unique_metatiles": 689,
-      "num_unique_metatiles_with_graphs": 687,
+      "num_unique_metatiles": 676,
+      "num_unique_metatiles_with_graphs": 674,
       "start_coord": "(40, 520)"
     },
     {
@@ -59,10 +59,10 @@
       "level_name": "mario-2-1",
       "level_width": 7960,
       "num_filled_metatiles": 693,
-      "num_metatiles_with_graphs": 1747,
+      "num_metatiles_with_graphs": 1753,
       "num_total_metatiles": 3184,
-      "num_unique_metatiles": 783,
-      "num_unique_metatiles_with_graphs": 781,
+      "num_unique_metatiles": 769,
+      "num_unique_metatiles_with_graphs": 767,
       "start_coord": "(40, 520)"
     },
     {
@@ -72,10 +72,10 @@
       "level_name": "kidicarus_1",
       "level_width": 720,
       "num_filled_metatiles": 1063,
-      "num_metatiles_with_graphs": 1974,
+      "num_metatiles_with_graphs": 1971,
       "num_total_metatiles": 3150,
-      "num_unique_metatiles": 1378,
-      "num_unique_metatiles_with_graphs": 1376,
+      "num_unique_metatiles": 1402,
+      "num_unique_metatiles_with_graphs": 1400,
       "start_coord": "(120, 6840)"
     }
   ]
