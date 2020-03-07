@@ -233,7 +233,7 @@ def main(metatile_id_file, games, levels, player_img, outfile):
     game_level_pairs = zip(games, levels)
 
     start_time = datetime.datetime.now()
-    print("Extracting combined metatile constraints for: " + str(levels))
+    print("\nExtracting combined metatile constraints for: " + str(levels))
 
     combined_tileset_dict = {"tileSize": "%d,%d" % (TILE_DIM, TILE_DIM),
                              "tiles": {}}
@@ -241,7 +241,7 @@ def main(metatile_id_file, games, levels, player_img, outfile):
     for game, level in game_level_pairs:
         level_tileset_file = metatile_constraints_dir + level + ".json"
         if os.path.exists(level_tileset_file):
-            print("Loading tileset constrints from:", level_tileset_file)
+            print("Loading tileset constraints from:", level_tileset_file)
             level_tileset_dict = read_json(level_tileset_file).get("tileset")
         else:
             print("Constructing tileset constraints for level %s ..." % level)

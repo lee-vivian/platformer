@@ -39,6 +39,8 @@ def save_map_to_file(map, save_directory, outfile):
 
 def main(games, levels, player_img, outfile):
 
+    print("\nGet metatile_id maps for levels: " + str(levels) + "...")
+
     if len(games) != len(levels):
         error_message("Given number of games must equal then number of levels")
     elif len(levels) == 0:
