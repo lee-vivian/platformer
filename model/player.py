@@ -31,11 +31,11 @@ class Player:
                      state_dict['facing_right'], state_dict['onground'], state_dict['goal_reached'])
 
     @staticmethod
-    def metatile_xy_from_state_xy(state_x, state_y, player_img):
+    def metatile_coord_from_state_coord(state_coord, player_img):
         half_player_h = HALF_TILE_WIDTH
         half_player_w = HALF_TURTLE_WIDTH if player_img == 'turtle' else HALF_TILE_WIDTH
-        return (state_x - half_player_w) - (state_x - half_player_w) % TILE_DIM, \
-               (state_y - half_player_h) - (state_y - half_player_h) % TILE_DIM
+        return (state_coord[0] - half_player_w) - (state_coord[0] - half_player_w) % TILE_DIM, \
+               (state_coord[1] - half_player_h) - (state_coord[1] - half_player_h) % TILE_DIM
 
     def start_state(self):
         start_x = self.start_tile_coord[0]
