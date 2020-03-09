@@ -7,42 +7,11 @@ Enumerate the state space of a level and extract level metatiles
 import os
 import networkx as nx
 import datetime
-import json
-import pickle
 import argparse
 
 from model.level import Level
 from model.metatile import Metatile
-
-
-def read_pickle(filepath):
-    with open(filepath, 'rb') as file:
-        contents = pickle.load(file)
-    file.close()
-    return contents
-
-
-def write_pickle(filepath, contents):
-    with open(filepath, 'wb') as file:
-        pickle.dump(contents, file, protocol=pickle.HIGHEST_PROTOCOL)
-    file.close()
-    print("Saved to:", filepath)
-    return filepath
-
-
-def read_json(filepath):
-    with open(filepath, 'r') as file:
-        contents = json.load(file)
-    file.close()
-    return contents
-
-
-def write_json(filepath, contents):
-    with open(filepath, 'w') as file:
-        json.dump(contents, file, indent=2, sort_keys=True)
-    file.close()
-    print("Saved to:", filepath)
-    return filepath
+import utils
 
 
 def get_saved_file_paths(game_name, level_name, player_img):
@@ -76,12 +45,12 @@ def get_saved_file_paths(game_name, level_name, player_img):
 
 def get_metatiles(level, state_graph, metatiles_file, metatile_coords_dict_file, coord_metatile_dict_file):
     level_metatiles = Metatile.extract_metatiles(level, state_graph, metatile_coords_dict_file, coord_metatile_dict_file)
-    write_pickle(metatiles_file, level_metatiles)
+    utils.write_pickle(metatiles_file, level_metatiles)
     return level_metatiles
 
 
 def get_unique_metatile_strs(metatile_coords_dict_file):
-    metatile_coords_dict = read_pickle(metatile_coords_dict_file)
+    metatile_coords_dict = utils.read_pickle(metatile_coords_dict_file)
     return list(metatile_coords_dict.keys())
 
 
@@ -150,7 +119,7 @@ def main(game_name, level_name, player_img, print_stats):
 
     # Save Metatile Stats for Level
     all_levels_info_file = "level_saved_files_%s/all_levels_info.json" % player_img
-    all_levels_info = read_json(all_levels_info_file)
+    all_levels_info = utils.read_json(all_levels_info_file)
 
     # Remove duplicate entries per level
     prev_contents = all_levels_info["contents"]
@@ -162,7 +131,7 @@ def main(game_name, level_name, player_img, print_stats):
     new_contents.append(metatile_stats_dict)
     all_levels_info["contents"] = new_contents
 
-    write_json(all_levels_info_file, all_levels_info)
+    utils.write_json(all_levels_info_file, all_levels_info)
 
     if print_stats:
         print("---- Metatiles for Level " + str(level_name) + " ----")

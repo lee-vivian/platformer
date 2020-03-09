@@ -6,11 +6,10 @@ import argparse
 import networkx as nx
 import os
 import datetime
-import pickle
-import json
 
 from model.metatile import Metatile
 from model.player import Player
+import utils
 
 
 def print_stats():
@@ -33,31 +32,11 @@ def print_stats():
         print("Max states per metatile: %d" % max_states_per_metatile)
 
 
-def error_exit(msg):
-    print(msg)
-    exit(0)
-
-
-def write_json(filepath, contents):
-    with open(filepath, 'w') as file:
-        json.dump(contents, file, indent=2, sort_keys=True)
-    file.close()
-    print("Saved to:", filepath)
-    return filepath
-
-
-def read_pickle(filepath):
-    with open(filepath, 'rb') as file:
-        contents = pickle.load(file)
-    file.close()
-    return contents
-
-
 def get_state_graph(game, level, player_img):
     game_enumerated_state_graph_dir = "level_saved_files_%s/enumerated_state_graphs/%s/" % (player_img, game)
     state_graph_filepath = os.path.join(game_enumerated_state_graph_dir, "%s.gpickle" % level)
     if not os.path.exists(state_graph_filepath):
-        error_exit("Error: Enumerated state graph for (%s: level %s) does not exist" % (game, level))
+        utils.error_exit("Error: Enumerated state graph for (%s: level %s) does not exist" % (game, level))
     state_graph = nx.read_gpickle(state_graph_filepath)
     return state_graph
 
@@ -65,7 +44,7 @@ def get_state_graph(game, level, player_img):
 def get_coord_metatile_dict(game, level, player_img):
     game_coord_metatile_dicts_dir = "level_saved_files_%s/coord_metatile_dicts/%s/" % (player_img, game)
     coord_metatile_dict_filepath = os.path.join(game_coord_metatile_dicts_dir, "%s.pickle" % level)
-    return read_pickle(coord_metatile_dict_filepath)
+    return utils.read_pickle(coord_metatile_dict_filepath)
 
 
 def get_metatile_states_dicts_dir(player_img):
@@ -78,9 +57,9 @@ def get_metatile_states_dicts_dir(player_img):
 def main(games, levels, player_img, merge, outfile):
 
     if len(games) != len(levels):
-        error_exit("Given number of games must equal the given number of levels")
+        utils.error_exit("Given number of games must equal the given number of levels")
     elif len(levels) == 0:
-        error_exit("No levels specified")
+        utils.error_exit("No levels specified")
 
     metatile_states_dicts_dir = get_metatile_states_dicts_dir(player_img)
     metatile_states_dict = {}
@@ -131,12 +110,12 @@ def main(games, levels, player_img, merge, outfile):
 
         if not merge:  # save individual mapping if not merge levels
             outfile_path = os.path.join(metatile_states_dicts_dir, "%s.json" % level)
-            write_json(outfile_path, metatile_states_dict)
+            utils.write_json(outfile_path, metatile_states_dict)
 
     if merge:  # save combined mapping if merge levels
         outfile = '_'.join(levels) if outfile is None else outfile
         outfile_path = os.path.join(metatile_states_dicts_dir, "%s.json" % outfile)
-        write_json(outfile_path, metatile_states_dict)
+        utils.write_json(outfile_path, metatile_states_dict)
 
 
 if __name__ == "__main__":

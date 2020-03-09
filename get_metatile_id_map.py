@@ -7,11 +7,7 @@ import os
 import pickle
 
 from model.metatile import Metatile
-
-
-def error_exit(msg):
-    print(msg)
-    exit(0)
+from utils import error_exit
 
 
 def get_id_metatile_map_dir(player_img):
