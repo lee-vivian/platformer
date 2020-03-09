@@ -156,12 +156,8 @@ class Metatile:
             new_metatile = Metatile(filled, metatile_graph_as_dict)
             all_metatiles.append(new_metatile)
 
+            # Get standardized string of new metatile
             new_metatile_str = new_metatile.to_str()
-
-            # Construct {coord: metatile} dict
-            coord_metatile_dict[metatile_coord] = new_metatile_str
-
-            # Construct {metatile: coords} dict
 
             if new_metatile not in unique_metatiles:  # have not seen this metatile yet, add to dict
                 unique_metatiles.append(new_metatile)
@@ -172,10 +168,14 @@ class Metatile:
                     new_metatile_str = key
                     break
 
+            # Construct {metatile: coords} dict
             if metatile_coords_dict.get(new_metatile_str) is None:
                 metatile_coords_dict[new_metatile_str] = [metatile_coord]
             else:
                 metatile_coords_dict[new_metatile_str].append(metatile_coord)
+
+            # Construct {coord: metatile} dict
+            coord_metatile_dict[metatile_coord] = new_metatile_str
 
         # Save coord_metatile_dict
         write_pickle(coord_metatile_dict_file, coord_metatile_dict)
