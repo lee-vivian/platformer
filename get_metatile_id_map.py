@@ -9,7 +9,7 @@ import pickle
 from model.metatile import Metatile
 
 
-def error_message(msg):
+def error_exit(msg):
     print(msg)
     exit(0)
 
@@ -42,9 +42,9 @@ def main(games, levels, player_img, outfile):
     print("\nGet metatile_id maps for levels: " + str(levels) + "...")
 
     if len(games) != len(levels):
-        error_message("Given number of games must equal then number of levels")
+        error_exit("Given number of games must equal the given number of levels")
     elif len(levels) == 0:
-        error_message("No levels specified")
+        error_exit("No levels specified")
 
     metatile_count = 0
     id_metatile_map = {}
