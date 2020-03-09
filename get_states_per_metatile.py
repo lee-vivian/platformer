@@ -5,10 +5,12 @@ Returns a map of the number of states associated with each metatile for a given 
 import argparse
 import networkx as nx
 import os
+import datetime
 import pickle
 import json
 
 from model.metatile import Metatile
+from model.player import Player
 
 
 def error_exit(msg):
@@ -61,21 +63,28 @@ def main(games, levels, player_img, merge, outfile):
         error_exit("No levels specified")
 
     metatile_num_states_dir = get_metatile_num_states_dir(player_img)
+
     metatile_num_states_dict = {}
     unique_metatiles = []
     metatile_str_metatile_dict = {}
 
     for game, level in zip(games, levels):
 
-        metatile_num_states_dict = {} if not merge else metatile_num_states_dict.copy()  # reset if not merging levels
+        print("Calculating states per metatile for level %s ..." % level)
+        start_time = datetime.datetime.now()
+
+        if not merge:  # reset if not merging levels
+            metatile_num_states_dict = {}
+            unique_metatiles = []
+            metatile_str_metatile_dict = {}
 
         state_graph = get_state_graph(game, level, player_img)
         coord_metatile_dict = get_coord_metatile_dict(game, level, player_img)
 
         for node in state_graph.nodes():
             state_dict = eval(node)
-            node_coord = (state_dict['x'], state_dict['y'])
-            node_metatile_str = coord_metatile_dict[node_coord]
+            node_metatile_coord = (Player.metatile_xy_from_state_xy(state_dict['x'], state_dict['y'], player_img))
+            node_metatile_str = coord_metatile_dict[node_metatile_coord]
 
             # Get standardized string of node metatile
             node_metatile = Metatile.from_str(node_metatile_str)
@@ -94,6 +103,9 @@ def main(games, levels, player_img, merge, outfile):
             else:
                 metatile_num_states_dict[node_metatile_str] += 1
 
+        end_time = datetime.datetime.now()
+        print("Runtime: %s" % str(end_time-start_time))
+
         if not merge:  # save individual mapping if not merge levels
             outfile_path = os.path.join(metatile_num_states_dir, "%s.json" % level)
             write_json(outfile_path, metatile_num_states_dict)
@@ -105,13 +117,18 @@ def main(games, levels, player_img, merge, outfile):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Get number of states per metatile')
-    parser.add_argument('--games', type=str, help='Name of the games')
-    parser.add_argument('--levels', type=str, help='Name of the levels')
-    parser.add_argument('--player_img', type=str, help='Player image', default='block')
-    parser.add_argument('--merge', type=bool, help='Merge level metatile results', default=True)
-    parser.add_argument('--outfile', type=str, help='Outfile name if merging level metatiles', default=None)
-    args = parser.parse_args()
 
-    main(args.games, args.levels, args.player_img, args.merge, args.outfile)
+    games = ['sample', 'sample', 'sample', 'super_mario_bros', 'super_mario_bros', 'kid_icarus']
+    levels = ['sample_mini', 'sample_hallway', 'sample_hallway_flat', 'mario-1-1', 'mario-2-1', 'kidicarus_1']
+    main(games, levels, 'block', False, 'all_levels')
+
+    # parser = argparse.ArgumentParser(description='Get number of states per metatile')
+    # parser.add_argument('--games', type=str, nargs="+", help='Name of the games')
+    # parser.add_argument('--levels', type=str, nargs="+", help='Name of the levels')
+    # parser.add_argument('--player_img', type=str, help='Player image', default='block')
+    # parser.add_argument('--merge', type=bool, help='Merge level metatile results', default=False)
+    # parser.add_argument('--outfile', type=str, help='Outfile name if merging level metatiles', default=None)
+    # args = parser.parse_args()
+    #
+    # main(args.games, args.levels, args.player_img, args.merge, args.outfile)
 

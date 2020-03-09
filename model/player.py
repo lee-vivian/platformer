@@ -10,16 +10,16 @@ GRAVITY = 4
 MAX_VEL = 10 * GRAVITY
 STEPS = 8
 
+HALF_TURTLE_WIDTH = int(74 / 2)
+HALF_TILE_WIDTH = int(TILE_DIM / 2)
+
 
 class Player:
 
     def __init__(self, img, start_tile_coord):
         self.state = None
-        self.half_player_h = int(40 / 2)
-        if img == 'turtle':
-            self.half_player_w = int(74 / 2)
-        else:
-            self.half_player_w = int(40 / 2)
+        self.half_player_h = HALF_TILE_WIDTH
+        self.half_player_w = HALF_TURTLE_WIDTH if img == 'turtle' else HALF_TILE_WIDTH
         self.start_tile_coord = start_tile_coord
         self.reset()
 
@@ -29,6 +29,13 @@ class Player:
         return State(state_dict['x'], state_dict['y'],
                      state_dict['movex'], state_dict['movey'],
                      state_dict['facing_right'], state_dict['onground'], state_dict['goal_reached'])
+
+    @staticmethod
+    def metatile_xy_from_state_xy(state_x, state_y, player_img):
+        half_player_h = HALF_TILE_WIDTH
+        half_player_w = HALF_TURTLE_WIDTH if player_img == 'turtle' else HALF_TILE_WIDTH
+        return (state_x - half_player_w) - (state_x - half_player_w) % TILE_DIM, \
+               (state_y - half_player_h) - (state_y - half_player_h) % TILE_DIM
 
     def start_state(self):
         start_x = self.start_tile_coord[0]
