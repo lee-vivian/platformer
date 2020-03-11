@@ -24,8 +24,6 @@ def main(game, level, player_img, enumerate, extract_metatiles, get_metatile_id_
 
     if any_processing:
 
-        id_metatile_file, metatile_id_file = None, None
-
         if process_all or enumerate:
             import enumerate
             enumerate.main(game, level, player_img)
@@ -36,18 +34,20 @@ def main(game, level, player_img, enumerate, extract_metatiles, get_metatile_id_
 
         if process_all or get_metatile_id_map:
             import get_metatile_id_map
-            id_metatile_file, metatile_id_file = get_metatile_id_map.main([game], [level], player_img, outfile=None)
+            get_metatile_id_map.main([game], [level], player_img, outfile=None)
 
         if process_all or get_states_per_metatile:
             import get_states_per_metatile
             get_states_per_metatile.main([game], [level], player_img, merge=False, outfile=None)
 
         if process_all or extract_constraints:
-            if metatile_id_file is None:
-                error_exit("The metatile_id file for %s: level %s does not exist. "
-                           "Run get_metatile_id_map script first." % (game, level))
+            import os
             import extract_constraints
-            extract_constraints.main(metatile_id_file, [game], [level], player_img, outfile=None)
+            metatile_id_filepath = "level_saved_files_%s/metatile_id_maps/%s.pickle" % (player_img, level)
+            if not os.path.exists(metatile_id_filepath):
+                error_exit("The metatile_id file for %s: level %s does not exist. Run get_metatile_id_map script "
+                           "first." % (game, level))
+            extract_constraints.main(metatile_id_filepath, [game], [level], player_img, outfile=None)
 
     else:
         import platformer
@@ -76,12 +76,12 @@ if __name__ == "__main__":
     parser.add_argument('--enumerate', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--extract_metatiles', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--get_metatile_id_map', const=True, nargs='?', type=bool, default=False)
-    parser.add_argument('--extract_constraints', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--get_states_per_metatile', const=True, nargs='?', type=bool, default=False)
+    parser.add_argument('--extract_constraints', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--process_all', const=True, nargs='?', type=bool,
                         help="Run all process scripts for the given level", default=False)
 
     args = parser.parse_args()
 
     main(args.game, args.level, args.player_img, args.enumerate, args.extract_metatiles, args.get_metatile_id_map,
-         args.extract_constraints, args.get_states_per_metatile, args.process_all)
+         args.get_states_per_metatile, args.extract_constraints, args.process_all)
