@@ -54,7 +54,7 @@ if __name__ == "__main__":
     parser.add_argument('game', type=str, help='Name of the game')
     parser.add_argument('level', type=str, help='Name of the level')
     parser.add_argument('--player_img', type=str, help='Player image', default='block')
-    parser.add_argument('--process', type=bool, help="Run process scripts for the given level", default=False)
+    parser.add_argument('--process', const=True, nargs='?', type=bool, help="Run process scripts for the given level", default=False)
     args = parser.parse_args()
 
     main(args.game, args.level, args.player_img, args.process)

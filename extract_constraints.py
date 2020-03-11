@@ -20,8 +20,8 @@ RIGHT = "1,0"
 TOP = "0,-1"
 BOTTOM = "0,1"
 TOP_LEFT = "-1,-1"
-TOP_RIGHT = "1,-1"
 BOTTOM_LEFT = "-1,1"
+TOP_RIGHT = "1,-1"
 BOTTOM_RIGHT = "1,1"
 
 
@@ -81,16 +81,14 @@ def get_tileset_dict(metatile_id_map, game, level, player_img):
     coord_metatile_dict_file = "level_saved_files_%s/coord_metatile_dicts/%s/%s.pickle" % (player_img, game, level)
     coord_metatile_str_dict = utils.read_pickle(coord_metatile_dict_file)
 
-    all_possible_coords = level_obj.get_all_possible_coords()
     count = 0
-    total = len(all_possible_coords)
+    total = len(coord_metatile_str_dict)
     first_quarter = int(0.25 * total)
     second_quarter = int(0.50 * total)
     third_quarter = int(0.75 * total)
-
     print("total num coords:", total)
 
-    for metatile_coord in all_possible_coords:
+    for coord in coord_metatile_str_dict.keys():
 
         count += 1
         if count == first_quarter:
@@ -100,9 +98,10 @@ def get_tileset_dict(metatile_id_map, game, level, player_img):
         elif count == third_quarter:
             print("75% complete...")
 
-        cur_metatile = Metatile.from_str(coord_metatile_str_dict.get(metatile_coord))
-        cur_metatile_neighbors_dict = get_neighbor_metatiles_dict(metatile_coord, coord_metatile_str_dict,
-                                                                  level_obj.width, level_obj.height)
+        cur_metatile = Metatile.from_str(coord_metatile_str_dict[coord])
+        cur_metatile_neighbors_dict = get_neighbor_metatiles_dict(coord, coord_metatile_str_dict, level_obj.width, level_obj.height)
+
+        # Get standardized string
 
         # Get standardized string of cur_metatile and neighbor metatiles
         std_metatile_strs_to_find = [("CURRENT", cur_metatile)]
@@ -113,11 +112,10 @@ def get_tileset_dict(metatile_id_map, game, level, player_img):
 
         while len(std_metatile_strs_to_find) > 0:
             std_metatile_strs_to_find_copy = std_metatile_strs_to_find.copy()
-
-            for key, value in metatile_str_metatile_dict.items():
-                for pos, metatile in std_metatile_strs_to_find:
-                    if value == metatile:
-                        pos_std_metatile_str_dict[pos] = key
+            for pos, metatile in std_metatile_strs_to_find:
+                for std_metatile_str, std_metatile in metatile_str_metatile_dict.items():
+                    if metatile == std_metatile:
+                        pos_std_metatile_str_dict[pos] = std_metatile_str
                         std_metatile_strs_to_find_copy.remove((pos, metatile))
                         break
 
@@ -170,6 +168,7 @@ def get_tileset_dict(metatile_id_map, game, level, player_img):
 def merge_tileset_dicts(combined_tileset_dict, level_tileset_dict):
 
     combined_tile_size = combined_tileset_dict.get("tileSize")
+
     combined_tiles_dict = combined_tileset_dict.get("tiles").copy()
     level_tiles_dict = level_tileset_dict.get("tiles")
 
@@ -208,10 +207,11 @@ def main(metatile_id_file, games, levels, player_img, outfile):
                              "tiles": {}}
 
     for game, level in game_level_pairs:
-        level_tileset_file = metatile_constraints_dir + level + ".json"
-        if os.path.exists(level_tileset_file):
-            print("Loading tileset constraints from:", level_tileset_file)
-            level_tileset_dict = utils.read_json(level_tileset_file).get("tileset")
+
+        level_tileset_constraints_file = metatile_constraints_dir + level + ".json"
+        if os.path.exists(level_tileset_constraints_file):
+            print("Loading tileset constraints from:", level_tileset_constraints_file)
+            level_tileset_dict = utils.read_json(level_tileset_constraints_file).get("tileset")
         else:
             print("Constructing tileset constraints for level %s ..." % level)
             level_tileset_dict = get_tileset_dict(metatile_id_map, game, level, player_img)
