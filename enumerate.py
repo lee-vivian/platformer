@@ -12,6 +12,7 @@ import argparse
 from model.player import Player as PlayerModel
 from model.level import Level
 from model.action import Action
+from model.state import State
 
 
 def get_state_graph_file(game_name, level_name, player_img):
@@ -51,7 +52,7 @@ def enumerate_states(player_model, start_state, graph, action_set, platform_coor
         explored_states.append(cur_state_str)
 
         for action in action_set:
-            cur_state = PlayerModel.str_to_state(cur_state_str)
+            cur_state = State.from_str(cur_state_str)
             next_state = player_model.next_state(cur_state, action, platform_coords, goal_coords)
             next_state_str = next_state.to_str()
             if next_state_str not in explored_states and next_state_str not in unexplored_states:

@@ -17,6 +17,7 @@ from model.player import Player as PlayerModel
 from model.level import TILE_DIM, MAX_WIDTH, MAX_HEIGHT
 from model.level import Level
 from model.action import Action
+from utils import read_pickle
 
 
 def get_metatile_labels_at_coords(coords, count, graph_is_empty, font, color):
@@ -36,10 +37,7 @@ def setup_metatile_labels(metatile_coords_dict_file, draw_dup_labels_only=True):
     label_padding = (8, 12)
     label_font = pygame.font.SysFont('Comic Sans MS', 20)
 
-    f = open(metatile_coords_dict_file, 'r')
-    metatile_coords_dict = eval(f.readline())
-    f.close()
-
+    metatile_coords_dict = read_pickle(metatile_coords_dict_file)
     metatile_labels = []
     metatile_count = 0
 

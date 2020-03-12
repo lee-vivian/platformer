@@ -16,8 +16,8 @@ import argparse
 from utils import error_exit
 
 
-def main(game, level, player_img, enumerate, extract_metatiles, get_metatile_id_map, get_states_per_metatile,
-         extract_constraints, process_all):
+def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels,
+         enumerate, extract_metatiles, get_metatile_id_map, get_states_per_metatile, extract_constraints, process_all):
 
     any_processing = process_all or (enumerate or extract_metatiles or get_metatile_id_map or get_states_per_metatile
                                      or extract_constraints)
@@ -51,7 +51,8 @@ def main(game, level, player_img, enumerate, extract_metatiles, get_metatile_id_
 
     else:
         import platformer
-        platformer.main(game, level, player_img, use_graph=False, draw_labels=False, draw_dup_labels_only=False)
+        draw_labels = draw_all_labels or draw_dup_labels
+        platformer.main(game, level, player_img, use_graph, draw_labels, draw_dup_labels)
 
 
 if __name__ == "__main__":
@@ -73,6 +74,9 @@ if __name__ == "__main__":
     parser.add_argument('game', type=str, help='Name of the game')
     parser.add_argument('level', type=str, help='Name of the level')
     parser.add_argument('--player_img', type=str, help='Player image', default='block')
+    parser.add_argument('--use_graph', const=True, nargs='?', type=bool, default=False)
+    parser.add_argument('--draw_all_labels', const=True, nargs='?', type=bool, default=False)
+    parser.add_argument('--draw_dup_labels', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--enumerate', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--extract_metatiles', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--get_metatile_id_map', const=True, nargs='?', type=bool, default=False)
@@ -83,5 +87,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(args.game, args.level, args.player_img, args.enumerate, args.extract_metatiles, args.get_metatile_id_map,
-         args.get_states_per_metatile, args.extract_constraints, args.process_all)
+    main(args.game, args.level, args.player_img,
+         args.use_graph, args.draw_all_labels, args.draw_dup_labels,
+         args.enumerate, args.extract_metatiles, args.get_metatile_id_map, args.get_states_per_metatile,
+         args.extract_constraints, args.process_all)

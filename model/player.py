@@ -24,24 +24,19 @@ class Player:
         self.reset()
 
     @staticmethod
-    def str_to_state(string):
-        state_dict = eval(string)
-        return State(state_dict['x'], state_dict['y'],
-                     state_dict['movex'], state_dict['movey'],
-                     state_dict['facing_right'], state_dict['onground'], state_dict['goal_reached'])
-
-    @staticmethod
-    def metatile_coord_from_state_coord(state_coord, player_img):
-        half_player_h = HALF_TILE_WIDTH
-        half_player_w = HALF_TURTLE_WIDTH if player_img == 'turtle' else HALF_TILE_WIDTH
+    def metatile_coord_from_state_coord(state_coord, half_player_w, half_player_h):
         return (state_coord[0] - half_player_w) - (state_coord[0] - half_player_w) % TILE_DIM, \
                (state_coord[1] - half_player_h) - (state_coord[1] - half_player_h) % TILE_DIM
+
+    @staticmethod
+    def state_in_metatile(metatile_coord, state_coord, half_player_w, half_player_h):
+        return metatile_coord == Player.metatile_coord_from_state_coord(state_coord, half_player_w, half_player_h)
 
     def start_state(self):
         start_x = self.start_tile_coord[0]
         start_y = self.start_tile_coord[1]
-        return State(start_x + self.half_player_w, start_y + self.half_player_h,
-                     0, GRAVITY, True, True, False)
+        return State(x=start_x + self.half_player_w, y=start_y + self.half_player_h, movex=0, movey=GRAVITY,
+                     facing_right=True, onground=True, is_start=True, goal_reached=False)
 
     def reset(self):
         self.state = self.start_state()
@@ -108,8 +103,10 @@ class Player:
                 new_state.movey = 0
                 break
 
-        if self.collide(new_state.x, new_state.y, goal_coords):
-            new_state.goal_reached = True
+        new_state.is_start = Player.state_in_metatile(self.start_tile_coord, (new_state.x, new_state.y),
+                                                      self.half_player_w, self.half_player_h)
+
+        new_state.goal_reached = self.collide(new_state.x, new_state.y, goal_coords)
 
         return new_state
 
@@ -122,5 +119,5 @@ class Player:
             for edge in state_edges:
                 if action_str in edge_actions_dict[edge]:
                     edge_dest = edge[1]
-                    self.state = Player.str_to_state(edge_dest)
+                    self.state = State.from_str(edge_dest)
                     break
