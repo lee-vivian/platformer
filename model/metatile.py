@@ -130,9 +130,8 @@ class Metatile:
         metatile_coords_dict = {}
         coord_metatile_dict = {}
 
-        tile_coords = level.platform_coords + level.goal_coords
         tile_coords_dict = {}
-        for coord in tile_coords:
+        for coord in level.platform_coords:
             tile_coords_dict[coord] = 1
 
         all_possible_coords = level.get_all_possible_coords()
