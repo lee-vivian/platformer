@@ -51,8 +51,7 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels,
 
     else:
         import platformer
-        draw_labels = draw_all_labels or draw_dup_labels
-        platformer.main(game, level, player_img, use_graph, draw_labels, draw_dup_labels)
+        platformer.main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels)
 
 
 if __name__ == "__main__":
