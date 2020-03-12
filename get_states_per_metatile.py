@@ -10,28 +10,6 @@ from model.metatile import Metatile
 import utils
 
 
-def print_stats():
-    import json
-    saved_files = ['sample_mini', 'sample_hallway', 'sample_hallway_flat', 'mario-1-1', 'mario-2-1', 'kidicarus_1',
-                   'all_levels']
-
-    for sf in saved_files:
-        filepath = "level_saved_files_block/metatile_num_states/%s.json" % sf
-        with open(filepath, 'r') as file:
-            contents = json.load(file)
-        file.close()
-
-        total_num_states = 0
-        max_states_per_metatile = 0
-        for metatile, num_states in contents.items():
-            total_num_states += num_states
-            max_states_per_metatile = max(max_states_per_metatile, num_states)
-
-        print("\nLevel:", sf)
-        print("Total number of states: %d" % total_num_states)
-        print("Max states per metatile: %d" % max_states_per_metatile)
-
-
 def get_metatile_num_states_dir(player_img):
     directory = "level_saved_files_%s/metatile_num_states/" % player_img
     if not os.path.exists(directory):
@@ -63,6 +41,20 @@ def get_metatile_num_states_dict_from_metatiles(metatiles):
         num_states = len(metatile_graph.nodes())
         metatile_num_states_dict[metatile_str] = num_states
     return metatile_num_states_dict
+
+
+def print_level_stats(level):
+    metatile_num_states_file = "level_saved_files_block/metatile_num_states/%s.json" % level
+    metatile_num_states_dict = utils.read_json(metatile_num_states_file)
+    total_states = 0
+    max_states_per_metatile = 0
+    for metatile, num_states in metatile_num_states_dict.items():
+        total_states += num_states
+        max_states_per_metatile = max(max_states_per_metatile, num_states)
+    print("Level: %s" % level)
+    print("Total states: %d" % total_states)
+    print("Max states per metatile: %d" % max_states_per_metatile)
+    exit(0)
 
 
 def main(games, levels, player_img, merge, outfile):
