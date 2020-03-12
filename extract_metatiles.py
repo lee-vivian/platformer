@@ -119,6 +119,11 @@ def main(game_name, level_name, player_img, print_stats):
 
     # Save Metatile Stats for Level
     all_levels_info_file = "level_saved_files_%s/all_levels_info.json" % player_img
+
+    if not os.path.exists(all_levels_info_file):
+        all_levels_info_contents = {"contents": []}
+        utils.write_json(all_levels_info_file, all_levels_info_contents)
+
     all_levels_info = utils.read_json(all_levels_info_file)
 
     # Remove duplicate entries per level
