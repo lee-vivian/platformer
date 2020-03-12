@@ -17,7 +17,7 @@ from utils import error_exit
 
 
 def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels,
-         enumerate, extract_metatiles, get_metatile_id_map, get_states_per_metatile, extract_constraints, process_all):
+         enumerate, extract_metatiles, get_metatile_id_map, get_states_per_metatile, extract_constraints, load_saved_files, process_all):
 
     any_processing = process_all or (enumerate or extract_metatiles or get_metatile_id_map or get_states_per_metatile
                                      or extract_constraints)
@@ -47,7 +47,7 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels,
             if not os.path.exists(metatile_id_filepath):
                 error_exit("The metatile_id file for %s: level %s does not exist. Run get_metatile_id_map script "
                            "first." % (game, level))
-            extract_constraints.main(metatile_id_filepath, [game], [level], player_img, outfile=None)
+            extract_constraints.main(metatile_id_filepath, [game], [level], player_img, load_saved_files, outfile=None)
 
     else:
         import platformer
@@ -81,6 +81,7 @@ if __name__ == "__main__":
     parser.add_argument('--get_metatile_id_map', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--get_states_per_metatile', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--extract_constraints', const=True, nargs='?', type=bool, default=False)
+    parser.add_argument('--load_saved_files', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--process_all', const=True, nargs='?', type=bool,
                         help="Run all process scripts for the given level", default=False)
 
@@ -89,4 +90,4 @@ if __name__ == "__main__":
     main(args.game, args.level, args.player_img,
          args.use_graph, args.draw_all_labels, args.draw_dup_labels,
          args.enumerate, args.extract_metatiles, args.get_metatile_id_map, args.get_states_per_metatile,
-         args.extract_constraints, args.process_all)
+         args.extract_constraints, args.load_saved_files, args.process_all)

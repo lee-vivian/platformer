@@ -194,7 +194,7 @@ def merge_tileset_dicts(combined_tileset_dict, level_tileset_dict):
     }
 
 
-def main(metatile_id_file, games, levels, player_img, outfile):
+def main(metatile_id_file, games, levels, player_img, load_saved_files, outfile):
 
     metatile_constraints_dir = get_metatile_constraints_dir(player_img)
     metatile_id_map = utils.read_pickle(metatile_id_file)
@@ -209,7 +209,7 @@ def main(metatile_id_file, games, levels, player_img, outfile):
     for game, level in game_level_pairs:
 
         level_tileset_constraints_file = metatile_constraints_dir + level + ".json"
-        if os.path.exists(level_tileset_constraints_file):
+        if load_saved_files and os.path.exists(level_tileset_constraints_file):
             print("Loading tileset constraints from:", level_tileset_constraints_file)
             level_tileset_dict = utils.read_json(level_tileset_constraints_file).get("tileset")
         else:
@@ -237,10 +237,11 @@ if __name__ == "__main__":
     parser.add_argument('--games', type=str, nargs="+", help='List of games', default="")
     parser.add_argument('--levels', type=str, nargs="+", help='List of game levels', default="")
     parser.add_argument('--player_img', type=str, help="Player image", default='block')
+    parser.add_argument('--load_saved_files', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--outfile', type=str, help="Output filename", default=None)
     args = parser.parse_args()
 
-    main(args.metatile_id_file, args.games, args.levels, args.player_img, args.outfile)
+    main(args.metatile_id_file, args.games, args.levels, args.player_img, args.load_saved_files, args.outfile)
 
 #   pypy3 extract_constraints.py level_saved_files_block/metatile_id_maps/all_levels.pickle --games sample sample sample super_mario_bros super_mario_bros kid_icarus --levels sample_mini sample_hallway_flat sample_hallway mario-1-1 mario-2-1 kidicarus_1 --outfile all_levels
 
