@@ -10,8 +10,9 @@ from model.level import Level
 from model.metatile import Metatile
 import utils
 
-TILE_IMG = "tiles/platformer/gray_tile.png"
+GRAY_TILE_IMG = "tiles/platformer/gray_tile.png"
 BLANK_TILE_IMG = "tiles/platformer/blank_tile.png"
+PIZZA_TILE_IMG = "tiles/platformer/pizza.png"
 TILE_TOP_LEFT = "0,0"
 TILE_DIM = 40
 
@@ -132,7 +133,13 @@ def get_tileset_dict(metatile_id_map, game, level, player_img):
 
             tmp_metatile = Metatile.from_str(cur_metatile_str)
             graph_is_empty = not bool(tmp_metatile.graph_as_dict)
-            path = TILE_IMG if graph_is_empty else BLANK_TILE_IMG
+
+            path = BLANK_TILE_IMG
+            if graph_is_empty:
+                if tmp_metatile.filled:
+                    path = GRAY_TILE_IMG
+                else:
+                    path = PIZZA_TILE_IMG
 
             tiles_dict[cur_metatile_id] = {
                 "path": path,
