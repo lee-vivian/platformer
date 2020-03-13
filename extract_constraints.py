@@ -10,9 +10,13 @@ from model.level import Level
 from model.metatile import Metatile
 import utils
 
-GRAY_TILE_IMG = "tiles/platformer/gray_tile.png"
-BLANK_TILE_IMG = "tiles/platformer/blank_tile.png"
-PIZZA_TILE_IMG = "tiles/platformer/pizza.png"
+TYPE_IMG_MAP = {
+    "start": "tiles/platformer/blank_tile.png",
+    "blank": "tiles/platformer/blank_tile.png",
+    "block": "tiles/platformer/gray_tile.png",
+    "goal": "tiles/platformer/pizza.png"
+}
+
 TILE_TOP_LEFT = "0,0"
 TILE_DIM = 40
 
@@ -133,14 +137,7 @@ def get_tileset_dict(metatile_id_map, game, level, player_img):
 
             tmp_metatile = Metatile.from_str(cur_metatile_str)
 
-            if tmp_metatile.type in ['start', 'blank']:
-                path = BLANK_TILE_IMG
-            elif tmp_metatile.type == 'block':
-                path = GRAY_TILE_IMG
-            elif tmp_metatile.type == 'goal':
-                path = PIZZA_TILE_IMG
-            else:
-                utils.error_exit("Invalid metatile type %s" % tmp_metatile.type)
+            path = TYPE_IMG_MAP[tmp_metatile.type]
 
             tiles_dict[cur_metatile_id] = {
                 "path": path,
