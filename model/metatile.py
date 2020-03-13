@@ -3,12 +3,17 @@ Metatile Object that describes each grid cell in a Level
 '''
 
 import networkx as nx
-import os
 
 from model.level import TILE_DIM
 from utils import error_exit, read_pickle, write_pickle
 
 METATILE_TYPES = ["start", "goal", "blank", "block"]
+TYPE_IMG_MAP = {
+    "start": "player.png",
+    "blank": "blank_tile.png",
+    "block": "gray_tile.png",
+    "goal": "pizza.png"
+}
 
 
 class Metatile:

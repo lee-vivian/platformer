@@ -7,15 +7,8 @@ import os
 import datetime
 
 from model.level import Level
-from model.metatile import Metatile
+from model.metatile import Metatile, TYPE_IMG_MAP
 import utils
-
-TYPE_IMG_MAP = {
-    "start": "tiles/platformer/blank_tile.png",
-    "blank": "tiles/platformer/blank_tile.png",
-    "block": "tiles/platformer/gray_tile.png",
-    "goal": "tiles/platformer/pizza.png"
-}
 
 TILE_TOP_LEFT = "0,0"
 TILE_DIM = 40
@@ -137,7 +130,7 @@ def get_tileset_dict(metatile_id_map, game, level, player_img):
 
             tmp_metatile = Metatile.from_str(cur_metatile_str)
 
-            path = TYPE_IMG_MAP[tmp_metatile.type]
+            path = "tiles/platformer/%s" % TYPE_IMG_MAP[tmp_metatile.type]
 
             tiles_dict[cur_metatile_id] = {
                 "path": path,
