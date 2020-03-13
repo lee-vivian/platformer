@@ -3,48 +3,34 @@ Metatile Object that describes each grid cell in a Level
 '''
 
 import networkx as nx
-import pickle
+import os
 
 from model.level import TILE_DIM
+from utils import error_exit, read_pickle, write_pickle
 
-
-def read_pickle(filepath):
-    with open(filepath, 'rb') as file:
-        contents = pickle.load(file)
-    file.close()
-    return contents
-
-
-def write_pickle(filepath, contents):
-    with open(filepath, 'wb') as file:
-        pickle.dump(contents, file, protocol=pickle.HIGHEST_PROTOCOL)
-    file.close()
-    print("Saved to:", filepath)
-    return filepath
+METATILE_TYPES = ["start", "goal", "blank", "block"]
 
 
 class Metatile:
-    def __init__(self, filled, graph_as_dict):
-        self.filled = filled
+    def __init__(self, type, graph_as_dict):
+        if type not in METATILE_TYPES:
+            error_exit("Given metatile type [%s] must be one of %s" % (type, str(METATILE_TYPES)))
+        self.type = type
         self.graph_as_dict = graph_as_dict
 
     def __eq__(self, other):
         if isinstance(other, Metatile):
-            return self.filled == other.filled and self.graph_as_dict == other.graph_as_dict
+            return self.type == other.type and self.graph_as_dict == other.graph_as_dict
         return False
 
     def to_str(self):
-        string = "{'filled': "
-        string += "1" if self.filled else "0"
-        string += ", 'graph': "
-        string += str(self.graph_as_dict)
-        string += "}"
-        return string
+        graph = str(self.graph_as_dict)
+        return "{'type': %s, 'graph': %s}" % (self.type, graph)
 
     @staticmethod
     def from_str(string):
         metatile_dict = eval(string)
-        return Metatile(metatile_dict['filled'], metatile_dict['graph'])
+        return Metatile(metatile_dict['type'], metatile_dict['graph'])
 
     @staticmethod
     def get_unique_metatiles(metatiles):
@@ -56,8 +42,7 @@ class Metatile:
 
     @staticmethod
     def get_unique_metatiles_for_level(game_name, level_name, player_img='block'):
-        metatile_coords_dict_file = "level_saved_files_%s/metatile_coords_dicts/%s/%s.pickle" % \
-                                    (player_img, game_name, level_name)
+        metatile_coords_dict_file = "level_saved_files_%s/metatile_coords_dicts/%s/%s.pickle" % (player_img, game_name, level_name)
         metatile_coords_dict = read_pickle(metatile_coords_dict_file)
         metatiles = [Metatile.from_str(key) for key in metatile_coords_dict.keys()]
         return metatiles
@@ -70,7 +55,7 @@ class Metatile:
         return Metatile.get_unique_metatiles(combined_metatiles)
 
     @staticmethod
-    def get_coord_node_dict(graph):
+    def get_coord_node_dict(graph):  # {state coord: state node}
         coord_node_dict = {}
         for node in graph.nodes():
             state_dict = eval(node)
@@ -80,11 +65,10 @@ class Metatile:
                 coord_node_dict[node_coord] = [node]
             else:
                 coord_node_dict[node_coord].append(node)
-
         return coord_node_dict
 
     @staticmethod
-    def get_node_spatial_hash(graph, all_possible_coords):
+    def get_node_spatial_hash(graph, all_possible_coords):  # {metatile coord: nodes (states) at coord}
 
         coord_node_dict = Metatile.get_coord_node_dict(graph)
         spatial_hash = {}
@@ -98,7 +82,7 @@ class Metatile:
                     if coord_node_dict.get(temp_coord) is not None:
                         spatial_hash[metatile_coord] += coord_node_dict[temp_coord]
 
-        return spatial_hash  # {metatile coord: nodes (states) at coord}
+        return spatial_hash
 
     @staticmethod
     def get_normalized_graph(graph, coord):
@@ -126,20 +110,33 @@ class Metatile:
 
         all_metatiles = []
         unique_metatiles = []
+
         metatile_str_metatile_dict = {}
         metatile_coords_dict = {}
         coord_metatile_dict = {}
 
-        tile_coords_dict = {}
+        platform_tile_coords_dict = {}
         for coord in level.platform_coords:
-            tile_coords_dict[coord] = 1
+            platform_tile_coords_dict[coord] = 1
+
+        goal_tile_coords_dict = {}
+        for coord in level.goal_coords:
+            goal_tile_coords_dict[coord] = 1
 
         all_possible_coords = level.get_all_possible_coords()
         node_spatial_hash = Metatile.get_node_spatial_hash(graph, all_possible_coords)  # {metatile coord: nodes (states) at coord}
 
         for metatile_coord in all_possible_coords:
 
-            filled = tile_coords_dict.get(metatile_coord) is not None
+            # Construct new Metatile
+            metatile_type = 'blank'
+            if metatile_coord == level.start_coord:
+                metatile_type = 'start'
+            elif goal_tile_coords_dict.get(metatile_coord) is not None:
+                metatile_type = 'goal'
+            elif platform_tile_coords_dict.get(metatile_coord) is not None:
+                metatile_type = 'block'
+
             metatile_graph = nx.DiGraph()
 
             nodes_in_metatile = node_spatial_hash.get(metatile_coord)
@@ -152,7 +149,9 @@ class Metatile:
 
             metatile_graph_as_dict = nx.to_dict_of_dicts(metatile_graph)
 
-            new_metatile = Metatile(filled, metatile_graph_as_dict)
+            new_metatile = Metatile(metatile_type, metatile_graph_as_dict)
+
+            # Add new Metatile to list of all_metatiles
             all_metatiles.append(new_metatile)
 
             # Get standardized string of new metatile
@@ -162,9 +161,9 @@ class Metatile:
                 unique_metatiles.append(new_metatile)
                 metatile_str_metatile_dict[new_metatile_str] = new_metatile
 
-            for key, value in metatile_str_metatile_dict.items():  # get standardized string of new_metatile
-                if value == new_metatile:
-                    new_metatile_str = key
+            for metatile_str, metatile in metatile_str_metatile_dict.items():  # get standardized string of new_metatile
+                if metatile == new_metatile:
+                    new_metatile_str = metatile_str
                     break
 
             # Construct {metatile: coords} dict
@@ -183,6 +182,3 @@ class Metatile:
         write_pickle(metatile_coords_dict_file, metatile_coords_dict)
 
         return all_metatiles
-
-
-

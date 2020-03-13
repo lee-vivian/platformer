@@ -1,3 +1,4 @@
+import os
 import json
 import pickle
 
@@ -7,7 +8,13 @@ def error_exit(msg):
     exit(0)
 
 
+def check_path_exists(filepath):
+    if not os.path.exists(filepath):
+        error_exit("Missing file: %s" % filepath)
+
+
 def read_json(filepath):
+    check_path_exists(filepath)
     with open(filepath, 'r') as file:
         contents = json.load(file)
     file.close()
@@ -23,6 +30,7 @@ def write_json(filepath, contents):
 
 
 def read_pickle(filepath):
+    check_path_exists(filepath)
     with open(filepath, 'rb') as file:
         contents = pickle.load(file)
     file.close()

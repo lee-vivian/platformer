@@ -4,33 +4,25 @@ Creates and saves a map of {metatile-id: Metatile} for a given list of metatiles
 
 import argparse
 import os
-import pickle
 
 from model.metatile import Metatile
-from utils import error_exit
+from utils import error_exit, write_pickle
 
 
-def get_id_metatile_map_dir(player_img):
+def get_id_metatile_map_file(player_img, outfile):
     id_metatile_map_dir = "level_saved_files_%s/id_metatile_maps/" % player_img
     if not os.path.exists(id_metatile_map_dir):
         os.makedirs(id_metatile_map_dir)
-    return id_metatile_map_dir
+    id_metatile_map_file = id_metatile_map_dir + outfile + ".pickle"
+    return id_metatile_map_file
 
 
-def get_metatile_id_map_dir(player_img):
+def get_metatile_id_map_file(player_img, outfile):
     metatile_id_map_dir = "level_saved_files_%s/metatile_id_maps/" % player_img
     if not os.path.exists(metatile_id_map_dir):
         os.makedirs(metatile_id_map_dir)
-    return metatile_id_map_dir
-
-
-def save_map_to_file(map, save_directory, outfile):
-    outfile_path = save_directory + outfile + ".pickle"
-    with open(outfile_path, 'wb') as file:
-        pickle.dump(map, file, protocol=pickle.HIGHEST_PROTOCOL)
-    file.close()
-    print("Saved to:", outfile_path)
-    return outfile_path
+    metatile_id_map_file = metatile_id_map_dir + outfile + ".pickle"
+    return metatile_id_map_file
 
 
 def main(games, levels, player_img, outfile):
@@ -42,11 +34,12 @@ def main(games, levels, player_img, outfile):
     elif len(levels) == 0:
         error_exit("No levels specified")
 
+    if outfile is None:
+        outfile = '_'.join(levels)
+
     metatile_count = 0
     id_metatile_map = {}
-    id_metatile_map_dir = get_id_metatile_map_dir(player_img)
     metatile_id_map = {}
-    metatile_id_map_dir = get_metatile_id_map_dir(player_img)
 
     game_level_pairs = zip(games, levels)
     unique_metatiles = Metatile.get_unique_metatiles_for_levels(game_level_pairs, player_img)
@@ -58,13 +51,10 @@ def main(games, levels, player_img, outfile):
         id_metatile_map[metatile_id] = metatile_str
         metatile_id_map[metatile_str] = metatile_id
 
-    if outfile is None:
-        outfile = '_'.join(levels)
+    id_metatile_map_file = get_id_metatile_map_file(player_img, outfile)
+    metatile_id_map_file = get_metatile_id_map_file(player_img, outfile)
 
-    id_metatile_outfile = save_map_to_file(id_metatile_map, id_metatile_map_dir, outfile)
-    metatile_id_outfile = save_map_to_file(metatile_id_map, metatile_id_map_dir, outfile)
-
-    return id_metatile_outfile, metatile_id_outfile
+    return write_pickle(id_metatile_map_file, id_metatile_map), write_pickle(metatile_id_map_file, metatile_id_map)
 
 
 if __name__ == '__main__':

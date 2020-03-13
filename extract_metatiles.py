@@ -10,7 +10,7 @@ import datetime
 import argparse
 
 from model.level import Level
-from model.metatile import Metatile
+from model.metatile import Metatile, METATILE_TYPES
 import utils
 
 
@@ -57,30 +57,33 @@ def get_unique_metatile_strs(metatile_coords_dict_file):
 def get_metatile_stats_dict(level_metatiles, metatile_coords_dict_file):
 
     stats_dict = {"num_total_metatiles": 0,
-                  "num_filled_metatiles": 0,
                   "num_metatiles_with_graphs": 0,
                   "num_unique_metatiles": 0,
                   "num_unique_metatiles_with_graphs": 0}
 
+    for t in METATILE_TYPES:
+        metatile_type_key = "num_%s_metatiles" % t
+        stats_dict[metatile_type_key] = 0
+
     for metatile in level_metatiles:
 
-        stats_dict["num_total_metatiles"] += 1
+        stats_dict["num_total_metatiles"] += 1  # increment total metatile count
 
-        if metatile.filled:
-            stats_dict["num_filled_metatiles"] += 1
+        if metatile.type not in METATILE_TYPES:  # increment metatile type count
+            utils.error_exit("Metatile type [%s] is not valid. Valid types are %s" % (metatile.type, METATILE_TYPES))
+        stats_dict['num_%s_metatiles' % metatile.type] += 1
 
-        if bool(metatile.graph_as_dict):  # graph not empty
+        graph_not_empty = not bool(metatile.graph_as_dict)  # increment metatiles with graph count
+        if graph_not_empty:
             stats_dict["num_metatiles_with_graphs"] += 1
 
     unique_metatile_strs = get_unique_metatile_strs(metatile_coords_dict_file)
-
     for metatile_str in unique_metatile_strs:
-
-        stats_dict["num_unique_metatiles"] += 1
-
+        stats_dict["num_unique_metatiles"] += 1  # increment unique metatiles count
         metatile = Metatile.from_str(metatile_str)
-        if bool(metatile.graph_as_dict):  # graph not empty
-            stats_dict["num_unique_metatiles_with_graphs"] += 1
+        graph_not_empty = not bool(metatile.graph_as_dict)
+        if graph_not_empty:
+            stats_dict["num_unique_metatiles_with_graphs"] += 1  # increment unique metatiles with graphs count
 
     return stats_dict
 

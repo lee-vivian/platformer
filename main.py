@@ -13,8 +13,6 @@ B. Play a level [use python3 interpreter]
 
 import argparse
 
-from utils import error_exit
-
 
 def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels,
          enumerate, extract_metatiles, get_metatile_id_map, get_states_per_metatile, extract_constraints, load_saved_files, process_all):
@@ -41,12 +39,8 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels,
             get_states_per_metatile.main([game], [level], player_img, merge=False, outfile=None)
 
         if process_all or extract_constraints:
-            import os
             import extract_constraints
             metatile_id_filepath = "level_saved_files_%s/metatile_id_maps/%s.pickle" % (player_img, level)
-            if not os.path.exists(metatile_id_filepath):
-                error_exit("The metatile_id file for %s: level %s does not exist. Run get_metatile_id_map script "
-                           "first." % (game, level))
             extract_constraints.main(metatile_id_filepath, [game], [level], player_img, load_saved_files, outfile=None)
 
     else:
