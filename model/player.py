@@ -110,7 +110,7 @@ class Player:
 
         return new_state
 
-    def update(self, action, platform_coords, goal_coords, precomputed_graph, edge_actions_dict):
+    def update(self, action, platform_coords, goal_coords, precomputed_graph=None, edge_actions_dict=None):
         if precomputed_graph is None or edge_actions_dict is None:
             self.state = self.next_state(self.state, action, platform_coords, goal_coords)
         else:
