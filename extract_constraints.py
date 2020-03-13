@@ -132,14 +132,15 @@ def get_tileset_dict(metatile_id_map, game, level, player_img):
         if tiles_dict.get(cur_metatile_id) is None:
 
             tmp_metatile = Metatile.from_str(cur_metatile_str)
-            graph_is_empty = not bool(tmp_metatile.graph_as_dict)
 
-            path = BLANK_TILE_IMG
-            if graph_is_empty:
-                if tmp_metatile.filled:
-                    path = GRAY_TILE_IMG
-                else:
-                    path = PIZZA_TILE_IMG
+            if tmp_metatile.type in ['start', 'blank']:
+                path = BLANK_TILE_IMG
+            elif tmp_metatile.type == 'block':
+                path = GRAY_TILE_IMG
+            elif tmp_metatile.type == 'goal':
+                path = PIZZA_TILE_IMG
+            else:
+                utils.error_exit("Invalid metatile type %s" % tmp_metatile.type)
 
             tiles_dict[cur_metatile_id] = {
                 "path": path,
@@ -238,6 +239,17 @@ def main(metatile_id_file, games, levels, player_img, load_saved_files, outfile)
 
 
 if __name__ == "__main__":
+
+    # level = 'sample_mini'
+    # count = 0
+    # filepath = 'level_saved_files_block/metatile_constraints/%s.json' % level
+    # tiles = utils.read_json(filepath).get('tileset').get('tiles')
+    # for t in tiles:
+    #     if tiles.get(t).get('path') == PIZZA_TILE_IMG:
+    #         print(tiles.get(t))
+    #         count += 1
+    # print("Num pizza metatiles: %d" % count)
+    # exit(0)
 
     parser = argparse.ArgumentParser(description='Extract combined tileset constraints json for the specified levels')
     parser.add_argument('metatile_id_file', type=str, help='Filepath for metatile_id map')

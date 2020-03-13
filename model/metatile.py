@@ -25,7 +25,7 @@ class Metatile:
 
     def to_str(self):
         graph = str(self.graph_as_dict)
-        return "{'type': %s, 'graph': %s}" % (self.type, graph)
+        return "{'type': '%s', 'graph': %s}" % (self.type, graph)
 
     @staticmethod
     def from_str(string):
