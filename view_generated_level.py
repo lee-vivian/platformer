@@ -38,19 +38,19 @@ def get_metatile_labels(coord_id_map, coord_metatile_map):
 def main(level, player_img='block', draw_labels=True):
 
     saved_tiles_file = "../groundcollapse/chunks/%s/chunk_0_0" % level
-    saved_tiles_rows = read_pickle(saved_tiles_file)  # list of lists (each list represents 1 tile row)
+    saved_tile_cols = read_pickle(saved_tiles_file)  # list of lists (each list represents 1 tile row)
 
     id_metatile_map_file = "level_saved_files_%s/id_metatile_maps/%s.pickle" % (player_img, level)
     id_metatile_map = read_pickle(id_metatile_map_file)
 
-    num_rows = len(saved_tiles_rows)
-    num_cols = len(saved_tiles_rows[0])
+    num_cols = len(saved_tile_cols)
+    num_rows = len(saved_tile_cols[0])
 
     coord_id_map = {}
-    for r in range(num_rows):
-        for c in range(num_cols):
-            coord = (r * TILE_DIM, c * TILE_DIM)
-            id = saved_tiles_rows[r][c]
+    for x in range(num_cols):
+        for y in range(num_rows):
+            coord = (x * TILE_DIM, y * TILE_DIM)
+            id = saved_tile_cols[x][y]
             coord_id_map[coord] = id
 
     coord_metatile_map = {}
@@ -91,7 +91,7 @@ def main(level, player_img='block', draw_labels=True):
             tile_img = TYPE_IMG_MAP.get(metatile.type)
         else:
             tile_img = "none.png"
-        tiles_list.add(Tile(coord[0], coord[1], tile_img)) # get tile sprites
+        tiles_list.add(Tile(coord[0], coord[1], tile_img))  # get tile sprites
 
     if start_coord:
         player_start_coord = start_coord
