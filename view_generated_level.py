@@ -24,13 +24,14 @@ def get_metatile_labels(coord_id_map, coord_metatile_map):
     metatile_labels = []
 
     for coord, id in coord_id_map.items():
-        metatile_label = id[1:]  # remove t-prefix from metatile id
-        metatile = coord_metatile_map.get(coord)
-        graph_is_empty = not bool(metatile.graph_as_dict)
-        if graph_is_empty:
-            metatile_label += "E"
-        label_surface = label_font.render(metatile_label, False, font_color)
-        metatile_labels.append((label_surface, coord[0], coord[1]))
+        if not id == '':
+            metatile_label = id[1:]  # remove t-prefix from metatile id
+            metatile = coord_metatile_map.get(coord)
+            graph_is_empty = not bool(metatile.graph_as_dict)
+            if graph_is_empty:
+                metatile_label += "E"
+            label_surface = label_font.render(metatile_label, False, font_color)
+            metatile_labels.append((label_surface, coord[0], coord[1]))
     return metatile_labels, font_color, label_padding
 
 
@@ -54,8 +55,11 @@ def main(level, player_img='block', draw_labels=True):
 
     coord_metatile_map = {}
     for coord, id in coord_id_map.items():
-        metatile = Metatile.from_str(id_metatile_map.get(id))
-        coord_metatile_map[coord] = metatile
+        if id == '':
+            coord_metatile_map[coord] = None
+        else:
+            metatile = Metatile.from_str(id_metatile_map.get(id))
+            coord_metatile_map[coord] = metatile
 
     # Background
     FPS = 40  # frame rate
@@ -75,17 +79,27 @@ def main(level, player_img='block', draw_labels=True):
     tiles_list = pygame.sprite.Group()
 
     for coord, metatile in coord_metatile_map.items():
-        if start_coord is None and metatile.type == 'start':
-            start_coord = coord
-        if blank_coord is None and metatile.type == 'blank':
-            blank_coord = coord
-        if metatile.type == 'block':
-            platform_coords.append(coord)
-        if metatile.type == 'goal':
-            goal_coords.append(coord)
-        tiles_list.add(Tile(coord[0], coord[1], TYPE_IMG_MAP.get(metatile.type)))  # get tile sprites
+        if metatile is not None:
+            if start_coord is None and metatile.type == 'start':
+                start_coord = coord
+            if blank_coord is None and metatile.type == 'blank':
+                blank_coord = coord
+            if metatile.type == 'block':
+                platform_coords.append(coord)
+            if metatile.type == 'goal':
+                goal_coords.append(coord)
+            tile_img = TYPE_IMG_MAP.get(metatile.type)
+        else:
+            tile_img = "none.png"
+        tiles_list.add(Tile(coord[0], coord[1], tile_img)) # get tile sprites
 
-    player_start_coord = start_coord if start_coord is not None else blank_coord
+    if start_coord:
+        player_start_coord = start_coord
+    elif blank_coord:
+        player_start_coord = blank_coord
+    else:
+        player_start_coord = (0, 0)
+
     player_model = PlayerModel(player_img, player_start_coord)
     player_view = PlayerView(player_img)
     player_list = pygame.sprite.Group()
