@@ -129,12 +129,13 @@ def get_tileset_dict(metatile_id_map, game, level, player_img):
         if tiles_dict.get(cur_metatile_id) is None:
 
             tmp_metatile = Metatile.from_str(cur_metatile_str)
-
             path = "tiles/platformer/%s" % TYPE_IMG_MAP[tmp_metatile.type]
 
             tiles_dict[cur_metatile_id] = {
                 "path": path,
                 "pos": TILE_TOP_LEFT,
+                "type": tmp_metatile.type,
+                "graph": str(tmp_metatile.graph_as_dict),
                 "adjacent": {
                     TOP: [],
                     BOTTOM: [],
