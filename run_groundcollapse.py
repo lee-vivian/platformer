@@ -8,12 +8,13 @@ from utils import read_json, error_exit
 if __name__ == "__main__":
 
     # Adjustable variables
-    training_level = "sample_small"
-    constraint_pl = "wfc.pl"
-    chunk_width = 10
-    chunk_height = 5
+    program = "main_platformer"
+    training_level = "sample_mini"
+    constraint_pl = "wfc_platformer.pl"
+    chunk_width = None
+    chunk_height = None
 
-    failure_millis = 2000
+    failure_millis = 3000
     save_chunks = False
     save_hr_chunks = False
     debug = True
@@ -43,9 +44,10 @@ if __name__ == "__main__":
     scale_w = 1
     scale_h = 1
 
-    command_str = "python main.py --path %s --tileset %s --display_width %d --display_height %d " \
+    command_str = "python %s.py --path %s --tileset %s --display_width %d --display_height %d " \
                   "--scale_width %d --scale_height %d --chunk_width %d --chunk_height %d --failureMillis %d" % \
-                  (constraint_pl, tileset, display_w, display_h, scale_w, scale_h, chunk_width, chunk_height, failure_millis)
+                  (program, constraint_pl, tileset, display_w, display_h, scale_w, scale_h, chunk_width, chunk_height,
+                   failure_millis)
 
     if save_chunks or save_hr_chunks:
         command_str += " --levelName %s" % training_level
