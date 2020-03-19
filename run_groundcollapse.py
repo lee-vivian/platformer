@@ -10,7 +10,6 @@ if __name__ == "__main__":
     # Adjustable variables
     program = "main_platformer"
     training_level = "sample_mini"
-    constraint_pl = "wfc_platformer.pl"
     chunk_width = None
     chunk_height = None
 
@@ -40,13 +39,13 @@ if __name__ == "__main__":
         display_w = chunk_width * TILE_DIM
         display_h = chunk_height * TILE_DIM
 
-    tileset = "../platformer/level_saved_files_block/metatile_constraints/%s.json" % training_level
+    tileset = "tilesets/platformer/%s.json" % training_level
     scale_w = 1
     scale_h = 1
 
-    command_str = "python %s.py --path %s --tileset %s --display_width %d --display_height %d " \
+    command_str = "python %s.py --tileset %s --display_width %d --display_height %d " \
                   "--scale_width %d --scale_height %d --chunk_width %d --chunk_height %d --failureMillis %d" % \
-                  (program, constraint_pl, tileset, display_w, display_h, scale_w, scale_h, chunk_width, chunk_height,
+                  (program, tileset, display_w, display_h, scale_w, scale_h, chunk_width, chunk_height,
                    failure_millis)
 
     if save_chunks or save_hr_chunks:
