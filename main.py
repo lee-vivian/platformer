@@ -50,6 +50,25 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels,
 
 if __name__ == "__main__":
 
+    # import networkx as nx
+    # from get_states_per_metatile import print_level_stats
+    #
+    # GAME_LEVEL_PAIRS = [
+    #     ('sample', 'sample_mini'),
+    #     ('sample', 'sample_small'),
+    #     ('sample', 'sample_medium'),
+    #     ('sample', 'sample_medium2')
+    # ]
+    #
+    # for game, level in GAME_LEVEL_PAIRS:
+    #     state_graph_filepath = "level_saved_files_block/enumerated_state_graphs/%s/%s.gpickle" % (game, level)
+    #     state_graph = nx.read_gpickle(state_graph_filepath)
+    #     print("LEVEL: ", level)
+    #     print("Num nodes: ", len(state_graph.nodes()))
+    #     print("Num edges: ", len(state_graph.edges()))
+    #     print_level_stats(level)
+    #     print("------------------------\n")
+
     # GAME_LEVEL_PAIRS = [
     #     ('sample', 'sample_mini'),
     #     ('sample', 'sample_hallway'),
@@ -58,10 +77,6 @@ if __name__ == "__main__":
     #     ('super_mario_bros', 'mario-2-1'),
     #     ('kid_icarus', 'kidicarus_1')
     # ]
-    #
-    # for game, level in GAME_LEVEL_PAIRS:
-    #     main(game, level, player_img='block', enumerate=False, extract_metatiles=True, get_metatile_id_map=True,
-    #          get_states_per_metatile=True, extract_constraints=True, process_all=False)
 
     parser = argparse.ArgumentParser(description='Process or play a level')
     parser.add_argument('game', type=str, help='Name of the game')

@@ -57,7 +57,6 @@ def print_level_stats(level):
     print("Total states: %d" % total_states)
     print("Max states per metatile: %d" % max_states_per_metatile)
     print("Avg states per metatile: %d" % int(total_states / metatile_count))
-    exit(0)
 
 
 def main(games, levels, player_img, merge, outfile):
