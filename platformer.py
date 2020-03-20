@@ -26,6 +26,8 @@ def get_metatile_labels_at_coords(coords, label, graph_is_empty, font, color):
     label_text = label
     if graph_is_empty:
         label_text += "E"
+    elif len(coords) == 1:
+        label_text += "S"
     label_surface = font.render(label_text, False, color)
     for coord in coords:
         new_labels.append((label_surface, coord[0], coord[1]))

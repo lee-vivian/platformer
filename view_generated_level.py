@@ -22,6 +22,7 @@ def get_metatile_labels(coord_id_map, coord_metatile_map):
     label_font = pygame.font.SysFont('Comic Sans MS', 20)
 
     metatile_labels = []
+    label_coords_dict = {}
 
     for coord, id in coord_id_map.items():
         if not id == '':
@@ -29,8 +30,15 @@ def get_metatile_labels(coord_id_map, coord_metatile_map):
             metatile = coord_metatile_map.get(coord)
             graph_is_empty = not bool(metatile.graph_as_dict)
             if graph_is_empty:
-                metatile_label += "E"
-            label_surface = label_font.render(metatile_label, False, font_color)
+                metatile_label += "E"  # add E to label if metatile graph is empty
+            if label_coords_dict.get(metatile_label) is None:
+                label_coords_dict[metatile_label] = []
+            label_coords_dict[metatile_label].append((coord[0], coord[1]))
+
+    for label, coords in label_coords_dict.items():
+        label_text = label + "S" if len(coords) == 1 else label  # add S to label if metatile is unique in level
+        label_surface = label_font.render(label_text, False, font_color)
+        for coord in coords:
             metatile_labels.append((label_surface, coord[0], coord[1]))
     return metatile_labels, font_color, label_padding
 
