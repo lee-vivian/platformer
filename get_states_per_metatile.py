@@ -46,14 +46,17 @@ def get_metatile_num_states_dict_from_metatiles(metatiles):
 def print_level_stats(level):
     metatile_num_states_file = "level_saved_files_block/metatile_num_states/%s.json" % level
     metatile_num_states_dict = utils.read_json(metatile_num_states_file)
+    metatile_count = 0
     total_states = 0
     max_states_per_metatile = 0
     for metatile, num_states in metatile_num_states_dict.items():
+        metatile_count += 1
         total_states += num_states
         max_states_per_metatile = max(max_states_per_metatile, num_states)
     print("Level: %s" % level)
     print("Total states: %d" % total_states)
     print("Max states per metatile: %d" % max_states_per_metatile)
+    print("Avg states per metatile: %d" % int(total_states / metatile_count))
     exit(0)
 
 
