@@ -156,7 +156,7 @@ def main(level, player_img='block', draw_labels=True):
         camera.update(player_view)  # set camera to track player
         player_model.update(Action(key_left, key_right, key_jump), platform_coords, goal_coords)
         player_view.update(player_model.state.x, player_model.state.y,
-                           player_model.half_player_w, player_model.half_player_h, player_model.state.facing_right)
+                           player_model.half_player_w, player_model.half_player_h)
         key_jump = False
 
         entities_to_draw = []

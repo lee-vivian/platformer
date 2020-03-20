@@ -155,7 +155,7 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels):
         player_model.update(Action(key_left, key_right, key_jump), level_obj.platform_coords, level_obj.goal_coords,
                             state_graph, edge_actions_dict)
         player_view.update(player_model.state.x, player_model.state.y,
-                           player_model.half_player_w, player_model.half_player_h, player_model.state.facing_right)
+                           player_model.half_player_w, player_model.half_player_h)
         key_jump = False
 
         entities_to_draw = []

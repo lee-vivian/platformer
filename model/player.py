@@ -7,7 +7,7 @@ Player Model Object
 
 # Player Model constants
 GRAVITY = 4
-MAX_VEL = 10 * GRAVITY
+MAX_VEL = 8 * GRAVITY
 STEPS = 8
 
 HALF_TURTLE_WIDTH = int(74 / 2)
@@ -36,7 +36,7 @@ class Player:
         start_x = self.start_tile_coord[0]
         start_y = self.start_tile_coord[1]
         return State(x=start_x + self.half_player_w, y=start_y + self.half_player_h, movex=0, movey=GRAVITY,
-                     facing_right=True, onground=True, is_start=True, goal_reached=False)
+                     onground=True, is_start=True, goal_reached=False)
 
     def reset(self):
         self.state = self.start_state()
@@ -69,11 +69,6 @@ class Player:
 
         if action.jump and new_state.onground:
             new_state.movey = -MAX_VEL
-
-        if new_state.movex < 0:
-            new_state.facing_right = False
-        if new_state.movex > 0:
-            new_state.facing_right = True
 
         for ii in range(abs(new_state.movex)):
             old_x = new_state.x
