@@ -1,6 +1,8 @@
 from model.state import State
 from model.level import TILE_DIM
 
+from utils import state_in_metatile
+
 '''
 Player Model Object
 '''
@@ -22,15 +24,6 @@ class Player:
         self.half_player_w = HALF_TURTLE_WIDTH if img == 'turtle' else HALF_TILE_WIDTH
         self.start_tile_coord = start_tile_coord
         self.reset()
-
-    @staticmethod
-    def metatile_coord_from_state_coord(state_coord, half_player_w, half_player_h):
-        return (state_coord[0] - half_player_w) - (state_coord[0] - half_player_w) % TILE_DIM, \
-               (state_coord[1] - half_player_h) - (state_coord[1] - half_player_h) % TILE_DIM
-
-    @staticmethod
-    def state_in_metatile(metatile_coord, state_coord, half_player_w, half_player_h):
-        return metatile_coord == Player.metatile_coord_from_state_coord(state_coord, half_player_w, half_player_h)
 
     def start_state(self):
         start_x = self.start_tile_coord[0]
@@ -98,8 +91,8 @@ class Player:
                 new_state.movey = 0
                 break
 
-        new_state.is_start = Player.state_in_metatile(self.start_tile_coord, (new_state.x, new_state.y),
-                                                      self.half_player_w, self.half_player_h)
+        new_state.is_start = state_in_metatile(self.start_tile_coord, (new_state.x, new_state.y),
+                                               self.half_player_w, self.half_player_h, TILE_DIM)
 
         new_state.goal_reached = self.collide(new_state.x, new_state.y, goal_coords)
 
