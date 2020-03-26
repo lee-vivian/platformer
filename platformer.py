@@ -17,55 +17,32 @@ from model.player import Player as PlayerModel
 from model.level import TILE_DIM, MAX_WIDTH, MAX_HEIGHT
 from model.level import Level
 from model.action import Action
-from model.metatile import Metatile
-from utils import read_pickle, error_exit
+from utils import read_pickle
 
 
-def get_metatile_labels_at_coords(coords, label, graph_is_empty, font, color):
+def get_metatile_labels_at_coords(coords, tile_id, extra_info, label_font, font_color): #, graph_is_empty, font, color):
     new_labels = []
-    label_text = label
-    if graph_is_empty:
-        label_text += "E"
-    elif len(coords) == 1:
-        label_text += "S"
-    label_surface = font.render(label_text, False, color)
+    label_text = tile_id[1:] + extra_info
+    label_surface = label_font.render(label_text, False, font_color)
     for coord in coords:
         new_labels.append((label_surface, coord[0], coord[1]))
     return new_labels
 
 
-def get_metatile_id(metatile_to_find, metatile_id_map):
-    for metatile_str, metatile_id in metatile_id_map.items():
-        if Metatile.from_str(metatile_str) == metatile_to_find:
-            return metatile_id
-    return None
-
-
-def setup_metatile_labels(metatile_coords_dict_file, metatile_id_map_file, draw_all_labels, draw_dup_labels):
-
+def setup_metatile_labels(level, player_img, draw_all_labels, draw_dup_labels):
+    metatile_labels = []
     font_color = (255, 255, 100)
     label_padding = (8, 12)
     label_font = pygame.font.SysFont('Comic Sans MS', 20)
 
-    metatile_coords_dict = read_pickle(metatile_coords_dict_file)
-    metatile_id_map = read_pickle(metatile_id_map_file)
-    metatile_labels = []
+    tile_id_coords_map_filepath = "level_saved_files_%s/tile_id_coords_maps/%s.pickle" % (player_img, level)
+    tile_id_coords_map = read_pickle(tile_id_coords_map_filepath)
 
-    for metatile_str in metatile_coords_dict.keys():
-        coords = metatile_coords_dict.get(metatile_str)
-        metatile = Metatile.from_str(metatile_str)
-        graph_is_empty = not bool(metatile.graph_as_dict)
-        metatile_id = get_metatile_id(metatile, metatile_id_map)
-        metatile_id = metatile_id[1:]  # remove t-prefix from metatile id
+    for (tile_id, extra_info), coords in tile_id_coords_map.items():
 
-        if metatile_id is None:
-            error_exit("Metatile ID not found for metatile: %s" % metatile_str)
+        if (draw_dup_labels and len(coords) > 1) or draw_all_labels:
 
-        if draw_dup_labels:
-            if len(coords) > 1:
-                metatile_labels += get_metatile_labels_at_coords(coords, metatile_id, graph_is_empty, label_font, font_color)
-        elif draw_all_labels:
-            metatile_labels += get_metatile_labels_at_coords(coords, metatile_id, graph_is_empty, label_font, font_color)
+            metatile_labels += get_metatile_labels_at_coords(coords, tile_id, extra_info, label_font, font_color)
 
     return metatile_labels, font_color, label_padding
 
@@ -115,7 +92,7 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels):
     # Setup drawing metatile labels
     if draw_all_labels or draw_dup_labels:
         metatile_labels, font_color, label_padding = \
-            setup_metatile_labels(metatile_coords_dict_file, metatile_id_map_file, draw_all_labels, draw_dup_labels)
+            setup_metatile_labels(level, player_img, draw_all_labels, draw_dup_labels)
 
     # Main Loop
     main = True

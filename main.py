@@ -15,10 +15,11 @@ import argparse
 
 
 def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels,
-         enumerate, extract_metatiles, get_metatile_id_map, get_states_per_metatile, extract_constraints, load_saved_files, process_all):
+         enumerate, extract_metatiles, get_metatile_id_map, get_tile_id_coords_map, get_states_per_metatile,
+         extract_constraints, load_saved_files, process_all):
 
-    any_processing = process_all or (enumerate or extract_metatiles or get_metatile_id_map or get_states_per_metatile
-                                     or extract_constraints)
+    any_processing = process_all or (enumerate or extract_metatiles or get_metatile_id_map or get_tile_id_coords_map
+                                     or get_states_per_metatile or extract_constraints)
 
     if any_processing:
 
@@ -33,6 +34,10 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels,
         if process_all or get_metatile_id_map:
             import get_metatile_id_map
             get_metatile_id_map.main([game], [level], player_img, outfile=None)
+
+        if process_all or get_tile_id_coords_map:
+            import get_tile_id_coords_map
+            get_tile_id_coords_map.main(game, level, player_img)
 
         if process_all or get_states_per_metatile:
             import get_states_per_metatile
@@ -88,6 +93,7 @@ if __name__ == "__main__":
     parser.add_argument('--enumerate', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--extract_metatiles', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--get_metatile_id_map', const=True, nargs='?', type=bool, default=False)
+    parser.add_argument('--get_tile_id_coords_map', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--get_states_per_metatile', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--extract_constraints', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--load_saved_files', const=True, nargs='?', type=bool, default=False)
@@ -98,5 +104,5 @@ if __name__ == "__main__":
 
     main(args.game, args.level, args.player_img,
          args.use_graph, args.draw_all_labels, args.draw_dup_labels,
-         args.enumerate, args.extract_metatiles, args.get_metatile_id_map, args.get_states_per_metatile,
-         args.extract_constraints, args.load_saved_files, args.process_all)
+         args.enumerate, args.extract_metatiles, args.get_metatile_id_map, args.get_tile_id_coords_map,
+         args.get_states_per_metatile, args.extract_constraints, args.load_saved_files, args.process_all)
