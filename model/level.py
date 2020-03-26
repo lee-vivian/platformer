@@ -23,6 +23,21 @@ class Level:
         self.goal_coords = goal_coords
         self.start_coord = start_coord
 
+    def get_width(self):
+        return self.width
+
+    def get_height(self):
+        return self.height
+
+    def get_platform_coords(self):
+        return list(self.platform_coords)
+
+    def get_goal_coords(self):
+        return list(self.goal_coords)
+
+    def get_start_coord(self):
+        return self.start_coord
+
     def get_all_possible_coords(self):
         coords = []
         for x in range(int(self.width / TILE_DIM)):
