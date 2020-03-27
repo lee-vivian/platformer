@@ -1,5 +1,5 @@
 """
-Player State Object
+Input Handler Object
 """
 
 import pygame

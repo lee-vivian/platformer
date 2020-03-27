@@ -20,9 +20,11 @@ from utils import read_pickle
 
 # game specifics
 if os.getenv('MAZE'):
+    print('***** USING MAZE RULES *****')
     from model_maze.player import PlayerMaze as Player
     from model_maze.inputs import InputsMaze as Inputs
 else:
+    print('***** USING PLATFORMER RULES *****')
     from model_platformer.player import PlayerPlatformer as Player
     from model_platformer.inputs import InputsPlatformer as Inputs
 

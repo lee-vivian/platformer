@@ -13,10 +13,12 @@ from model.level import Level
 
 # game specifics
 if os.getenv('MAZE'):
+    print('***** USING MAZE RULES *****')
     from model_maze.player import PlayerMaze as Player
     from model_maze.state import StateMaze as State
     from model_maze.action import ActionMaze as Action
 else:
+    print('***** USING PLATFORMER RULES *****')
     from model_platformer.player import PlayerPlatformer as Player
     from model_platformer.state import StatePlatformer as State
     from model_platformer.action import ActionPlatformer as Action
