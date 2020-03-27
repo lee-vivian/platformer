@@ -91,7 +91,7 @@ def get_metatile_stats_dict(level_metatiles, metatile_coords_dict_file):
 def main(game_name, level_name, player_img, print_stats):
 
     # Create Level
-    level = Level.generate_level_from_file("%s/%s.txt" % (game_name, level_name))
+    level = Level.generate_level_from_file(game_name, level_name)
 
     # Level saved file paths
     state_graph_file, metatiles_file, metatile_coords_dict_file, coord_metatile_dict_file = get_saved_file_paths(game_name, level_name, player_img)

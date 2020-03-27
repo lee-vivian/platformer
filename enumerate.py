@@ -85,7 +85,7 @@ def main(game_name, level_name, player_img):
     start_time = datetime.datetime.now()
     print("\nEnumerating states for level: " + str(level_name) + " ...")
 
-    level = Level.generate_level_from_file("%s/%s.txt" % (game_name, level_name))
+    level = Level.generate_level_from_file(game_name, level_name)
     state_graph_file = get_state_graph_file(game_name, level_name, player_img)
     build_state_graph(level, player_img, state_graph_file)
 

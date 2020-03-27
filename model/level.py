@@ -46,7 +46,15 @@ class Level:
         return coords
 
     @staticmethod
-    def generate_level_from_file(filepath):
+    def get_level_dimensions(game, level):
+        level_obj = Level.generate_level_from_file(game, level)
+        level_w = int(level_obj.get_width() / TILE_DIM)
+        level_h = int(level_obj.get_height() / TILE_DIM)
+        return level_w, level_h
+
+    @staticmethod
+    def generate_level_from_file(game, level):
+        filepath = "%s/%s.txt" % (game, level)
         level_width = 0
         level_height = 0
         platform_coords = []

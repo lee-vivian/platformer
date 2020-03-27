@@ -7,9 +7,7 @@ from utils import read_pickle
 def get_tile_id_cols(game, level, player_img='block'):
 
     # Get level dimensions
-    level_obj = Level.generate_level_from_file("%s/%s.txt" % (game, level))
-    level_w = int(level_obj.get_width() / TILE_DIM)
-    level_h = int(level_obj.get_height() / TILE_DIM)
+    level_w, level_h = Level.get_level_dimensions(game, level)
 
     # Load saved file
     tile_id_coords_map_filepath = "level_saved_files_%s/tile_id_coords_maps/%s.pickle" % (player_img, level)

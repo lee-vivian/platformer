@@ -67,7 +67,7 @@ def get_tileset_dict(metatile_id_map, game, level, player_img):
     tiles_dict = {}
 
     # Generate Level from txt file
-    level_obj = Level.generate_level_from_file("%s/%s.txt" % (game, level))
+    level_obj = Level.generate_level_from_file(game, level)
 
     # Get {metatile_str: metatile} dict
     unique_metatiles = Metatile.get_unique_metatiles_for_level(game, level, player_img)
