@@ -3,7 +3,7 @@ Player State Object
 """
 
 
-class State:
+class StatePlatformer:
     def __init__(self, x, y, movex, movey, onground, is_start, goal_reached):
         self.x = x  # x coord of center of player
         self.y = y  # y coord of center of player
@@ -14,7 +14,7 @@ class State:
         self.goal_reached = goal_reached
 
     def clone(self):
-        return State(self.x, self.y, self.movex, self.movey, self.onground, self.is_start, self.goal_reached)
+        return StatePlatformer(self.x, self.y, self.movex, self.movey, self.onground, self.is_start, self.goal_reached)
 
     def to_str(self):
         string = "{"
@@ -31,6 +31,6 @@ class State:
     @staticmethod
     def from_str(string):
         state_dict = eval(string)
-        return State(state_dict['x'], state_dict['y'], state_dict['movex'], state_dict['movey'],
-                     state_dict['onground'], state_dict['is_start'], state_dict['goal_reached'])
+        return StatePlatformer(state_dict['x'], state_dict['y'], state_dict['movex'], state_dict['movey'],
+                               state_dict['onground'], state_dict['is_start'], state_dict['goal_reached'])
 
