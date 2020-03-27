@@ -127,6 +127,9 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels):
 
             input_handler.onEvent(event)
 
+        if not main:
+            break
+
         world.fill(BACKGROUND_COLOR)
         camera.update(player_view)  # set camera to track player
 

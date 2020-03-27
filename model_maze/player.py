@@ -72,5 +72,5 @@ class PlayerMaze:
             for edge in state_edges:
                 if action_str in edge_actions_dict[edge]:
                     edge_dest = edge[1]
-                    self.state = State.from_str(edge_dest)
+                    self.state = StateMaze.from_str(edge_dest)
                     break
