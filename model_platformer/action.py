@@ -3,7 +3,7 @@ Player Action Object
 """
 
 
-class Action:
+class ActionPlatformer:
     def __init__(self, left, right, jump):
         self.left = left
         self.right = right
@@ -21,10 +21,11 @@ class Action:
             action_string = "X"
         return action_string
 
-
-
-
-
-
-
-
+    @staticmethod
+    def allActions():
+        action_set = []
+        for left in [True, False]:
+            for right in [True, False]:
+                for jump in [True, False]:
+                    action_set.append(ActionPlatformer(left, right, jump))
+        return action_set

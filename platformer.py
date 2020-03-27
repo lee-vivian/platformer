@@ -6,6 +6,7 @@ acknowledgements: followed tutorial from opensource.com
 '''
 
 import pygame
+import os
 import sys
 import networkx as nx
 import argparse
@@ -13,11 +14,19 @@ import argparse
 from view.player import Player as PlayerView
 from view.tile import Tile
 from view.camera import Camera
-from model.player import Player as PlayerModel
 from model.level import TILE_DIM, MAX_WIDTH, MAX_HEIGHT
 from model.level import Level
-from model.action import Action
 from utils import read_pickle
+
+# game specifics
+if os.getenv('MAZE'):
+    print('***** USING MAZE RULES *****')
+    from model_maze.player import PlayerMaze as Player
+    from model_maze.inputs import InputsMaze as Inputs
+else:
+    print('***** USING PLATFORMER RULES *****')
+    from model_platformer.player import PlayerPlatformer as Player
+    from model_platformer.inputs import InputsPlatformer as Inputs
 
 
 def get_metatile_labels_at_coords(coords, tile_id, extra_info, label_font, font_color): #, graph_is_empty, font, color):
@@ -72,7 +81,7 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels):
     BACKGROUND_COLOR = (23, 23, 23)
 
     # Player
-    player_model = PlayerModel(player_img, level_obj.start_coord)
+    player_model = Player(player_img, level_obj.start_coord)
     player_view = PlayerView(player_img)
     player_list = pygame.sprite.Group()
     player_list.add(player_view)
@@ -94,14 +103,15 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels):
         metatile_labels, font_color, label_padding = \
             setup_metatile_labels(level, player_img, draw_all_labels, draw_dup_labels)
 
+    # Input handling
+    input_handler = Inputs()
+
     # Main Loop
     main = True
 
-    key_left = False
-    key_right = False
-    key_jump = False
-
     while main:
+        input_handler.onLoop()
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -114,26 +124,19 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels):
                     sys.exit()
                 elif event.key == ord('r'):
                     player_model.reset()
-                elif event.key in [pygame.K_LEFT, ord('a')]:
-                    key_left = True
-                elif event.key in [pygame.K_RIGHT, ord('d')]:
-                    key_right = True
-                elif event.key in [pygame.K_SPACE, pygame.K_UP, ord('w')]:
-                    key_jump = True
 
-            if event.type == pygame.KEYUP:
-                if event.key in [pygame.K_LEFT, ord('a')]:
-                    key_left = False
-                elif event.key in [pygame.K_RIGHT, ord('d')]:
-                    key_right = False
+            input_handler.onEvent(event)
+
+        if not main:
+            break
 
         world.fill(BACKGROUND_COLOR)
         camera.update(player_view)  # set camera to track player
-        player_model.update(Action(key_left, key_right, key_jump), level_obj.platform_coords, level_obj.goal_coords,
+
+        player_model.update(input_handler.getAction(), level_obj.platform_coords, level_obj.goal_coords,
                             state_graph, edge_actions_dict)
         player_view.update(player_model.state.x, player_model.state.y,
                            player_model.half_player_w, player_model.half_player_h)
-        key_jump = False
 
         entities_to_draw = []
         entities_to_draw += list(platform_list) # draw platforms tiles

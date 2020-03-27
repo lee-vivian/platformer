@@ -1,5 +1,6 @@
-from model.state import State
 from model.level import TILE_DIM
+
+from model_platformer.state import StatePlatformer
 
 from utils import state_in_metatile
 
@@ -16,7 +17,7 @@ HALF_TURTLE_WIDTH = int(74 / 2)
 HALF_TILE_WIDTH = int(TILE_DIM / 2)
 
 
-class Player:
+class PlayerPlatformer:
 
     def __init__(self, img, start_tile_coord):
         self.state = None
@@ -28,7 +29,7 @@ class Player:
     def start_state(self):
         start_x = self.start_tile_coord[0]
         start_y = self.start_tile_coord[1]
-        return State(x=start_x + self.half_player_w, y=start_y + self.half_player_h, movex=0, movey=GRAVITY,
+        return StatePlatformer(x=start_x + self.half_player_w, y=start_y + self.half_player_h, movex=0, movey=GRAVITY,
                      onground=True, is_start=True, goal_reached=False)
 
     def reset(self):
@@ -43,7 +44,6 @@ class Player:
         return False
 
     def next_state(self, state, action, platform_coords, goal_coords):
-
         new_state = state.clone()
 
         if new_state.goal_reached:
@@ -91,9 +91,7 @@ class Player:
                 new_state.movey = 0
                 break
 
-        new_state.is_start = state_in_metatile(self.start_tile_coord, (new_state.x, new_state.y),
-                                               self.half_player_w, self.half_player_h, TILE_DIM)
-
+        new_state.is_start = False
         new_state.goal_reached = self.collide(new_state.x, new_state.y, goal_coords)
 
         return new_state
@@ -107,5 +105,5 @@ class Player:
             for edge in state_edges:
                 if action_str in edge_actions_dict[edge]:
                     edge_dest = edge[1]
-                    self.state = State.from_str(edge_dest)
+                    self.state = StatePlatformer.from_str(edge_dest)
                     break

@@ -9,10 +9,20 @@ import networkx as nx
 import datetime
 import argparse
 
-from model.player import Player as PlayerModel
 from model.level import Level
-from model.action import Action
-from model.state import State
+
+# game specifics
+if os.getenv('MAZE'):
+    print('***** USING MAZE RULES *****')
+    from model_maze.player import PlayerMaze as Player
+    from model_maze.state import StateMaze as State
+    from model_maze.action import ActionMaze as Action
+else:
+    print('***** USING PLATFORMER RULES *****')
+    from model_platformer.player import PlayerPlatformer as Player
+    from model_platformer.state import StatePlatformer as State
+    from model_platformer.action import ActionPlatformer as Action
+
 
 
 def get_state_graph_file(game_name, level_name, player_img):
@@ -31,12 +41,7 @@ def get_state_graph_file(game_name, level_name, player_img):
 
 
 def get_action_set():
-    action_set = []
-    for left in [True, False]:
-        for right in [True, False]:
-            for jump in [True, False]:
-                action_set.append(Action(left, right, jump))
-    return action_set
+    return Action.allActions()
 
 
 def enumerate_states(player_model, start_state, graph, action_set, platform_coords, goal_coords):
@@ -67,7 +72,7 @@ def enumerate_states(player_model, start_state, graph, action_set, platform_coor
 
 
 def build_state_graph(level, player_img, state_graph_file):
-    player_model = PlayerModel(player_img, level.start_coord)
+    player_model = Player(player_img, level.start_coord)
     start_state = player_model.start_state()
     action_set = get_action_set()
     state_graph = enumerate_states(player_model, start_state, nx.DiGraph(), action_set, level.platform_coords, level.goal_coords)
