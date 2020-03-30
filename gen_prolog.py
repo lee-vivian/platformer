@@ -11,13 +11,14 @@ import utils
 
 
 DEBUG_MODE = True  # allows tiles to be blank if no suitable assignment can be found
+PRINT_PROLOG = True  # print prolog statements to console
 
 
 def main(game, level, player_img, level_width, level_height):
 
     # Setup save file directory
     level_prolog_dir = utils.get_save_directory("level_prolog_files", player_img)
-    outfile = utils.get_filepath(level_prolog_dir, level, "txt")
+    outfile = utils.get_filepath(level_prolog_dir, level, "pickle")
 
     # Use training level dimensions if level_width or level_height are None
     default_width, default_height = Level.get_level_dimensions_in_tiles(game, level)
@@ -84,7 +85,11 @@ def main(game, level, player_img, level_width, level_height):
     prolog_statements += wfc_rule + "\n"
 
     # Print
-    print(prolog_statements)
+    if PRINT_PROLOG:
+        print(prolog_statements)
+
+    # Save
+    utils.write_pickle(outfile, prolog_statements)
 
 
 if __name__ == "__main__":
