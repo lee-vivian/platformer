@@ -1,7 +1,7 @@
 import argparse
 
 from model.level import Level
-from model.metatile import Metatile
+from model.metatile import Metatile, METATILE_TYPES
 import extract_constraints
 import utils
 
@@ -11,7 +11,7 @@ import utils
 
 
 DEBUG_MODE = False  # allows tiles to be blank if no suitable assignment can be found
-PRINT_PROLOG = False  # print prolog statements to console
+PRINT_PROLOG = True  # print prolog statements to console
 
 
 def main(game, level, player_img, level_width, level_height):
@@ -56,6 +56,10 @@ def main(game, level, player_img, level_width, level_height):
     limit_metatile_per_tile_rule = "%d {assignment(TX, TY, MT) : metatile(MT) } 1 :- tile(TX,TY)." % limit
     prolog_statements += limit_metatile_per_tile_rule + "\n"
 
+    # Limit to 1 type per metatile
+    limit_type_per_metatile_rule = "1 { metatile_type(MT,%s) } 1 :- metatile(MT)." % ";".join(METATILE_TYPES)
+    prolog_statements += limit_type_per_metatile_rule + "\n"
+
     # Create tile adjacency rules
     adj_rule_prefix = "adj(X1,Y1,X2,Y2,DX,DY) :- tile(X1,Y1), tile(X2,Y2), X2-X1 == DX, Y2-Y1 == DY"
     horizontal_adj_rule = "%s, |DX| == 1, DY == 0." % adj_rule_prefix
@@ -69,11 +73,22 @@ def main(game, level, player_img, level_width, level_height):
     symmetric_legal_adjacencies_rule = "legal(DX, DY, P1, P2) :- legal(IDX, IDY, P2, P1), IDX == -DX, IDY == -DY."
     prolog_statements += symmetric_legal_adjacencies_rule + "\n"
 
-    # Create metatile facts and legal neighbor statements for the specified tileset
+    # Dictionary: {metatile_type: list of metatile ids}
+    metatile_type_ids = {}
+    for type in METATILE_TYPES:
+        metatile_type_ids[type] = []
+
+    # Create metatile facts, metatile_type facts, and legal neighbor statements for the specified tileset
     for metatile_id, metatile_info in tile_constraints_dict.items():  # for each unique metatile
 
         metatile_fact = "metatile(%s)." % metatile_id
         prolog_statements += metatile_fact + "\n"
+
+        metatile_type = metatile_info.get("type")
+        metatile_type_ids[metatile_type].append(metatile_id)
+
+        metatile_type_fact = "metatile_type(%s,%s)." % (metatile_id, metatile_type)
+        prolog_statements += metatile_type_fact + "\n"
 
         for direction, adjacent_tiles in metatile_info.get("adjacent").items():  # for each adjacent dir
 
@@ -84,6 +99,30 @@ def main(game, level, player_img, level_width, level_height):
                 legal_statement = "legal(DX, DY, MT1, MT2) :- DX == %d, DY == %d, metatile(MT1), metatile(MT2), " \
                                   "MT1 == %s, MT2 == %s." % (DX, DY, metatile_id, adjacent_id)
                 prolog_statements += legal_statement + "\n"
+
+    block_tile_id = metatile_type_ids.get("block")[0]
+    start_tile_id = metatile_type_ids.get("start")[0]
+    goal_tile_id = metatile_type_ids.get("goal")[0]
+
+    # Set border tiles to be block tiles
+    block_tile_coords = []
+    for x in range(level_width):
+        block_tile_coords += [(x, 0), (x, level_height-1)]
+    for y in range(level_height):
+        block_tile_coords += [(0, y), (level_width-1, y)]
+    for x, y in list(set(block_tile_coords)):
+        block_tile_assignment = "assignment(%d, %d, %s)." % (x, y, block_tile_id)
+        prolog_statements += block_tile_assignment + "\n"
+
+    # Limit number of tiles of specified type
+    limit_tile_type_rule = "1 { assignment(X,Y,MT) : metatile(MT), metatile_type(MT,T), tile(X,Y) } 1 :- limit(T)."
+    prolog_statements += limit_tile_type_rule + "\n"
+
+    # Limit number of goal tiles
+    prolog_statements += "limit(%s)." % goal_tile_id
+
+    # Limit number of start tiles
+    # prolog_statements += "limit(%s)." % start_tile_id
 
     # ASP WFC algorithm rule
     wfc_rule = ":- adj(X1,Y1,X2,Y2,DX,DY), assignment(X1,Y1,MT1), not 1 { assignment(X2,Y2,MT2) : legal(DX,DY,MT1,MT2) }."
