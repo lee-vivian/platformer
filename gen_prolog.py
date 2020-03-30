@@ -10,11 +10,7 @@ import utils
 # - WFC in ASP implementation: based on Karth, I., & Smith, A. M. (2017). WaveFunctionCollapse is constraint solving in the wild. Proceedings of the 12th International Conference on the Foundations of Digital Games, 68. ACM.
 
 
-DEBUG_MODE = False  # allows tiles to be blank if no suitable assignment can be found
-PRINT_PROLOG = True  # print prolog statements to console
-
-
-def main(game, level, player_img, level_width, level_height):
+def main(game, level, player_img, level_width, level_height, debug, print_pl):
 
     print("Generating prolog file for level: %s ..." % level)
 
@@ -30,7 +26,8 @@ def main(game, level, player_img, level_width, level_height):
 
     # Setup save file directory
     level_prolog_dir = utils.get_save_directory("level_prolog_files", player_img)
-    outfile = utils.get_filepath(level_prolog_dir, "%s_%d_%d" % (level, level_width, level_height), "pl")
+    outfile_name = "%s_%d_%d" % (level, level_width, level_height)
+    outfile_path = utils.get_filepath(level_prolog_dir, outfile_name, "pl")
 
     # Get training level unique metatiles
     metatiles = Metatile.get_unique_metatiles_for_level(game, level, player_img)
@@ -52,7 +49,7 @@ def main(game, level, player_img, level_width, level_height):
     prolog_statements += create_tiles_statement + "\n"
 
     # Limit number of metatile assignments per tile
-    limit = 0 if DEBUG_MODE else 1
+    limit = 0 if debug else 1
     limit_metatile_per_tile_rule = "%d {assignment(TX, TY, MT) : metatile(MT) } 1 :- tile(TX,TY)." % limit
     prolog_statements += limit_metatile_per_tile_rule + "\n"
 
@@ -122,11 +119,11 @@ def main(game, level, player_img, level_width, level_height):
     prolog_statements += wfc_rule + "\n"
 
     # Print
-    if PRINT_PROLOG:
+    if print_pl:
         print(prolog_statements)
 
     # Save
-    utils.write_prolog(outfile, prolog_statements)
+    return outfile_name, utils.write_prolog(outfile_path, prolog_statements)
 
 
 if __name__ == "__main__":
@@ -136,6 +133,8 @@ if __name__ == "__main__":
     parser.add_argument('--player_img', type=str, help='Player image', default='block')
     parser.add_argument('--level_width', type=int, help='Number of tiles in a row', default=None)
     parser.add_argument('--level_height', type=int, help='Number of tiles in a column', default=None)
+    parser.add_argument('--debug', const=True, nargs='?', type=bool, help='Allow blank tiles if no suitable assignment can be found', default=False)
+    parser.add_argument('--print_pl', const=True, nargs='?', type=bool, help='Print prolog statements to console', default=False)
     args = parser.parse_args()
 
-    main(args.game, args.level, args.player_img, args.level_width, args.level_height)
+    main(args.game, args.level, args.player_img, args.level_width, args.level_height, args.debug, args.print_pl)
