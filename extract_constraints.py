@@ -6,12 +6,11 @@ import argparse
 import os
 import datetime
 
-from model.level import Level
+from model.level import Level, TILE_DIM
 from model.metatile import Metatile, TYPE_IMG_MAP
 import utils
 
 TILE_TOP_LEFT = "0,0"
-TILE_DIM = 40
 
 LEFT = "-1,0"
 RIGHT = "1,0"
@@ -21,13 +20,6 @@ TOP_LEFT = "-1,-1"
 BOTTOM_LEFT = "-1,1"
 TOP_RIGHT = "1,-1"
 BOTTOM_RIGHT = "1,1"
-
-
-def get_metatile_constraints_dir(player_img):
-    metatile_constraints_dir = "level_saved_files_%s/metatile_constraints/" % player_img
-    if not os.path.exists(metatile_constraints_dir):
-        os.makedirs(metatile_constraints_dir)
-    return metatile_constraints_dir
 
 
 # [ ] [ ] [ ]
@@ -62,12 +54,15 @@ def get_neighbor_metatiles_dict(coord, coord_metatile_str_dict, level_width, lev
     return neighbor_coords
 
 
-def get_tileset_dict(metatile_id_map, game, level, player_img):
+def get_tileset_dict(metatile_id_file, game, level, player_img):
 
     tiles_dict = {}
 
     # Get level dimensions in px
     level_w, level_h = (TILE_DIM * dim for dim in Level.get_level_dimensions_in_tiles(game, level))
+
+    # Load metatile id map
+    metatile_id_map = utils.read_pickle(metatile_id_file)
 
     # Get {metatile_str: metatile} dict
     unique_metatiles = Metatile.get_unique_metatiles_for_level(game, level, player_img)
@@ -195,8 +190,7 @@ def merge_tileset_dicts(combined_tileset_dict, level_tileset_dict):
 
 def main(metatile_id_file, games, levels, player_img, load_saved_files, outfile):
 
-    metatile_constraints_dir = get_metatile_constraints_dir(player_img)
-    metatile_id_map = utils.read_pickle(metatile_id_file)
+    metatile_constraints_dir = utils.get_save_directory("metatile_constraints", player_img)
     game_level_pairs = zip(games, levels)
 
     start_time = datetime.datetime.now()
@@ -213,7 +207,7 @@ def main(metatile_id_file, games, levels, player_img, load_saved_files, outfile)
             level_tileset_dict = utils.read_json(level_tileset_constraints_file).get("tileset")
         else:
             print("Constructing tileset constraints for level %s ..." % level)
-            level_tileset_dict = get_tileset_dict(metatile_id_map, game, level, player_img)
+            level_tileset_dict = get_tileset_dict(metatile_id_file, game, level, player_img)
 
         combined_tileset_dict = merge_tileset_dicts(combined_tileset_dict, level_tileset_dict)
 
@@ -231,17 +225,6 @@ def main(metatile_id_file, games, levels, player_img, load_saved_files, outfile)
 
 if __name__ == "__main__":
 
-    # level = 'sample_mini'
-    # count = 0
-    # filepath = 'level_saved_files_block/metatile_constraints/%s.json' % level
-    # tiles = utils.read_json(filepath).get('tileset').get('tiles')
-    # for t in tiles:
-    #     if tiles.get(t).get('path') == PIZZA_TILE_IMG:
-    #         print(tiles.get(t))
-    #         count += 1
-    # print("Num pizza metatiles: %d" % count)
-    # exit(0)
-
     parser = argparse.ArgumentParser(description='Extract combined tileset constraints json for the specified levels')
     parser.add_argument('metatile_id_file', type=str, help='Filepath for metatile_id map')
     parser.add_argument('--games', type=str, nargs="+", help='List of games', default="")
@@ -252,7 +235,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args.metatile_id_file, args.games, args.levels, args.player_img, args.load_saved_files, args.outfile)
-
-#   pypy3 extract_constraints.py level_saved_files_block/metatile_id_maps/all_levels.pickle --games sample sample sample super_mario_bros super_mario_bros kid_icarus --levels sample_mini sample_hallway_flat sample_hallway mario-1-1 mario-2-1 kidicarus_1 --outfile all_levels
-
-
