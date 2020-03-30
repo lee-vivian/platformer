@@ -46,7 +46,7 @@ class Level:
         return coords
 
     @staticmethod
-    def get_level_dimensions(game, level):
+    def get_level_dimensions_in_tiles(game, level):
         level_obj = Level.generate_level_from_file(game, level)
         level_w = int(level_obj.get_width() / TILE_DIM)
         level_h = int(level_obj.get_height() / TILE_DIM)

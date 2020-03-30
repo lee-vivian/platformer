@@ -13,15 +13,17 @@ def check_path_exists(filepath):
         error_exit("Missing file: %s" % filepath)
 
 
-def get_save_directory(level_saved_files_dir, new_dir):
+def get_save_directory(dir_name, player_img='block'):
+
+    level_saved_files_dir = "level_saved_files_%s" % player_img
     if not os.path.exists(level_saved_files_dir):
         os.makedirs(level_saved_files_dir)
 
-    new_dir_path = "%s/%s" % (level_saved_files_dir, new_dir)
-    if not os.path.exists(new_dir_path):
-        os.makedirs(new_dir_path)
+    save_dir_path = os.path.join(level_saved_files_dir, dir_name)
+    if not os.path.exists(save_dir_path):
+        os.makedirs(save_dir_path)
 
-    return new_dir_path
+    return save_dir_path
 
 
 def get_filepath(file_directory, file_name, file_type):

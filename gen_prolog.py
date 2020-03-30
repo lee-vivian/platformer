@@ -8,8 +8,7 @@ import utils
 def main(game, level, player_img, level_width, level_height):
 
     # Setup save file directory
-    level_saved_files_dir = "level_saved_files_%s" % player_img
-    level_prolog_dir = utils.get_save_directory(level_saved_files_dir, "level_prolog_files")
+    level_prolog_dir = utils.get_save_directory("level_prolog_files", player_img)
     outfile = utils.get_filepath(level_prolog_dir, level, "txt")
 
     # Use training level dimensions if level_width or level_height are None
@@ -27,13 +26,15 @@ def main(game, level, player_img, level_width, level_height):
     prolog_statements += "dim_height(0..%d).\n" % (level_height - 1)
     prolog_statements += "dim_metatiles(1..%d).\n" % (len(metatiles))
 
-    create_tiles_statement = "tile((TX,TY)) :- dim_width(TX), dim_height(TY)."
+    create_tiles_statement = "tile(TX,TY) :- dim_width(TX), dim_height(TY)."
     prolog_statements += create_tiles_statement + "\n"
+
+
 
     # @TODO - create metatile facts from tileset (e.g. metatile(tileName).
 
-    one_metatile_per_tile_statement = "1 {assign(T, MT) : metatile(MT) } 1:- tile(T)."
-    prolog_statements += one_metatile_per_tile_statement + "\n"
+    one_metatile_per_tile_rule = "1 {assignment(TX, TY, MT) : metatile(MT) } 1 :- tile(TX,TY)."
+    prolog_statements += one_metatile_per_tile_rule + "\n"
 
 
     # Print

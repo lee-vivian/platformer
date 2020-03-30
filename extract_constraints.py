@@ -66,8 +66,8 @@ def get_tileset_dict(metatile_id_map, game, level, player_img):
 
     tiles_dict = {}
 
-    # Generate Level from txt file
-    level_obj = Level.generate_level_from_file(game, level)
+    # Get level dimensions in px
+    level_w, level_h = (TILE_DIM * dim for dim in Level.get_level_dimensions_in_tiles(game, level))
 
     # Get {metatile_str: metatile} dict
     unique_metatiles = Metatile.get_unique_metatiles_for_level(game, level, player_img)
@@ -97,7 +97,7 @@ def get_tileset_dict(metatile_id_map, game, level, player_img):
             print("75% complete...")
 
         cur_metatile = Metatile.from_str(coord_metatile_str_dict[coord])
-        cur_metatile_neighbors_dict = get_neighbor_metatiles_dict(coord, coord_metatile_str_dict, level_obj.width, level_obj.height)
+        cur_metatile_neighbors_dict = get_neighbor_metatiles_dict(coord, coord_metatile_str_dict, level_w, level_h)
 
         # Get standardized string
 
