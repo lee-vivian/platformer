@@ -56,10 +56,6 @@ def main(game, level, player_img, level_width, level_height):
     limit_metatile_per_tile_rule = "%d {assignment(TX, TY, MT) : metatile(MT) } 1 :- tile(TX,TY)." % limit
     prolog_statements += limit_metatile_per_tile_rule + "\n"
 
-    # Limit to one type per metatile
-    limit_type_per_metatile_rule = "1 { metatile_type(MT,%s) } 1 :- metatile(MT)." % ";".join(METATILE_TYPES)
-    prolog_statements += limit_type_per_metatile_rule + "\n"
-
     # Create tile adjacency rules
     adj_rule_prefix = "adj(X1,Y1,X2,Y2,DX,DY) :- tile(X1,Y1), tile(X2,Y2), X2-X1 == DX, Y2-Y1 == DY"
     horizontal_adj_rule = "%s, |DX| == 1, DY == 0." % adj_rule_prefix
@@ -87,9 +83,6 @@ def main(game, level, player_img, level_width, level_height):
         metatile_type = metatile_info.get("type")
         metatile_type_ids[metatile_type].append(metatile_id)
 
-        metatile_type_fact = "metatile_type(%s,%s)." % (metatile_id, metatile_type)
-        prolog_statements += metatile_type_fact + "\n"
-
         for direction, adjacent_tiles in metatile_info.get("adjacent").items():  # for each adjacent dir
 
             DX, DY = eval(direction)
@@ -114,15 +107,15 @@ def main(game, level, player_img, level_width, level_height):
         block_tile_assignment = "assignment(%d, %d, %s)." % (x, y, block_tile_id)
         prolog_statements += block_tile_assignment + "\n"
 
-    # Limit number of tiles of specified type
-    limit_tile_type_rule = "1 { assignment(X,Y,MT) : metatile(MT), metatile_type(MT,T), tile(X,Y) } 1 :- limit(T)."
+    # Limit number of tiles of specified tile id
+    limit_tile_type_rule = "MIN { assignment(X,Y,MT) : metatile(MT), tile(X,Y) } MAX :- limit(MT, MIN, MAX)."
     prolog_statements += limit_tile_type_rule + "\n"
 
     # Limit number of goal tiles
-    prolog_statements += "limit(goal).\n"
+    prolog_statements += "limit(%s, 1, 1).\n" % goal_tile_id
 
     # Limit number of start tiles
-    # prolog_statements += "limit(start).\n"
+    prolog_statements += "limit(%s, 1, 1).\n" % start_tile_id
 
     # ASP WFC algorithm rule
     wfc_rule = ":- adj(X1,Y1,X2,Y2,DX,DY), assignment(X1,Y1,MT1), not 1 { assignment(X2,Y2,MT2) : legal(DX,DY,MT1,MT2) }."
