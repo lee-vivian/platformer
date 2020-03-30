@@ -56,7 +56,7 @@ def main(game, level, player_img, level_width, level_height):
     limit_metatile_per_tile_rule = "%d {assignment(TX, TY, MT) : metatile(MT) } 1 :- tile(TX,TY)." % limit
     prolog_statements += limit_metatile_per_tile_rule + "\n"
 
-    # Limit to 1 type per metatile
+    # Limit to one type per metatile
     limit_type_per_metatile_rule = "1 { metatile_type(MT,%s) } 1 :- metatile(MT)." % ";".join(METATILE_TYPES)
     prolog_statements += limit_type_per_metatile_rule + "\n"
 
@@ -119,10 +119,10 @@ def main(game, level, player_img, level_width, level_height):
     prolog_statements += limit_tile_type_rule + "\n"
 
     # Limit number of goal tiles
-    prolog_statements += "limit(%s)." % goal_tile_id
+    prolog_statements += "limit(goal).\n"
 
     # Limit number of start tiles
-    # prolog_statements += "limit(%s)." % start_tile_id
+    # prolog_statements += "limit(start).\n"
 
     # ASP WFC algorithm rule
     wfc_rule = ":- adj(X1,Y1,X2,Y2,DX,DY), assignment(X1,Y1,MT1), not 1 { assignment(X2,Y2,MT2) : legal(DX,DY,MT1,MT2) }."
