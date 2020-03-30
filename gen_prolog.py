@@ -10,15 +10,13 @@ import utils
 # - WFC in ASP implementation: based on Karth, I., & Smith, A. M. (2017). WaveFunctionCollapse is constraint solving in the wild. Proceedings of the 12th International Conference on the Foundations of Digital Games, 68. ACM.
 
 
-DEBUG_MODE = True  # allows tiles to be blank if no suitable assignment can be found
-PRINT_PROLOG = True  # print prolog statements to console
+DEBUG_MODE = False  # allows tiles to be blank if no suitable assignment can be found
+PRINT_PROLOG = False  # print prolog statements to console
 
 
 def main(game, level, player_img, level_width, level_height):
 
-    # Setup save file directory
-    level_prolog_dir = utils.get_save_directory("level_prolog_files", player_img)
-    outfile = utils.get_filepath(level_prolog_dir, level, "pl")
+    print("Generating prolog file for level: %s ..." % level)
 
     # Use training level dimensions if level_width or level_height are None
     default_width, default_height = Level.get_level_dimensions_in_tiles(game, level)
@@ -26,6 +24,13 @@ def main(game, level, player_img, level_width, level_height):
         level_width = default_width
     if level_height is None:
         level_height = default_height
+
+    print("Default dimensions (%d, %d)" % (default_width, default_height))
+    print("Gen dimensions (%d, %d)" % (level_width, level_height))
+
+    # Setup save file directory
+    level_prolog_dir = utils.get_save_directory("level_prolog_files", player_img)
+    outfile = utils.get_filepath(level_prolog_dir, "%s_%d_%d" % (level, level_width, level_height), "pl")
 
     # Get training level unique metatiles
     metatiles = Metatile.get_unique_metatiles_for_level(game, level, player_img)
