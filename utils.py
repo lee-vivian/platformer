@@ -62,6 +62,14 @@ def write_pickle(filepath, contents):
     return filepath
 
 
+def write_prolog(filepath, statements):
+    with open(filepath, 'w') as file:
+        file.write("%s" % statements)
+    file.close()
+    print("Saved to:", filepath)
+    return filepath
+
+
 def get_metatile_id(metatile_to_find, metatile_id_map):
     from model.metatile import Metatile
     for metatile_str, metatile_id in metatile_id_map.items():

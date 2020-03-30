@@ -18,7 +18,7 @@ def main(game, level, player_img, level_width, level_height):
 
     # Setup save file directory
     level_prolog_dir = utils.get_save_directory("level_prolog_files", player_img)
-    outfile = utils.get_filepath(level_prolog_dir, level, "pickle")
+    outfile = utils.get_filepath(level_prolog_dir, level, "pl")
 
     # Use training level dimensions if level_width or level_height are None
     default_width, default_height = Level.get_level_dimensions_in_tiles(game, level)
@@ -89,7 +89,7 @@ def main(game, level, player_img, level_width, level_height):
         print(prolog_statements)
 
     # Save
-    utils.write_pickle(outfile, prolog_statements)
+    utils.write_prolog(outfile, prolog_statements)
 
 
 if __name__ == "__main__":
