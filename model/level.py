@@ -54,8 +54,10 @@ class Level:
     @staticmethod
     def generate_level_from_file(game, level, filepath=None):
 
+        add_border_tiles = False  # generated levels from solver already include border tiles
         if filepath is None:
             filepath = "level_structural_layers/%s/%s.txt" % (game, level)
+            add_border_tiles = True
 
         level_width = 0
         level_height = 0
@@ -69,36 +71,38 @@ class Level:
             line = cur_line.rstrip()
 
             # Setup
-            if level_width == 0:
-                level_width = len(line) + 2  # get level width + 2 for left and right border tiles
-                for x in range(level_width):
-                    platform_coords.append((x * TILE_DIM, level_height * TILE_DIM))  # add ceiling tiles
-                level_height += 1
+            if level_width == 0:  # level_width not specified yet
+                if add_border_tiles:
+                    level_width = len(line) + 2  # add 2 for left and right border tiles in ceiling row
+                    platform_coords += [(x * TILE_DIM, level_height * TILE_DIM) for x in range(level_width)]  # add ceiling tiles
+                    level_height += 1  # add 1 for ceiling tile row
+                else:
+                    level_width = len(line)
 
             # Parse line
             for char_index in range(level_width):
 
                 char_coord = (char_index * TILE_DIM, level_height * TILE_DIM)
 
-                if char_index == 0 or char_index == level_width-1:  # add left and right border tiles
+                if add_border_tiles and (char_index == 0 or char_index == level_width-1):  # add left and right border tiles
                     platform_coords.append(char_coord)
                 else:
-                    char = line[char_index - 1]
+                    cur_idx = char_index-1 if add_border_tiles else char_index
+                    char = line[cur_idx]
                     if char in TILE_CHARS:
                         platform_coords.append(char_coord)
                     elif char == GOAL_CHAR:
                         goal_coords.append(char_coord)
-                    elif start_coord is None and char == START_CHAR:
+                    elif start_coord is None and char == START_CHAR:  # start coord can only be defined once
                         start_coord = char_coord
 
             level_height += 1
 
         f.close()
 
-        # add floor tiles
-        for x in range(level_width):
-            platform_coords.append((x * TILE_DIM, level_height * TILE_DIM))
-        level_height += 1
+        if add_border_tiles:
+            platform_coords += [(x * TILE_DIM, level_height * TILE_DIM) for x in range(level_width)]  # add floor tiles
+            level_height += 1  # add 1 for floor tile row
 
         return Level(filepath, level_width * TILE_DIM, level_height * TILE_DIM,
                      platform_coords, goal_coords, start_coord)
