@@ -39,6 +39,9 @@ def generate_level(line, outfile, level_w, level_h, block_tile_id, start_tile_id
             level_structural_txt += tile_char
         level_structural_txt += "\n"
 
+    # Print
+    print(level_structural_txt)
+
     # Save structural txt file to given outfile path
     utils.write_file(outfile, level_structural_txt)
 
