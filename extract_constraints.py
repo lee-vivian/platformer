@@ -74,22 +74,10 @@ def get_tileset_dict(metatile_id_file, game, level, player_img):
     coord_metatile_dict_file = "level_saved_files_%s/coord_metatile_dicts/%s/%s.pickle" % (player_img, game, level)
     coord_metatile_str_dict = utils.read_pickle(coord_metatile_dict_file)
 
-    count = 0
     total = len(coord_metatile_str_dict)
-    first_quarter = int(0.25 * total)
-    second_quarter = int(0.50 * total)
-    third_quarter = int(0.75 * total)
-    print("total num coords:", total)
+    print("Total num tiles:", total)
 
     for coord in coord_metatile_str_dict.keys():
-
-        count += 1
-        if count == first_quarter:
-            print("25% complete...")
-        elif count == second_quarter:
-            print("50% complete...")
-        elif count == third_quarter:
-            print("75% complete...")
 
         cur_metatile = Metatile.from_str(coord_metatile_str_dict[coord])
         cur_metatile_neighbors_dict = get_neighbor_metatiles_dict(coord, coord_metatile_str_dict, level_w, level_h)
@@ -150,8 +138,6 @@ def get_tileset_dict(metatile_id_file, game, level, player_img):
                 adjacent_neighbors_dict[pos].append(metatile_id)
 
         tiles_dict[cur_metatile_id]['adjacent'] = adjacent_neighbors_dict
-
-    print("100% complete ...")
 
     tileset_dict = {"tileSize": "%d,%d" % (TILE_DIM, TILE_DIM),
                     "tiles": tiles_dict}

@@ -123,7 +123,7 @@ def main(game, level, player_img, level_width, level_height, debug, print_pl):
         print(prolog_statements)
 
     # Save
-    outfile_path = utils.write_prolog(outfile_path, prolog_statements)
+    outfile_path = utils.write_file(outfile_path, prolog_statements)
 
     prolog_dictionary = {
         "filename": outfile_name,

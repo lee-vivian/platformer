@@ -6,6 +6,7 @@ TILE_DIM = 40
 TILE_CHARS = ['#', '?', 'B', 'T']
 GOAL_CHAR = '!'
 START_CHAR = 'S'
+BLANK_CHAR = '-'
 
 MAX_WIDTH = 1200
 MAX_HEIGHT = 600

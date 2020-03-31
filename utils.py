@@ -62,7 +62,7 @@ def write_pickle(filepath, contents):
     return filepath
 
 
-def write_prolog(filepath, statements):
+def write_file(filepath, statements):
     with open(filepath, 'w') as file:
         file.write("%s" % statements)
     file.close()

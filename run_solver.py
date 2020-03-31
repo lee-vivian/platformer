@@ -4,28 +4,57 @@ import argparse
 
 import gen_prolog
 import utils
+from model.level import TILE_CHARS, GOAL_CHAR, START_CHAR, BLANK_CHAR
 
 
-def generate_level(line, answer_set_filepath):
+def generate_level(line, outfile, level_w, level_h, block_tile_id, start_tile_id, goal_tile_id):
 
+    def get_tile_char(tile_id):
+        if tile_id == block_tile_id:
+            return TILE_CHARS[0]
+        elif tile_id == start_tile_id:
+            return START_CHAR
+        elif tile_id == goal_tile_id:
+            return GOAL_CHAR
+        else:
+            return BLANK_CHAR
+
+    # Extract tile x, y, and id from assignment string in solver output line
     assignments = re.findall(r'assignment\([0-9t,]*\)', line)
-    for x in assignments:
-        print(x)
+    assignments_dict = {}  # {(tile_x, tile_y): tile_id}
+    for assignment in assignments:
+        match = re.match(r'assignment\((\d+),(\d+),(t\d+)\)', assignment)
+        tile_x = int(match.group(1))
+        tile_y = int(match.group(2))
+        tile_id = match.group(3)
+        assignments_dict[(tile_x, tile_y)] = tile_id
 
+    # Generate structural txt file for new level
+    level_structural_txt = ""
+    for row in range(level_h):
+        for col in range(level_w):
+            tile_xy = (col, row)
+            tile_id = assignments_dict.get(tile_xy)
+            tile_char = get_tile_char(tile_id)
+            level_structural_txt += tile_char
+        level_structural_txt += "\n"
+
+    # Save structural txt file to given outfile path
+    utils.write_file(outfile, level_structural_txt)
 
     return True
 
 
 def main(game, level, player_img, level_w, level_h, debug, max_sol, skip_print_answers):
 
-    # Generate prolog file for level and return file path
-    prolog_filename, prolog_filepath = gen_prolog.main(game, level, player_img, level_w, level_h, debug, print_pl=False)
+    # Generate prolog file for level and return prolog dictionary
+    prolog_dictionary = gen_prolog.main(game, level, player_img, level_w, level_h, debug, print_pl=False)
 
     # Create new directory for generated levels
     generated_levels_dir = utils.get_save_directory("generated_levels", player_img)
 
     # Get command to run clingo solver
-    clingo_cmd = "clingo %d %s " % (max_sol, prolog_filepath)
+    clingo_cmd = "clingo %d %s " % (max_sol, prolog_dictionary.get("filepath"))
     if skip_print_answers:
         clingo_cmd += "--quiet"
 
@@ -43,10 +72,13 @@ def main(game, level, player_img, level_w, level_h, debug, max_sol, skip_print_a
             answer_set_line_idx[solver_line_count+1] = 1  # the next line contains an answer set
 
         if answer_set_line_idx.get(solver_line_count) is not None:  # this line contains an answer set
-
-            answer_set_filename = "%s_a%d.txt" % (prolog_filename, answer_set_count)
+            answer_set_filename = "%s_a%d.txt" % (prolog_dictionary.get("filename"), answer_set_count)
             answer_set_filepath = os.path.join(generated_levels_dir, answer_set_filename)
-            generate_level(line, answer_set_filepath)
+            generate_level(line, outfile = answer_set_filepath,
+                           level_w = prolog_dictionary.get("level_w"), level_h = prolog_dictionary.get("level_h"),
+                           block_tile_id = prolog_dictionary.get("block_tile_id"),
+                           start_tile_id = prolog_dictionary.get("start_tile_id"),
+                           goal_tile_id = prolog_dictionary.get("goal_tile_id"))
             answer_set_count += 1
 
         solver_line_count += 1
