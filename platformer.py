@@ -64,8 +64,6 @@ def main(game, level, player_img, level_filepath, use_graph, draw_all_labels, dr
     # Level saved files
     level_saved_files_dir = "level_saved_files_%s/" % player_img
     state_graph_file = level_saved_files_dir + "enumerated_state_graphs/%s/%s.gpickle" % (game, level)
-    metatile_coords_dict_file = level_saved_files_dir + "metatile_coords_dicts/%s/%s.pickle" % (game, level)
-    metatile_id_map_file = level_saved_files_dir + "metatile_id_maps/%s.pickle" % level
 
     state_graph = None if not use_graph else nx.read_gpickle(state_graph_file)
     edge_actions_dict = None if not use_graph else nx.get_edge_attributes(state_graph, 'action')
@@ -167,9 +165,11 @@ if __name__ == "__main__":
     parser.add_argument('game', type=str, help='The game to play')
     parser.add_argument('level', type=str, help='The game level to play')
     parser.add_argument('--player_img', type=str, help='Player image', default='block')
+    parser.add_argument('--level_filepath', type=str, help='Level structural txt filepath', default=None)
     parser.add_argument('--use_graph', const=True, nargs='?', type=bool, help='Use the level enumerated state graph', default=False)
     parser.add_argument('--draw_all_labels', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_dup_labels', const=True, nargs='?', type=bool, default=False)
     args = parser.parse_args()
 
-    main(args.game, args.level, args.player_img, args.use_graph, args.draw_all_labels, args.draw_dup_labels)
+    main(args.game, args.level, args.player_img, args.level_filepath, args.use_graph, args.draw_all_labels,
+         args.draw_dup_labels)
