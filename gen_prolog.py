@@ -123,7 +123,19 @@ def main(game, level, player_img, level_width, level_height, debug, print_pl):
         print(prolog_statements)
 
     # Save
-    return outfile_name, utils.write_prolog(outfile_path, prolog_statements)
+    outfile_path = utils.write_prolog(outfile_path, prolog_statements)
+
+    prolog_dictionary = {
+        "filename": outfile_name,
+        "filepath": outfile_path,
+        "level_w": level_width,  # in tile units
+        "level_h": level_height,  # in tile units
+        "block_tile_id": block_tile_id,
+        "start_tile_id": start_tile_id,
+        "goal_tile_id": goal_tile_id
+    }
+
+    return prolog_dictionary
 
 
 if __name__ == "__main__":
