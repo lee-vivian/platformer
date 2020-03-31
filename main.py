@@ -3,23 +3,26 @@ A. Process a level [use pypy3 interpreter]
 
 1. Enumerate level state graph
 2. Extract level metatiles
-3. Get metatile_id and id_metatile map for level(s)
-4. Extract tileset constraints for level(s)
+3. Get metatile_id and id_metatile maps
+4. Get {tile_id: coords} map
+5. Get {metatile: num_states} map
 
 B. Play a level [use python3 interpreter]
 
 1. Run platformer.py
 '''
 
+import os
 import argparse
+
+# os.environ['MAZE'] = "1"
 
 
 def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels,
-         enumerate, extract_metatiles, get_metatile_id_map, get_tile_id_coords_map, get_states_per_metatile,
-         extract_constraints, load_saved_files, process_all):
+         enumerate, extract_metatiles, get_metatile_id_map, get_tile_id_coords_map, get_states_per_metatile, process_all):
 
     any_processing = process_all or (enumerate or extract_metatiles or get_metatile_id_map or get_tile_id_coords_map
-                                     or get_states_per_metatile or extract_constraints)
+                                     or get_states_per_metatile)
 
     if any_processing:
 
@@ -42,11 +45,6 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels,
         if process_all or get_states_per_metatile:
             import get_states_per_metatile
             get_states_per_metatile.main([game], [level], player_img, merge=False, outfile=None)
-
-        if process_all or extract_constraints:
-            import extract_constraints
-            metatile_id_filepath = "level_saved_files_%s/metatile_id_maps/%s.pickle" % (player_img, level)
-            extract_constraints.main(metatile_id_filepath, [game], [level], player_img, load_saved_files, outfile=None)
 
     else:
         import platformer
@@ -95,8 +93,6 @@ if __name__ == "__main__":
     parser.add_argument('--get_metatile_id_map', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--get_tile_id_coords_map', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--get_states_per_metatile', const=True, nargs='?', type=bool, default=False)
-    parser.add_argument('--extract_constraints', const=True, nargs='?', type=bool, default=False)
-    parser.add_argument('--load_saved_files', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--process_all', const=True, nargs='?', type=bool,
                         help="Run all process scripts for the given level", default=False)
 
@@ -105,4 +101,4 @@ if __name__ == "__main__":
     main(args.game, args.level, args.player_img,
          args.use_graph, args.draw_all_labels, args.draw_dup_labels,
          args.enumerate, args.extract_metatiles, args.get_metatile_id_map, args.get_tile_id_coords_map,
-         args.get_states_per_metatile, args.extract_constraints, args.load_saved_files, args.process_all)
+         args.get_states_per_metatile, args.process_all)
