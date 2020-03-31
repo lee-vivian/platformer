@@ -11,8 +11,6 @@ BLANK_CHAR = '-'
 MAX_WIDTH = 1200
 MAX_HEIGHT = 600
 
-LEVEL_STRUCTURES_DIR = "level_structural_layers/"
-
 
 class Level:
 
@@ -54,15 +52,17 @@ class Level:
         return level_w, level_h
 
     @staticmethod
-    def generate_level_from_file(game, level):
-        filepath = "%s/%s.txt" % (game, level)
+    def generate_level_from_file(game, level, filepath=None):
+
+        if filepath is None:
+            filepath = "level_structural_layers/%s/%s.txt" % (game, level)
+
         level_width = 0
         level_height = 0
         platform_coords = []
         goal_coords = []
         start_coord = None
-
-        f = open(LEVEL_STRUCTURES_DIR + filepath, 'r')
+        f = open(filepath, 'r')
 
         for cur_line in f:
 

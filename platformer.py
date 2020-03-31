@@ -56,10 +56,10 @@ def setup_metatile_labels(level, player_img, draw_all_labels, draw_dup_labels):
     return metatile_labels, font_color, label_padding
 
 
-def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels):
+def main(game, level, player_img, level_filepath, use_graph, draw_all_labels, draw_dup_labels):
 
     # Create the Level
-    level_obj = Level.generate_level_from_file(game, level)
+    level_obj = Level.generate_level_from_file(game, level, filepath=level_filepath)
 
     # Level saved files
     level_saved_files_dir = "level_saved_files_%s/" % player_img

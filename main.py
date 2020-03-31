@@ -18,7 +18,7 @@ import argparse
 # os.environ['MAZE'] = "1"
 
 
-def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels,
+def main(game, level, player_img, level_filepath, use_graph, draw_all_labels, draw_dup_labels,
          enumerate, extract_metatiles, get_metatile_id_map, get_tile_id_coords_map, get_states_per_metatile, process_all):
 
     any_processing = process_all or (enumerate or extract_metatiles or get_metatile_id_map or get_tile_id_coords_map
@@ -48,7 +48,7 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels,
 
     else:
         import platformer
-        platformer.main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels)
+        platformer.main(game, level, player_img, level_filepath, use_graph, draw_all_labels, draw_dup_labels)
 
 
 if __name__ == "__main__":
@@ -85,6 +85,7 @@ if __name__ == "__main__":
     parser.add_argument('game', type=str, help='Name of the game')
     parser.add_argument('level', type=str, help='Name of the level')
     parser.add_argument('--player_img', type=str, help='Player image', default='block')
+    parser.add_argument('--level_filepath', type=str, help='Level structural txt filepath', default=None)
     parser.add_argument('--use_graph', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_all_labels', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_dup_labels', const=True, nargs='?', type=bool, default=False)
@@ -98,7 +99,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(args.game, args.level, args.player_img,
+    main(args.game, args.level, args.player_img, args.level_filepath,
          args.use_graph, args.draw_all_labels, args.draw_dup_labels,
          args.enumerate, args.extract_metatiles, args.get_metatile_id_map, args.get_tile_id_coords_map,
          args.get_states_per_metatile, args.process_all)
