@@ -15,11 +15,16 @@ B. Play a level [use python3 interpreter]
 import os
 import argparse
 
-# os.environ['MAZE'] = "1"
+import utils
 
 
-def main(game, level, player_img, level_filepath, use_graph, draw_all_labels, draw_dup_labels,
+def main(environment, game, level, player_img, level_filepath, use_graph, draw_all_labels, draw_dup_labels,
          enumerate, extract_metatiles, get_metatile_id_map, get_tile_id_coords_map, get_states_per_metatile, process_all):
+
+    if environment == 'maze':
+        os.environ['MAZE'] = "1"
+    elif environment != 'platformer':
+        utils.error_exit("invalid environment - environment must be one of ['maze', 'platformer']")
 
     any_processing = process_all or (enumerate or extract_metatiles or get_metatile_id_map or get_tile_id_coords_map
                                      or get_states_per_metatile)
@@ -82,6 +87,7 @@ if __name__ == "__main__":
     # ]
 
     parser = argparse.ArgumentParser(description='Process or play a level')
+    parser.add_argument('environment', type=str, help='platformer or maze')
     parser.add_argument('game', type=str, help='Name of the game')
     parser.add_argument('level', type=str, help='Name of the level')
     parser.add_argument('--player_img', type=str, help='Player image', default='block')
@@ -99,7 +105,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(args.game, args.level, args.player_img, args.level_filepath,
+    main(args.environment, args.game, args.level, args.player_img, args.level_filepath,
          args.use_graph, args.draw_all_labels, args.draw_dup_labels,
          args.enumerate, args.extract_metatiles, args.get_metatile_id_map, args.get_tile_id_coords_map,
          args.get_states_per_metatile, args.process_all)
