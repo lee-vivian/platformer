@@ -7,7 +7,7 @@ import utils
 from model.level import TILE_CHARS, GOAL_CHAR, START_CHAR, BLANK_CHAR
 
 
-def generate_level(line, outfile, level_w, level_h, block_tile_id, start_tile_id, goal_tile_id):
+def generate_level(line, outfile, save, level_w, level_h, block_tile_id, start_tile_id, goal_tile_id):
 
     def get_tile_char(tile_id):
         if tile_id == block_tile_id:
@@ -43,12 +43,13 @@ def generate_level(line, outfile, level_w, level_h, block_tile_id, start_tile_id
     print(level_structural_txt)
 
     # Save structural txt file to given outfile path
-    utils.write_file(outfile, level_structural_txt)
+    if save:
+        utils.write_file(outfile, level_structural_txt)
 
     return True
 
 
-def main(game, level, player_img, level_w, level_h, debug, max_sol, skip_print_answers):
+def main(game, level, player_img, level_w, level_h, debug, max_sol, skip_print_answers, save):
 
     # Generate prolog file for level and return prolog dictionary
     prolog_dictionary = gen_prolog.main(game, level, player_img, level_w, level_h, debug, print_pl=False)
@@ -77,11 +78,11 @@ def main(game, level, player_img, level_w, level_h, debug, max_sol, skip_print_a
         if answer_set_line_idx.get(solver_line_count) is not None:  # this line contains an answer set
             answer_set_filename = "%s_a%d.txt" % (prolog_dictionary.get("filename"), answer_set_count)
             answer_set_filepath = os.path.join(generated_levels_dir, answer_set_filename)
-            generate_level(line, outfile = answer_set_filepath,
-                           level_w = prolog_dictionary.get("level_w"), level_h = prolog_dictionary.get("level_h"),
-                           block_tile_id = prolog_dictionary.get("block_tile_id"),
-                           start_tile_id = prolog_dictionary.get("start_tile_id"),
-                           goal_tile_id = prolog_dictionary.get("goal_tile_id"))
+            generate_level(line, outfile=answer_set_filepath, save=save,
+                           level_w=prolog_dictionary.get("level_w"), level_h=prolog_dictionary.get("level_h"),
+                           block_tile_id=prolog_dictionary.get("block_tile_id"),
+                           start_tile_id=prolog_dictionary.get("start_tile_id"),
+                           goal_tile_id=prolog_dictionary.get("goal_tile_id"))
             answer_set_count += 1
 
         solver_line_count += 1
@@ -99,7 +100,8 @@ if __name__ == "__main__":
     parser.add_argument('--debug', const=True, nargs='?', type=bool, help='Allow blank tiles if no suitable assignment can be found', default=False)
     parser.add_argument('--max_sol', type=int, help='Maximum number of solutions to solve for; 0 = all', default=0)
     parser.add_argument('--skip_print_answers', const=True, nargs='?', type=bool, default=False)
+    parser.add_argument('--save', const=True, nargs='?', type=bool, default=False)
 
     args = parser.parse_args()
-    main(args.game, args.level, args.player_img, args.level_w, args.level_h, args.debug, args.max_sol, args.skip_print_answers)
-
+    main(args.game, args.level, args.player_img, args.level_w, args.level_h,
+         args.debug, args.max_sol, args.skip_print_answers, args.save)
