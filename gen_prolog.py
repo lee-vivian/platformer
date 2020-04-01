@@ -1,6 +1,7 @@
+import networkx as nx
 import argparse
 
-from model.level import Level
+from model.level import Level, TILE_DIM
 from model.metatile import Metatile, METATILE_TYPES
 import extract_constraints
 import utils
@@ -80,15 +81,34 @@ def main(game, level, player_img, level_width, level_height, debug, print_pl):
         metatile_type = metatile_info.get("type")
         metatile_type_ids[metatile_type].append(metatile_id)
 
-        for direction, adjacent_tiles in metatile_info.get("adjacent").items():  # for each adjacent dir
+        metatile_graph_as_dict = eval(metatile_info.get("graph"))
+        metatile_graph = nx.DiGraph(metatile_graph_as_dict)
 
+        # Create state and link rules based on metatile graph
+        for edge in metatile_graph.edges():
+            src_state = eval(edge[0])
+            dest_state = eval(edge[1])
+            src_x, src_y, dest_x, dest_y = src_state['x'], src_state['y'], dest_state['x'], dest_state['y']
+
+            state_rule = "state(%d+TX*%d, %d+TY*%d) :- assignment(TX,TY,%s)." % (src_x, TILE_DIM, src_y, TILE_DIM, metatile_id)
+            link_rule = "link(%d+TX*%d, %d+TY*%d, %d+TX*%d, %d+TY*%d) :- assignment(TX,TY,%s)." % \
+                        (src_x, TILE_DIM, src_y, TILE_DIM, dest_x, TILE_DIM, dest_y, TILE_DIM, metatile_id)
+
+            prolog_statements += state_rule + "\n"
+            prolog_statements += link_rule + "\n"
+
+        # Create legal rules based on valid adjacent tiles
+        for direction, adjacent_tiles in metatile_info.get("adjacent").items():  # for each adjacent dir
             DX, DY = eval(direction)
 
             for adjacent_id in adjacent_tiles:  # for each adjacent metatile
-
                 legal_statement = "legal(DX, DY, MT1, MT2) :- DX == %d, DY == %d, metatile(MT1), metatile(MT2), " \
                                   "MT1 == %s, MT2 == %s." % (DX, DY, metatile_id, adjacent_id)
                 prolog_statements += legal_statement + "\n"
+
+    # Link can only exist if the src and dest states exist, otherwise solution is not valid
+    link_exists_rule = ":- link(X1,Y1,X2,Y2), state(X1,Y1), not state(X2,Y2)."
+    prolog_statements += link_exists_rule
 
     block_tile_id = metatile_type_ids.get("block")[0]
     start_tile_id = metatile_type_ids.get("start")[0]
