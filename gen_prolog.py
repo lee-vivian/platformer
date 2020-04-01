@@ -72,6 +72,9 @@ def main(game, level, player_img, level_width, level_height, debug, print_pl):
     for type in METATILE_TYPES:
         metatile_type_ids[type] = []
 
+    start_state = None
+    goal_state = None
+
     # Create metatile facts, metatile_type facts, and legal neighbor statements for the specified tileset
     for metatile_id, metatile_info in tile_constraints_dict.items():  # for each unique metatile
 
@@ -97,6 +100,18 @@ def main(game, level, player_img, level_width, level_height, debug, print_pl):
             prolog_statements += state_rule + "\n"
             prolog_statements += link_rule + "\n"
 
+            # define start state in prolog
+            if start_state is None and src_state['is_start']:
+                start_rule = "start(%d+TX*%d, %d+TY*%d) :- assignment(TX,TY,%s)." % (src_x, TILE_DIM, src_y, TILE_DIM, metatile_id)
+                prolog_statements += start_rule + "\n"
+                start_state = src_state
+
+            # define goal state in prolog
+            if goal_state is None and src_state['goal_reached']:
+                goal_rule = "goal(%d+TX*%d, %d+TY*%d) :- assignment(TX,TY,%s)." % (src_x, TILE_DIM, src_y, TILE_DIM, metatile_id)
+                prolog_statements += goal_rule + "\n"
+                goal_state = src_state
+
         # Create legal rules based on valid adjacent tiles
         for direction, adjacent_tiles in metatile_info.get("adjacent").items():  # for each adjacent dir
             DX, DY = eval(direction)
@@ -113,6 +128,18 @@ def main(game, level, player_img, level_width, level_height, debug, print_pl):
     block_tile_id = metatile_type_ids.get("block")[0]
     start_tile_id = metatile_type_ids.get("start")[0]
     goal_tile_id = metatile_type_ids.get("goal")[0]
+
+    # Start state is inherently reachable
+    start_reachable_rule = "reachable(X,Y) :- start(X,Y)."
+    prolog_statements += start_reachable_rule + "\n"
+
+    # Goal state must be reachable
+    goal_reachable_rule = ":- goal(X,Y), not reachable(X,Y)."
+    prolog_statements += goal_reachable_rule + "\n"
+
+    # State reachable rule
+    state_reachable_rule = "reachable(X2,Y2) :- link(X1,Y1,X2,Y2), state(X1,Y2), state(X2,Y2), reachable(X1,Y1)."
+    prolog_statements += state_reachable_rule + "\n"
 
     # Set border tiles to be block tiles
     block_tile_coords = []
