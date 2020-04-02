@@ -71,8 +71,8 @@ def enumerate_states(player_model, start_state, graph, action_set, platform_coor
     return graph
 
 
-def build_state_graph(level, player_img, state_graph_file):
-    player_model = Player(player_img, level.start_coord)
+def build_state_graph(game_name, level, player_img, state_graph_file):
+    player_model = Player(player_img, level.start_coord, game_name)
     start_state = player_model.start_state()
     action_set = get_action_set()
     state_graph = enumerate_states(player_model, start_state, nx.DiGraph(), action_set, level.platform_coords, level.goal_coords)
@@ -87,7 +87,7 @@ def main(game_name, level_name, player_img):
 
     level = Level.generate_level_from_file(game_name, level_name)
     state_graph_file = get_state_graph_file(game_name, level_name, player_img)
-    build_state_graph(level, player_img, state_graph_file)
+    build_state_graph(game_name, level, player_img, state_graph_file)
 
     end_time = datetime.datetime.now()
     print("Runtime: ", end_time - start_time, "\n")

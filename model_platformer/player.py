@@ -2,16 +2,10 @@ from model.level import TILE_DIM
 
 from model_platformer.state import StatePlatformer
 
-from utils import state_in_metatile
 
 '''
 Player Model Object
 '''
-
-# Player Model constants
-GRAVITY = 4
-MAX_VEL = 8 * GRAVITY
-STEPS = 8
 
 HALF_TURTLE_WIDTH = int(74 / 2)
 HALF_TILE_WIDTH = int(TILE_DIM / 2)
@@ -19,7 +13,15 @@ HALF_TILE_WIDTH = int(TILE_DIM / 2)
 
 class PlayerPlatformer:
 
-    def __init__(self, img, start_tile_coord):
+    def __init__(self, img, start_tile_coord, game=None):
+        if game == 'sample':
+            self.gravity = 4
+            self.steps = 8
+        else:
+            self.gravity = 5
+            self.steps = 10
+        self.max_vel = 8 * self.gravity
+
         self.state = None
         self.half_player_h = HALF_TILE_WIDTH
         self.half_player_w = HALF_TURTLE_WIDTH if img == 'turtle' else HALF_TILE_WIDTH
@@ -29,7 +31,7 @@ class PlayerPlatformer:
     def start_state(self):
         start_x = self.start_tile_coord[0]
         start_y = self.start_tile_coord[1]
-        return StatePlatformer(x=start_x + self.half_player_w, y=start_y + self.half_player_h, movex=0, movey=GRAVITY,
+        return StatePlatformer(x=start_x + self.half_player_w, y=start_y + self.half_player_h, movex=0, movey=self.gravity,
                      onground=True, is_start=True, goal_reached=False)
 
     def reset(self):
@@ -49,19 +51,19 @@ class PlayerPlatformer:
         if new_state.goal_reached:
             return new_state
 
-        new_state.movey += GRAVITY
-        if new_state.movey > MAX_VEL:
-            new_state.movey = MAX_VEL
+        new_state.movey += self.gravity
+        if new_state.movey > self.max_vel:
+            new_state.movey = self.max_vel
 
         if action.left and not action.right:
-            new_state.movex = -STEPS
+            new_state.movex = -self.steps
         elif action.right and not action.left:
-            new_state.movex = STEPS
+            new_state.movex = self.steps
         else:
             new_state.movex = 0
 
         if action.jump and new_state.onground:
-            new_state.movey = -MAX_VEL
+            new_state.movey = -self.max_vel
 
         for ii in range(abs(new_state.movex)):
             old_x = new_state.x

@@ -79,7 +79,7 @@ def main(game, level, player_img, level_filepath, use_graph, draw_all_labels, dr
     BACKGROUND_COLOR = (23, 23, 23)
 
     # Player
-    player_model = Player(player_img, level_obj.start_coord)
+    player_model = Player(player_img, level_obj.start_coord, game)
     player_view = PlayerView(player_img)
     player_list = pygame.sprite.Group()
     player_list.add(player_view)

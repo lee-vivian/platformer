@@ -11,10 +11,9 @@ HALF_TURTLE_WIDTH = int(74 / 2)
 HALF_TILE_WIDTH = int(TILE_DIM / 2)
 
 
-
 class PlayerMaze:
 
-    def __init__(self, img, start_tile_coord):
+    def __init__(self, img, start_tile_coord, game=None):
         self.state = None
         self.half_player_h = HALF_TILE_WIDTH
         self.half_player_w = HALF_TURTLE_WIDTH if img == 'turtle' else HALF_TILE_WIDTH
