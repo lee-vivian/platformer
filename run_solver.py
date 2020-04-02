@@ -1,3 +1,5 @@
+import subprocess
+import sys
 import os
 import re
 import argparse
@@ -62,32 +64,36 @@ def main(game, level, player_img, level_w, level_h, debug, max_sol, skip_print_a
     if skip_print_answers:
         clingo_cmd += "--quiet"
 
-    # Read solver output
-    clingo_output = os.popen(clingo_cmd).read()
-
-    # Parse solver output and generate new levels from valid answer sets
+    # Track solver output
     solver_line_count = 0
     answer_set_count = 0
     answer_set_line_idx = {}
 
-    for line in clingo_output.splitlines():  # for each line in the solver output
+    try:
+        # Run subprocess command and process each stdout line
+        process = subprocess.Popen(clingo_cmd, shell=True, stdout=subprocess.PIPE)
+        for line_bytes in iter(process.stdout.readline, b''):
 
-        if re.search(r'Answer', line) is not None:
-            answer_set_line_idx[solver_line_count+1] = 1  # the next line contains an answer set
+            line = line_bytes.decode('utf-8')
+            if 'Answer' in line:  # the next line contains an answer set
+                answer_set_line_idx[solver_line_count+1] = 1
 
-        if answer_set_line_idx.get(solver_line_count) is not None:  # this line contains an answer set
-            answer_set_filename = "%s_a%d.txt" % (prolog_dictionary.get("filename"), answer_set_count)
-            answer_set_filepath = os.path.join(generated_levels_dir, answer_set_filename)
-            generate_level(line, outfile=answer_set_filepath, save=save,
-                           level_w=prolog_dictionary.get("level_w"), level_h=prolog_dictionary.get("level_h"),
-                           block_tile_id=prolog_dictionary.get("block_tile_id"),
-                           start_tile_id=prolog_dictionary.get("start_tile_id"),
-                           goal_tile_id=prolog_dictionary.get("goal_tile_id"))
-            answer_set_count += 1
+            if answer_set_line_idx.get(solver_line_count) is not None:  # this line contains an answer set
+                answer_set_filename = "%s_a%d.txt" % (prolog_dictionary.get("filename"), answer_set_count)
+                answer_set_filepath = os.path.join(generated_levels_dir, answer_set_filename)
+                generate_level(line, outfile=answer_set_filepath, save=save,
+                               level_w=prolog_dictionary.get("level_w"), level_h=prolog_dictionary.get("level_h"),
+                               block_tile_id=prolog_dictionary.get("block_tile_id"),
+                               start_tile_id=prolog_dictionary.get("start_tile_id"),
+                               goal_tile_id=prolog_dictionary.get("goal_tile_id"))
+                answer_set_count += 1
+            solver_line_count += 1
 
-        solver_line_count += 1
+        print("Num Levels Generated: %d" % answer_set_count)
 
-    print("Num Levels Generated: %d" % answer_set_count)
+    except KeyboardInterrupt:
+        print("Num Levels Generated: %d" % answer_set_count)
+        exit(0)
 
 
 if __name__ == "__main__":
