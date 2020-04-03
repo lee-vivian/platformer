@@ -1,15 +1,50 @@
 import subprocess
-import sys
 import os
 import re
 import argparse
+from datetime import datetime
 
 import gen_prolog
 import utils
-from model.level import TILE_CHARS, GOAL_CHAR, START_CHAR, BLANK_CHAR
+from model.level import TILE_DIM, TILE_CHARS, GOAL_CHAR, START_CHAR, BLANK_CHAR
 
 
-def generate_level(line, outfile, save, level_w, level_h, block_tile_id, start_tile_id, goal_tile_id):
+def get_assignments_dict(solution_line):
+    # Extract tile x, y, and id from assignment string in solver output line
+    assignments = re.findall(r'assignment\([0-9t,]*\)', solution_line)
+    assignments_dict = {}  # {(tile_x, tile_y): tile_id}
+    for assignment in assignments:
+        match = re.match(r'assignment\((\d+),(\d+),(t\d+)\)', assignment)
+        tile_x = int(match.group(1))
+        tile_y = int(match.group(2))
+        tile_id = match.group(3)
+        assignments_dict[(tile_x, tile_y)] = tile_id
+    return assignments_dict
+
+
+# Used to draw metatile labels on generated level
+# input: assignments dict {(tile_x, tile_y): tile_id}
+# output: tile_id_coords_map {(tile_id, extra_info): list-of-coords)}
+def create_tile_id_coords_map(assignments_dict, answer_set_filename, player_img):
+    tile_id_coords_map_dir = utils.get_save_directory("tile_id_coords_maps", player_img)
+    outfile = utils.get_filepath(tile_id_coords_map_dir, answer_set_filename, "pickle")
+
+    tile_id_coords_map = {}
+    for tile_coord, tile_id in assignments_dict.items():
+        if tile_id_coords_map.get(tile_id) is None:
+            tile_id_coords_map[tile_id] = []
+        metatile_coord = (tile_coord[0] * TILE_DIM, tile_coord[1] * TILE_DIM)
+        tile_id_coords_map[tile_id].append(metatile_coord)
+
+    tile_id_coords_map_with_extra_info = {}
+    for tile_id, coords in tile_id_coords_map.items():
+        extra_info = "S" if len(coords) == 1 else ""
+        tile_id_coords_map_with_extra_info[(tile_id, extra_info)] = coords
+
+    return utils.write_pickle(outfile, tile_id_coords_map_with_extra_info)
+
+
+def generate_level(assignments_dict, outfile, save, level_w, level_h, block_tile_id, start_tile_id, goal_tile_id):
 
     def get_tile_char(tile_id):
         if tile_id == block_tile_id:
@@ -20,16 +55,6 @@ def generate_level(line, outfile, save, level_w, level_h, block_tile_id, start_t
             return GOAL_CHAR
         else:
             return BLANK_CHAR
-
-    # Extract tile x, y, and id from assignment string in solver output line
-    assignments = re.findall(r'assignment\([0-9t,]*\)', line)
-    assignments_dict = {}  # {(tile_x, tile_y): tile_id}
-    for assignment in assignments:
-        match = re.match(r'assignment\((\d+),(\d+),(t\d+)\)', assignment)
-        tile_x = int(match.group(1))
-        tile_y = int(match.group(2))
-        tile_id = match.group(3)
-        assignments_dict[(tile_x, tile_y)] = tile_id
 
     # Generate structural txt file for new level
     level_structural_txt = ""
@@ -53,8 +78,12 @@ def generate_level(line, outfile, save, level_w, level_h, block_tile_id, start_t
 
 def main(game, level, player_img, level_w, level_h, debug, max_sol, skip_print_answers, save):
 
+    print("Here we gooo...")
+
     # Generate prolog file for level and return prolog dictionary
     prolog_dictionary = gen_prolog.main(game, level, player_img, level_w, level_h, debug, print_pl=False)
+
+    print("Finished generating prolog")
 
     # Create new directory for generated levels
     generated_levels_dir = utils.get_save_directory("generated_levels", player_img)
@@ -69,6 +98,9 @@ def main(game, level, player_img, level_w, level_h, debug, max_sol, skip_print_a
     answer_set_count = 0
     answer_set_line_idx = {}
 
+    print("Running: %s" % clingo_cmd)
+    start = datetime.now()
+
     try:
         # Run subprocess command and process each stdout line
         process = subprocess.Popen(clingo_cmd, shell=True, stdout=subprocess.PIPE)
@@ -79,20 +111,33 @@ def main(game, level, player_img, level_w, level_h, debug, max_sol, skip_print_a
                 answer_set_line_idx[solver_line_count+1] = 1
 
             if answer_set_line_idx.get(solver_line_count) is not None:  # this line contains an answer set
-                answer_set_filename = "%s_a%d.txt" % (prolog_dictionary.get("filename"), answer_set_count)
-                answer_set_filepath = os.path.join(generated_levels_dir, answer_set_filename)
-                generate_level(line, outfile=answer_set_filepath, save=save,
+                answer_set_filename = "%s_a%d" % (prolog_dictionary.get("filename"), answer_set_count)
+                answer_set_filepath = os.path.join(generated_levels_dir, answer_set_filename + ".txt")
+
+                assignments_dict = get_assignments_dict(line)  # {(tile_x, tile_y): tile_id}
+
+                # used to draw metatile labels
+                if save:
+                    create_tile_id_coords_map(assignments_dict, answer_set_filename, player_img)
+
+                # create level structural txt file for the answer set
+                generate_level(assignments_dict, outfile=answer_set_filepath, save=save,
                                level_w=prolog_dictionary.get("level_w"), level_h=prolog_dictionary.get("level_h"),
                                block_tile_id=prolog_dictionary.get("block_tile_id"),
                                start_tile_id=prolog_dictionary.get("start_tile_id"),
                                goal_tile_id=prolog_dictionary.get("goal_tile_id"))
                 answer_set_count += 1
+
             solver_line_count += 1
 
         print("Num Levels Generated: %d" % answer_set_count)
+        end = datetime.now()
+        print("Total Runtime %s" % str(end-start))
 
     except KeyboardInterrupt:
         print("Num Levels Generated: %d" % answer_set_count)
+        end = datetime.now()
+        print("Total Runtime %s" % str(end - start))
         exit(0)
 
 

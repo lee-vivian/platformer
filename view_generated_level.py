@@ -1,4 +1,7 @@
 '''
+
+DEPRECATED - uses platformer.py now
+
 Reads in the saved tiles from the constraint solver and displays the level image and metatile labels
 '''
 
