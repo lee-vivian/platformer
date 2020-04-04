@@ -1,4 +1,5 @@
 *__pycache__*
 venv/
-level_saved_files_*
+*level_saved_files_*
 level_screenshots/
+solver_console_output/

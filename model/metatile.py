@@ -90,10 +90,14 @@ class Metatile:
         return spatial_hash
 
     @staticmethod
-    def get_normalized_graph(graph, coord):
+    def get_normalized_graph(graph, coord, normalize=True):
 
         normalized_graph = nx.DiGraph()
         edge_attr_dict = nx.get_edge_attributes(graph, "action")
+
+        if not normalize:  # add coord to state x,y if un-normalizing graph
+            coord[0] *= -1
+            coord[1] *= -1
 
         for edge in edge_attr_dict.keys():
             source_dict = eval(edge[0])
@@ -150,7 +154,7 @@ class Metatile:
                     subgraph = graph.edge_subgraph(graph.edges(node)).copy()
                     metatile_graph = nx.compose(metatile_graph, subgraph)  # join graphs
 
-                metatile_graph = Metatile.get_normalized_graph(metatile_graph, metatile_coord)  # normalize graph nodes to coord
+                metatile_graph = Metatile.get_normalized_graph(metatile_graph, metatile_coord, normalize=True)  # normalize graph nodes to coord
 
             metatile_graph_as_dict = nx.to_dict_of_dicts(metatile_graph)
 

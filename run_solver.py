@@ -2,10 +2,12 @@ import subprocess
 import os
 import re
 import argparse
+import networkx as nx
 from datetime import datetime
 
 import gen_prolog
 import utils
+from model.metatile import Metatile
 from model.level import TILE_DIM, TILE_CHARS, GOAL_CHAR, START_CHAR, BLANK_CHAR
 
 
@@ -41,7 +43,49 @@ def create_tile_id_coords_map(assignments_dict, answer_set_filename, player_img)
         extra_info = "S" if len(coords) == 1 else ""
         tile_id_coords_map_with_extra_info[(tile_id, extra_info)] = coords
 
-    return utils.write_pickle(outfile, tile_id_coords_map_with_extra_info)
+    utils.write_pickle(outfile, tile_id_coords_map_with_extra_info)
+
+    return tile_id_coords_map_with_extra_info
+
+
+def create_state_graph(tile_id_extra_info_coords_map, id_metatile_map_file):
+    id_metatile_map = utils.read_pickle(id_metatile_map_file)
+    state_graph = nx.DiGraph()
+
+    for (tile_id, extra_info), coords in tile_id_extra_info_coords_map.items():
+        metatile_dict = eval(id_metatile_map.get(tile_id))
+        metatile_state_graph = nx.DiGraph(metatile_dict.get('graph'))
+        if nx.is_empty(metatile_state_graph):
+            continue
+        for coord in coords:
+            unnormalized_metatile_state_graph = Metatile.get_normalized_graph(metatile_state_graph, coord, normalize=False)
+            state_graph = nx.compose(state_graph, unnormalized_metatile_state_graph)
+
+    return state_graph
+
+
+def get_fact_coord(line, fact_name):
+    facts = re.findall(r'%s\([0-9t,]*\)' % fact_name, line)
+    if len(facts) == 0:
+        utils.error_exit("Fact '%s' not found in solver output" % fact_name)
+    fact = facts[0]
+    match = re.match(r'%s\((\d+),(\d+)\)' % fact_name, fact)
+    x, y = int(match.group(1)), int(match.group(2))
+    return x, y
+
+
+def get_node_at_coord(graph, coord):
+    for node in graph.nodes():
+        state_dict = eval(node)
+        if (state_dict['x'], state_dict['y']) == coord:
+            return node
+    return None
+
+
+def check_path_exists(state_graph, start_coord, goal_coord):
+    src_node = get_node_at_coord(state_graph, start_coord)
+    dest_node = get_node_at_coord(state_graph, goal_coord)
+    return nx.has_path(state_graph, src_node, dest_node)
 
 
 def generate_level(assignments_dict, outfile, save, level_w, level_h, block_tile_id, start_tile_id, goal_tile_id):
@@ -68,11 +112,9 @@ def generate_level(assignments_dict, outfile, save, level_w, level_h, block_tile
 
     # Print
     print(level_structural_txt)
-
     # Save structural txt file to given outfile path
     if save:
         utils.write_file(outfile, level_structural_txt)
-
     return True
 
 
@@ -117,8 +159,16 @@ def main(game, level, player_img, level_w, level_h, debug, max_sol, skip_print_a
                 assignments_dict = get_assignments_dict(line)  # {(tile_x, tile_y): tile_id}
 
                 # used to draw metatile labels
-                if save:
-                    create_tile_id_coords_map(assignments_dict, answer_set_filename, player_img)
+                if save: # @todo still check if valid path even if not save
+                    tile_id_extra_info_coords_map = create_tile_id_coords_map(assignments_dict, answer_set_filename, player_img)
+
+                    level_state_graph = create_state_graph(tile_id_extra_info_coords_map, id_metatile_map_file=)
+
+                    start_coord = get_fact_coord(line, 'start')
+                    goal_coord = get_fact_coord(line, 'goal')
+                    path_exists = check_path_exists(level_state_graph, start_coord, goal_coord)
+                    if not path_exists:
+                        utils.error_exit("No valid path for generated level %s" % answer_set_filename)
 
                 # create level structural txt file for the answer set
                 generate_level(assignments_dict, outfile=answer_set_filepath, save=save,
