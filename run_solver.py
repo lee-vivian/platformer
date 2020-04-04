@@ -11,9 +11,12 @@ import get_metatile_id_map
 from model.metatile import Metatile
 from model.level import TILE_DIM, TILE_CHARS, GOAL_CHAR, START_CHAR, BLANK_CHAR
 
+'''
+Process solver output
+'''
+
 
 def get_assignments_dict(solution_line):
-    # Extract tile x, y, and id from assignment string in solver output line
     assignments = re.findall(r'assignment\([0-9t,]*\)', solution_line)
     assignments_dict = {}  # {(tile_x, tile_y): tile_id}
     for assignment in assignments:
@@ -22,18 +25,25 @@ def get_assignments_dict(solution_line):
         tile_y = int(match.group(2))
         tile_id = match.group(3)
         assignments_dict[(tile_x, tile_y)] = tile_id
-    return assignments_dict
+    return assignments_dict  # {(tile_x, tile_y): tile_id}
 
 
-# Used to draw metatile labels on generated level
-# input: assignments dict {(tile_x, tile_y): tile_id}
-# output: tile_id_coords_map {(tile_id, extra_info): list-of-coords)}
+def get_fact_coord(line, fact_name):
+    facts = re.findall(r'%s\([0-9t,]*\)' % fact_name, line)
+    if len(facts) == 0:
+        utils.error_exit("Fact '%s' not found in solver output" % fact_name)
+    fact = facts[0]
+    match = re.match(r'%s\((\d+),(\d+)\)' % fact_name, fact)
+    x, y = int(match.group(1)), int(match.group(2))
+    return x, y
+
+
 def create_tile_id_coords_map(assignments_dict, answer_set_filename, player_img, save):
     tile_id_coords_map_dir = utils.get_save_directory("tile_id_coords_maps", player_img)
     outfile = utils.get_filepath(tile_id_coords_map_dir, answer_set_filename, "pickle")
 
     tile_id_coords_map = {}
-    for tile_coord, tile_id in assignments_dict.items():
+    for tile_coord, tile_id in assignments_dict.items():  # {(tile_x, tile_y): tile_id}
         if tile_id_coords_map.get(tile_id) is None:
             tile_id_coords_map[tile_id] = []
         metatile_coord = (tile_coord[0] * TILE_DIM, tile_coord[1] * TILE_DIM)
@@ -47,13 +57,16 @@ def create_tile_id_coords_map(assignments_dict, answer_set_filename, player_img,
     if save:
         utils.write_pickle(outfile, tile_id_coords_map_with_extra_info)
 
-    return tile_id_coords_map_with_extra_info
+    return tile_id_coords_map_with_extra_info  # {(tile_id, extra_info): list-of-coords)}
+
+
+'''
+Create and validate generated level state graph
+'''
 
 
 def create_state_graph(tile_id_extra_info_coords_map, id_metatile_map):
-
     state_graph = nx.DiGraph()
-
     for (tile_id, extra_info), coords in tile_id_extra_info_coords_map.items():
         metatile_dict = eval(id_metatile_map.get(tile_id))
         metatile_state_graph = nx.DiGraph(metatile_dict.get('graph'))
@@ -62,18 +75,7 @@ def create_state_graph(tile_id_extra_info_coords_map, id_metatile_map):
         for coord in coords:
             unnormalized_metatile_state_graph = Metatile.get_normalized_graph(metatile_state_graph, coord, normalize=False)
             state_graph = nx.compose(state_graph, unnormalized_metatile_state_graph)
-
     return state_graph
-
-
-def get_fact_coord(line, fact_name):
-    facts = re.findall(r'%s\([0-9t,]*\)' % fact_name, line)
-    if len(facts) == 0:
-        utils.error_exit("Fact '%s' not found in solver output" % fact_name)
-    fact = facts[0]
-    match = re.match(r'%s\((\d+),(\d+)\)' % fact_name, fact)
-    x, y = int(match.group(1)), int(match.group(2))
-    return x, y
 
 
 def get_node_at_coord(graph, coord):
@@ -88,6 +90,35 @@ def check_path_exists(state_graph, start_coord, goal_coord):
     src_node = get_node_at_coord(state_graph, start_coord)
     dest_node = get_node_at_coord(state_graph, goal_coord)
     return nx.has_path(state_graph, src_node, dest_node)
+
+
+def validate_generated_level(level_dictionary, id_metatile_map):
+    tile_id_extra_info_coords_map = level_dictionary.get("tile_id_extra_info_coords_map")
+    start_coord = level_dictionary.get("start_coord")
+    goal_coord = level_dictionary.get("goal_coord")
+
+    level_state_graph = create_state_graph(tile_id_extra_info_coords_map, id_metatile_map)
+
+    return check_path_exists(level_state_graph, start_coord, goal_coord)
+
+
+def validate_generated_levels(gen_level_dict, id_metatile_map):
+    print("Validating generated levels...")
+    start_time = datetime.now()
+    invalid_level_count = 0
+    for level_name, level_dictionary in gen_level_dict.items():
+        level_is_valid = validate_generated_level(level_dictionary, id_metatile_map)
+        if not level_is_valid:
+            print("Invalid level: %s" % level_name)
+            invalid_level_count += 1
+    print("Number invalid levels: %d" % invalid_level_count)
+    end_time = datetime.now()
+    print("Time to validate levels: %s" % str(end_time-start_time))
+
+
+'''
+Create level structural txt file for generated level
+'''
 
 
 def generate_level(assignments_dict, outfile, save, level_w, level_h, block_tile_id, start_tile_id, goal_tile_id):
@@ -120,7 +151,7 @@ def generate_level(assignments_dict, outfile, save, level_w, level_h, block_tile
     return True
 
 
-def main(game, level, player_img, level_w, level_h, debug, max_sol, skip_print_answers, save):
+def main(game, level, player_img, level_w, level_h, debug, max_sol, skip_print_answers, save, validate):
 
     # Generate prolog file for level and return prolog dictionary
     prolog_dictionary = gen_prolog.main(game, level, player_img, level_w, level_h, debug, print_pl=False)
@@ -142,6 +173,10 @@ def main(game, level, player_img, level_w, level_h, debug, max_sol, skip_print_a
     answer_set_count = 0
     answer_set_line_idx = {}
 
+    # Track to validate level solution paths later
+    if validate:
+        gen_level_dict = {}
+
     print("Running: %s" % clingo_cmd)
     start = datetime.now()
 
@@ -155,26 +190,21 @@ def main(game, level, player_img, level_w, level_h, debug, max_sol, skip_print_a
                 answer_set_line_idx[solver_line_count+1] = 1
 
             if answer_set_line_idx.get(solver_line_count) is not None:  # this line contains an answer set
+
                 answer_set_filename = "%s_a%d" % (prolog_dictionary.get("filename"), answer_set_count)
                 answer_set_filepath = os.path.join(generated_levels_dir, answer_set_filename + ".txt")
-
                 assignments_dict = get_assignments_dict(line)  # {(tile_x, tile_y): tile_id}
 
                 # Used to draw metatile labels
                 tile_id_extra_info_coords_map = create_tile_id_coords_map(assignments_dict, answer_set_filename,
                                                                           player_img, save=save)
-
-                # Create state graph for generated level
-                level_state_graph = create_state_graph(tile_id_extra_info_coords_map, id_metatile_map)
-
-                # Check if generated level contains valid path from start to goal
-                start_coord = get_fact_coord(line, 'start')
-                goal_coord = get_fact_coord(line, 'goal')
-                path_exists = check_path_exists(level_state_graph, start_coord, goal_coord)
-                if not path_exists:
-                    utils.error_exit("No valid path for generated level %s" % answer_set_filename)
-                else:
-                    print("Generated level %s is valid" % answer_set_filename)
+                # Save level info to validate solution path later
+                if validate:
+                    gen_level_dict[answer_set_filename] = {
+                        "tile_id_extra_info_coords_map": tile_id_extra_info_coords_map,
+                        "start_coord": get_fact_coord(line, 'start'),
+                        "goal_coord": get_fact_coord(line, 'goal')
+                    }
 
                 # create level structural txt file for the answer set
                 generate_level(assignments_dict, outfile=answer_set_filepath, save=save,
@@ -182,16 +212,21 @@ def main(game, level, player_img, level_w, level_h, debug, max_sol, skip_print_a
                                block_tile_id=prolog_dictionary.get("block_tile_id"),
                                start_tile_id=prolog_dictionary.get("start_tile_id"),
                                goal_tile_id=prolog_dictionary.get("goal_tile_id"))
+
                 answer_set_count += 1
 
             solver_line_count += 1
 
         print("Num Levels Generated: %d" % answer_set_count)
+        if validate:
+            validate_generated_levels(gen_level_dict, id_metatile_map)
         end = datetime.now()
         print("Total Runtime %s" % str(end-start))
 
     except KeyboardInterrupt:
         print("Num Levels Generated: %d" % answer_set_count)
+        if validate:
+            validate_generated_levels(gen_level_dict, id_metatile_map)
         end = datetime.now()
         print("Total Runtime %s" % str(end - start))
         exit(0)
@@ -208,7 +243,8 @@ if __name__ == "__main__":
     parser.add_argument('--max_sol', type=int, help='Maximum number of solutions to solve for; 0 = all', default=0)
     parser.add_argument('--skip_print_answers', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--save', const=True, nargs='?', type=bool, default=False)
+    parser.add_argument('--validate', const=True, nargs='?', type=bool, default=False)
 
     args = parser.parse_args()
     main(args.game, args.level, args.player_img, args.level_w, args.level_h,
-         args.debug, args.max_sol, args.skip_print_answers, args.save)
+         args.debug, args.max_sol, args.skip_print_answers, args.save, args.validate)
