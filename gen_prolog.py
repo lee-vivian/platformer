@@ -182,6 +182,8 @@ def main(game, level, player_img, level_width, level_height, debug, print_pl):
         "goal_tile_id": goal_tile_id
     }
 
+    print("Finished generating prolog file")
+
     return prolog_dictionary
 
 

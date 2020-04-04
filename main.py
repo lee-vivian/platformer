@@ -41,7 +41,7 @@ def main(environment, game, level, player_img, generated_level_filepath, use_gra
 
         if process_all or get_metatile_id_map:
             import get_metatile_id_map
-            get_metatile_id_map.main([game], [level], player_img, outfile=None)
+            get_metatile_id_map.main([game], [level], player_img, outfile=None, save=True)
 
         if process_all or get_tile_id_coords_map:
             import get_tile_id_coords_map

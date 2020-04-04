@@ -94,20 +94,21 @@ class Metatile:
 
         normalized_graph = nx.DiGraph()
         edge_attr_dict = nx.get_edge_attributes(graph, "action")
+        x, y = coord[0], coord[1]
 
         if not normalize:  # add coord to state x,y if un-normalizing graph
-            coord[0] *= -1
-            coord[1] *= -1
+            x *= -1
+            y *= -1
 
         for edge in edge_attr_dict.keys():
             source_dict = eval(edge[0])
-            source_dict['x'] -= coord[0]
-            source_dict['y'] -= coord[1]
+            source_dict['x'] -= x
+            source_dict['y'] -= y
             source_node = str(source_dict)
 
             dest_dict = eval(edge[1])
-            dest_dict['x'] -= coord[0]
-            dest_dict['y'] -= coord[1]
+            dest_dict['x'] -= x
+            dest_dict['y'] -= y
             dest_node = str(dest_dict)
 
             normalized_graph.add_edge(source_node, dest_node, action=edge_attr_dict[edge])

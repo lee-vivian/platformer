@@ -25,7 +25,7 @@ def get_metatile_id_map_file(player_img, outfile):
     return metatile_id_map_file
 
 
-def main(games, levels, player_img, outfile):
+def main(games, levels, player_img, outfile, save):
 
     print("\nGet metatile_id maps for levels: " + str(levels) + "...")
 
@@ -54,7 +54,17 @@ def main(games, levels, player_img, outfile):
     id_metatile_map_file = get_id_metatile_map_file(player_img, outfile)
     metatile_id_map_file = get_metatile_id_map_file(player_img, outfile)
 
-    return write_pickle(id_metatile_map_file, id_metatile_map), write_pickle(metatile_id_map_file, metatile_id_map)
+    # Save maps to file
+    if save:
+        write_pickle(id_metatile_map_file, id_metatile_map)
+        write_pickle(metatile_id_map_file, metatile_id_map)
+
+    print("Finished generating metatile_id and id_metatile maps")
+
+    return {
+        "id_metatile_map": id_metatile_map,
+        "metatile_id_map": metatile_id_map
+    }
 
 
 if __name__ == '__main__':
@@ -64,8 +74,9 @@ if __name__ == '__main__':
     parser.add_argument('--levels', type=str, nargs="+", help='List of game levels', default="")
     parser.add_argument('--player_img', type=str, help="Player image", default='block')
     parser.add_argument('--outfile', type=str, help="Output filename", default=None)
+    parser.add_argument('--save', const=True, nargs='?', type=bool, default=False)
     args = parser.parse_args()
 
-    main(args.games, args.levels, args.player_img, args.outfile)
+    main(args.games, args.levels, args.player_img, args.outfile, args.save)
 
 # pypy3 get_metatile_id_map.py --games sample sample sample super_mario_bros super_mario_bros kid_icarus --levels sample_mini sample_hallway_flat sample_hallway mario-1-1 mario-2-1 kidicarus_1 --outfile all_levels

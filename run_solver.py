@@ -7,6 +7,7 @@ from datetime import datetime
 
 import gen_prolog
 import utils
+import get_metatile_id_map
 from model.metatile import Metatile
 from model.level import TILE_DIM, TILE_CHARS, GOAL_CHAR, START_CHAR, BLANK_CHAR
 
@@ -27,7 +28,7 @@ def get_assignments_dict(solution_line):
 # Used to draw metatile labels on generated level
 # input: assignments dict {(tile_x, tile_y): tile_id}
 # output: tile_id_coords_map {(tile_id, extra_info): list-of-coords)}
-def create_tile_id_coords_map(assignments_dict, answer_set_filename, player_img):
+def create_tile_id_coords_map(assignments_dict, answer_set_filename, player_img, save):
     tile_id_coords_map_dir = utils.get_save_directory("tile_id_coords_maps", player_img)
     outfile = utils.get_filepath(tile_id_coords_map_dir, answer_set_filename, "pickle")
 
@@ -43,13 +44,14 @@ def create_tile_id_coords_map(assignments_dict, answer_set_filename, player_img)
         extra_info = "S" if len(coords) == 1 else ""
         tile_id_coords_map_with_extra_info[(tile_id, extra_info)] = coords
 
-    utils.write_pickle(outfile, tile_id_coords_map_with_extra_info)
+    if save:
+        utils.write_pickle(outfile, tile_id_coords_map_with_extra_info)
 
     return tile_id_coords_map_with_extra_info
 
 
-def create_state_graph(tile_id_extra_info_coords_map, id_metatile_map_file):
-    id_metatile_map = utils.read_pickle(id_metatile_map_file)
+def create_state_graph(tile_id_extra_info_coords_map, id_metatile_map):
+
     state_graph = nx.DiGraph()
 
     for (tile_id, extra_info), coords in tile_id_extra_info_coords_map.items():
@@ -120,12 +122,12 @@ def generate_level(assignments_dict, outfile, save, level_w, level_h, block_tile
 
 def main(game, level, player_img, level_w, level_h, debug, max_sol, skip_print_answers, save):
 
-    print("Here we gooo...")
-
     # Generate prolog file for level and return prolog dictionary
     prolog_dictionary = gen_prolog.main(game, level, player_img, level_w, level_h, debug, print_pl=False)
 
-    print("Finished generating prolog")
+    # Get id_metatile map for level
+    id_metatile_map = get_metatile_id_map.main([game], [level], player_img, outfile=None,
+                                               save=False).get("id_metatile_map")
 
     # Create new directory for generated levels
     generated_levels_dir = utils.get_save_directory("generated_levels", player_img)
@@ -158,17 +160,21 @@ def main(game, level, player_img, level_w, level_h, debug, max_sol, skip_print_a
 
                 assignments_dict = get_assignments_dict(line)  # {(tile_x, tile_y): tile_id}
 
-                # used to draw metatile labels
-                if save: # @todo still check if valid path even if not save
-                    tile_id_extra_info_coords_map = create_tile_id_coords_map(assignments_dict, answer_set_filename, player_img)
+                # Used to draw metatile labels
+                tile_id_extra_info_coords_map = create_tile_id_coords_map(assignments_dict, answer_set_filename,
+                                                                          player_img, save=save)
 
-                    level_state_graph = create_state_graph(tile_id_extra_info_coords_map, id_metatile_map_file=)
+                # Create state graph for generated level
+                level_state_graph = create_state_graph(tile_id_extra_info_coords_map, id_metatile_map)
 
-                    start_coord = get_fact_coord(line, 'start')
-                    goal_coord = get_fact_coord(line, 'goal')
-                    path_exists = check_path_exists(level_state_graph, start_coord, goal_coord)
-                    if not path_exists:
-                        utils.error_exit("No valid path for generated level %s" % answer_set_filename)
+                # Check if generated level contains valid path from start to goal
+                start_coord = get_fact_coord(line, 'start')
+                goal_coord = get_fact_coord(line, 'goal')
+                path_exists = check_path_exists(level_state_graph, start_coord, goal_coord)
+                if not path_exists:
+                    utils.error_exit("No valid path for generated level %s" % answer_set_filename)
+                else:
+                    print("Generated level %s is valid" % answer_set_filename)
 
                 # create level structural txt file for the answer set
                 generate_level(assignments_dict, outfile=answer_set_filepath, save=save,
