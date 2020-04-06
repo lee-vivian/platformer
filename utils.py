@@ -37,16 +37,8 @@ def get_save_directory(dir_name, player_img='block'):
     return save_dir_path
 
 
-def get_save_subdirectory(parent_dir_name, subdir_name, player_img='block'):
-    parent_dir_path = get_save_directory(parent_dir_name, player_img)
-    subdir_path = os.path.join(parent_dir_path, subdir_name)
-    if not os.path.exists(subdir_path):
-        os.makedirs(subdir_path)
-    return subdir_path
-
-
-def get_filepath(file_directory, file_name, file_type):
-    return "%s/%s.%s" % (file_directory, file_name, file_type)
+def get_filepath(directory, file):
+    return os.path.join(directory, file)
 
 
 def read_json(filepath):

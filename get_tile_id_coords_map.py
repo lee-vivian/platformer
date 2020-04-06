@@ -2,7 +2,7 @@ from datetime import datetime
 import argparse
 
 from model.metatile import  Metatile
-from utils import read_pickle, write_pickle, get_save_directory, get_filepath, get_metatile_id
+from utils import read_pickle, write_pickle, get_directory, get_filepath, get_metatile_id
 
 
 def get_tile_id_coords_map(game, level, player_img):
@@ -31,8 +31,8 @@ def get_tile_id_coords_map(game, level, player_img):
         tile_id_coords_map[(metatile_id, extra_stuff)] = coords
 
     # Save tile_id_coords_map
-    tile_id_coords_map_dir = get_save_directory("tile_id_coords_maps", player_img)
-    outfile = get_filepath(tile_id_coords_map_dir, level, "pickle")
+    tile_id_coords_map_dir = get_directory("level_saved_files_%s/tile_id_coords_maps" % player_img)
+    outfile = get_filepath(tile_id_coords_map_dir, "%s.pickle" % level)
     return write_pickle(outfile, tile_id_coords_map)
 
 

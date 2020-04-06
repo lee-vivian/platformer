@@ -176,7 +176,7 @@ def merge_tileset_dicts(combined_tileset_dict, level_tileset_dict):
 
 def main(metatile_id_file, games, levels, player_img, load_saved_files, outfile):
 
-    metatile_constraints_dir = utils.get_save_directory("metatile_constraints", player_img)
+    metatile_constraints_dir = utils.get_directory("level_saved_files_%s/metatile_constraints" % player_img)
     game_level_pairs = zip(games, levels)
 
     start_time = datetime.datetime.now()
