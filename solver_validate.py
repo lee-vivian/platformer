@@ -1,8 +1,9 @@
 import networkx as nx
+import os
 from datetime import datetime
 
 from model.metatile import Metatile
-from utils import get_save_directory, get_filepath, write_pickle, read_pickle
+from utils import get_save_subdirectory, get_node_at_coord
 
 
 '''
@@ -23,18 +24,6 @@ def create_state_graph(tile_id_extra_info_coords_map, id_metatile_map):
     return state_graph
 
 
-def get_node_xy(node):
-    state_dict = eval(node)
-    return state_dict['x'], state_dict['y']
-
-
-def get_node_at_coord(graph, coord):
-    for node in graph.nodes():
-        if get_node_xy(node) == coord:
-            return node
-    return None
-
-
 def get_level_components(level_dictionary, id_metatile_map):
     tile_id_extra_info_coords_map = level_dictionary.get("tile_id_extra_info_coords_map")
     start_coord = level_dictionary.get("start_coord")
@@ -47,26 +36,21 @@ def get_level_components(level_dictionary, id_metatile_map):
     return state_graph, src_node, dest_node
 
 
-def shortest_path_xy(state_graph, src_node, dest_node):
-    shortest_path = nx.shortest_path(state_graph, src_node, dest_node)
-    return [get_node_xy(node) for node in shortest_path]
-
-
 def main(gen_level_dict, id_metatile_map, player_img):
     print("Validating generated levels...")
     start_time = datetime.now()
     invalid_level_count = 0
-
-    generated_levels_paths = get_save_directory("generated_levels_paths", player_img)
+    state_graph_dir = get_save_subdirectory("enumerated_state_graphs", "generated", player_img)
 
     for level_name, level_dictionary in gen_level_dict.items():
+
         state_graph, src_node, dest_node = get_level_components(level_dictionary, id_metatile_map)
         valid_level = nx.has_path(state_graph, src_node, dest_node)
-        if valid_level:
-            shortest_path = shortest_path_xy(state_graph, src_node, dest_node)
-            outfile = get_filepath(generated_levels_paths, level_name, "pickle")
-            write_pickle(outfile, shortest_path)
-            print(read_pickle(outfile))
+
+        if valid_level:  # save state graph
+            state_graph_file = os.path.join(state_graph_dir, level_name + ".gpickle")
+            nx.write_gpickle(state_graph, state_graph_file)
+            print("Saved to:", state_graph_file)
         else:
             print("Invalid level: %s" % level_name)
             invalid_level_count += 1

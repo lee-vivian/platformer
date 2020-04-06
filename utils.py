@@ -1,6 +1,7 @@
 import os
 import json
 import pickle
+import networkx as nx
 
 
 def error_exit(msg):
@@ -24,6 +25,14 @@ def get_save_directory(dir_name, player_img='block'):
         os.makedirs(save_dir_path)
 
     return save_dir_path
+
+
+def get_save_subdirectory(parent_dir_name, subdir_name, player_img='block'):
+    parent_dir_path = get_save_directory(parent_dir_name, player_img)
+    subdir_path = os.path.join(parent_dir_path, subdir_name)
+    if not os.path.exists(subdir_path):
+        os.makedirs(subdir_path)
+    return subdir_path
 
 
 def get_filepath(file_directory, file_name, file_type):
@@ -86,6 +95,22 @@ def metatile_coord_from_state_coord(state_coord, half_player_w, half_player_h, t
 def state_in_metatile(metatile_coord, state_coord, half_player_w, half_player_h, tile_dim):
     return metatile_coord == metatile_coord_from_state_coord(state_coord, half_player_w, half_player_h, tile_dim)
 
+
+def get_node_xy(node):
+    state_dict = eval(node)
+    return state_dict['x'], state_dict['y']
+
+
+def get_node_at_coord(graph, coord):
+    for node in graph.nodes():
+        if get_node_xy(node) == coord:
+            return node
+    return None
+
+
+def shortest_path_xy(state_graph, src_node, dest_node):
+    shortest_path = nx.shortest_path(state_graph, src_node, dest_node)
+    return [get_node_xy(node) for node in shortest_path]
 
 # def state_coord_from_node(state_node):
 #     state_dict = eval(state_node)
