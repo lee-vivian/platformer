@@ -77,14 +77,14 @@ def main(game, level, player_img, level_w, level_h, debug, max_sol, skip_print_a
 
         print("Num Levels Generated: %d" % answer_set_count)
         if validate:
-            solver_validate.validate_generated_levels(gen_level_dict, id_metatile_map)
+            solver_validate.main(gen_level_dict, id_metatile_map, player_img)
         end = datetime.now()
         print("Total Runtime %s" % str(end-start))
 
     except KeyboardInterrupt:
         print("Num Levels Generated: %d" % answer_set_count)
         if validate:
-            solver_validate.validate_generated_levels(gen_level_dict, id_metatile_map)
+            solver_validate.main(gen_level_dict, id_metatile_map, player_img)
         end = datetime.now()
         print("Total Runtime %s" % str(end - start))
         exit(0)
