@@ -41,7 +41,6 @@ def main(game_name, level_name, player_img):
             print(' ' * 10, '->', ','.join(state_graph.edges[edge]["action"]), '->', edge[1])
 
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Extract metatiles for the given level')
     parser.add_argument('game', type=str, help='Name of the game')

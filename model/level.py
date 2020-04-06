@@ -52,18 +52,17 @@ class Level:
         return level_w, level_h
 
     @staticmethod
-    def generate_level_from_file(game, level, filepath=None):
+    def generate_level_from_file(game, level):
 
-        add_border_tiles = False  # generated levels from solver already include border tiles
-        if filepath is None:
-            filepath = "level_structural_layers/%s/%s.txt" % (game, level)
-            add_border_tiles = True
+        add_border_tiles = game != "generated"  # generated levels from solver already include border tiles
+        filepath = "level_structural_layers/%s/%s.txt" % (game, level)
 
         level_width = 0
         level_height = 0
         platform_coords = []
         goal_coords = []
         start_coord = None
+
         f = open(filepath, 'r')
 
         for cur_line in f:

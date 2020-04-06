@@ -38,14 +38,11 @@ def get_metatile_labels_at_coords(coords, tile_id, extra_info, label_font, font_
     return new_labels
 
 
-def setup_metatile_labels(level, player_img, draw_all_labels, draw_dup_labels, generated_level_filepath):
+def setup_metatile_labels(level, player_img, draw_all_labels, draw_dup_labels):
     metatile_labels = []
     font_color = (255, 255, 100)
     label_padding = (8, 12)
     label_font = pygame.font.SysFont('Comic Sans MS', 20)
-
-    if generated_level_filepath is not None:
-        level = os.path.basename(generated_level_filepath).split(".txt")[0]
 
     tile_id_coords_map_filepath = "level_saved_files_%s/tile_id_coords_maps/%s.pickle" % (player_img, level)
     tile_id_coords_map = read_pickle(tile_id_coords_map_filepath)
@@ -59,17 +56,20 @@ def setup_metatile_labels(level, player_img, draw_all_labels, draw_dup_labels, g
     return metatile_labels, font_color, label_padding
 
 
-def main(game, level, player_img, generated_level_filepath, use_graph, draw_all_labels, draw_dup_labels):
+def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels):
 
     # Create the Level
-    level_obj = Level.generate_level_from_file(game, level, filepath=generated_level_filepath)
+    level_obj = Level.generate_level_from_file(game, level)
 
     # Level saved files
-    level_saved_files_dir = "level_saved_files_%s/" % player_img
-    state_graph_file = level_saved_files_dir + "enumerated_state_graphs/%s/%s.gpickle" % (game, level)
+    state_graph_file = "level_saved_files_%s/enumerated_state_graphs/%s/%s.gpickle" % (player_img, game, level)
 
-    state_graph = None if not use_graph else nx.read_gpickle(state_graph_file)
-    edge_actions_dict = None if not use_graph else nx.get_edge_attributes(state_graph, 'action')
+    if use_graph and os.path.exists(state_graph_file):
+        state_graph = nx.read_gpickle(state_graph_file)
+    else:
+        state_graph = None
+
+    edge_actions_dict = None if state_graph is None else nx.get_edge_attributes(state_graph, 'action')
 
     # Background
     FPS = 40  # frame rate
@@ -102,7 +102,7 @@ def main(game, level, player_img, generated_level_filepath, use_graph, draw_all_
     # Setup drawing metatile labels
     if draw_all_labels or draw_dup_labels:
         metatile_labels, font_color, label_padding = \
-            setup_metatile_labels(level, player_img, draw_all_labels, draw_dup_labels, generated_level_filepath)
+            setup_metatile_labels(level, player_img, draw_all_labels, draw_dup_labels)
 
     # Input handling
     input_handler = Inputs()
@@ -168,11 +168,9 @@ if __name__ == "__main__":
     parser.add_argument('game', type=str, help='The game to play')
     parser.add_argument('level', type=str, help='The game level to play')
     parser.add_argument('--player_img', type=str, help='Player image', default='block')
-    parser.add_argument('--generated_level_filepath', type=str, help='Generated level structural txt filepath', default=None)
     parser.add_argument('--use_graph', const=True, nargs='?', type=bool, help='Use the level enumerated state graph', default=False)
     parser.add_argument('--draw_all_labels', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_dup_labels', const=True, nargs='?', type=bool, default=False)
     args = parser.parse_args()
 
-    main(args.game, args.level, args.player_img, args.generated_level_filepath, args.use_graph, args.draw_all_labels,
-         args.draw_dup_labels)
+    main(args.game, args.level, args.player_img, args.use_graph, args.draw_all_labels, args.draw_dup_labels)
