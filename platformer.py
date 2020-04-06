@@ -65,8 +65,10 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels):
     state_graph_file = "level_saved_files_%s/enumerated_state_graphs/%s/%s.gpickle" % (player_img, game, level)
 
     if use_graph and os.path.exists(state_graph_file):
+        print("***** USING ENUMERATED STATE GRAPH *****")
         state_graph = nx.read_gpickle(state_graph_file)
     else:
+        print("***** USING MANUAL CONTROLS *****")
         state_graph = None
 
     edge_actions_dict = None if state_graph is None else nx.get_edge_attributes(state_graph, 'action')

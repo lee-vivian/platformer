@@ -41,7 +41,7 @@ def main(gen_level_dict, id_metatile_map, player_img):
     start_time = datetime.now()
     invalid_level_count = 0
 
-    state_graph_dir = get_directory("level_saved_files_%s/enumerated_state_graphs/generated" % player_img)
+    state_graph_dir = get_directory("level_saved_files_%s/generated_state_graphs" % player_img)
 
     for level_name, level_dictionary in gen_level_dict.items():
 
