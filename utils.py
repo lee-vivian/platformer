@@ -14,6 +14,16 @@ def check_path_exists(filepath):
         error_exit("Missing file: %s" % filepath)
 
 
+def get_directory(path):
+    directories = path.split("/")
+    cur_dir = None
+    for i in range(len(directories)):  # 0, 1, 2
+        cur_dir = "/".join(directories[0:i+1])
+        if not os.path.exists(cur_dir):
+            os.makedirs(cur_dir)
+    return cur_dir
+
+
 def get_save_directory(dir_name, player_img='block'):
 
     level_saved_files_dir = "level_saved_files_%s" % player_img

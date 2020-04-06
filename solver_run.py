@@ -18,7 +18,7 @@ def main(game, level, player_img, level_w, level_h, debug, max_sol, skip_print_a
                                                save=False).get("id_metatile_map")
 
     # Create new directory for generated levels
-    generated_levels_dir = utils.get_save_directory("generated_levels", player_img)
+    generated_levels_dir = utils.get_directory("level_structural_layers/generated")
 
     # Get command to run clingo solver
     clingo_cmd = "clingo %d %s " % (max_sol, prolog_dictionary.get("filepath"))
