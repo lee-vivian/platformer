@@ -16,7 +16,7 @@ from view.tile import Tile
 from view.camera import Camera
 from model.level import TILE_DIM, MAX_WIDTH, MAX_HEIGHT
 from model.level import Level
-from utils import read_pickle
+from utils import read_pickle, error_exit, shortest_path_xy
 
 # game specifics
 if os.getenv('MAZE'):
@@ -56,13 +56,18 @@ def setup_metatile_labels(level, player_img, draw_all_labels, draw_dup_labels):
     return metatile_labels, font_color, label_padding
 
 
-def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels):
+def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path):
 
     # Create the Level
     level_obj = Level.generate_level_from_file(game, level)
 
     # Level saved files
     state_graph_file = "level_saved_files_%s/enumerated_state_graphs/%s/%s.gpickle" % (player_img, game, level)
+
+    if game == "generated":
+        generated_state_graph_file = "level_saved_files_%s/generated_state_graphs/%s.gpickle" % (player_img, level)
+    else:
+        generated_state_graph_file = None
 
     if use_graph and os.path.exists(state_graph_file):
         print("***** USING ENUMERATED STATE GRAPH *****")
@@ -105,6 +110,20 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels):
     if draw_all_labels or draw_dup_labels:
         metatile_labels, font_color, label_padding = \
             setup_metatile_labels(level, player_img, draw_all_labels, draw_dup_labels)
+
+    # Setup drawing solution path
+    if draw_path:
+        path_font_color = (48, 179, 55)
+        graph = None
+        path_coords = None
+        if os.path.exists(state_graph_file):
+            graph = nx.read_gpickle(state_graph_file)
+        elif generated_state_graph_file is not None and os.path.exists(generated_state_graph_file):
+            graph = nx.read_gpickle(generated_state_graph_file)
+        if graph is None:
+            error_exit("No state graph available to draw solution path")
+        else:
+            path_coords = shortest_path_xy(graph)
 
     # Input handling
     input_handler = Inputs()
@@ -160,6 +179,12 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels):
                 label_x, label_y = camera.apply_to_coord((label_x, label_y))
                 world.blit(surface, (label_x + label_padding[0], label_y + label_padding[1]))
 
+        if draw_path:
+            for coord in path_coords:
+                path_component = pygame.Rect(coord[0], coord[1], 2, 2)
+                path_component = camera.apply_to_rect(path_component)
+                pygame.draw.rect(world, path_font_color, path_component, 1)
+
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -173,6 +198,7 @@ if __name__ == "__main__":
     parser.add_argument('--use_graph', const=True, nargs='?', type=bool, help='Use the level enumerated state graph', default=False)
     parser.add_argument('--draw_all_labels', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_dup_labels', const=True, nargs='?', type=bool, default=False)
+    parser.add_argument('--draw_path', const=True, nargs='?', type=bool, default=False)
     args = parser.parse_args()
 
-    main(args.game, args.level, args.player_img, args.use_graph, args.draw_all_labels, args.draw_dup_labels)
+    main(args.game, args.level, args.player_img, args.use_graph, args.draw_all_labels, args.draw_dup_labels, args.draw_path)

@@ -18,7 +18,7 @@ import argparse
 import utils
 
 
-def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_dup_labels,
+def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path,
          enumerate, extract_metatiles, get_metatile_id_map, get_tile_id_coords_map, get_states_per_metatile, process_all):
 
     if environment == 'maze':
@@ -53,7 +53,7 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
 
     else:
         import platformer
-        platformer.main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels)
+        platformer.main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path)
 
 
 if __name__ == "__main__":
@@ -94,6 +94,7 @@ if __name__ == "__main__":
     parser.add_argument('--use_graph', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_all_labels', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_dup_labels', const=True, nargs='?', type=bool, default=False)
+    parser.add_argument('--draw_path', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--enumerate', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--extract_metatiles', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--get_metatile_id_map', const=True, nargs='?', type=bool, default=False)
@@ -105,6 +106,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args.environment, args.game, args.level, args.player_img,
-         args.use_graph, args.draw_all_labels, args.draw_dup_labels,
+         args.use_graph, args.draw_all_labels, args.draw_dup_labels, args.draw_path,
          args.enumerate, args.extract_metatiles, args.get_metatile_id_map, args.get_tile_id_coords_map,
          args.get_states_per_metatile, args.process_all)

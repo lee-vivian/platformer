@@ -110,28 +110,23 @@ def get_node_at_coord(graph, coord):
     return None
 
 
-def shortest_path_xy(state_graph, src_node, dest_node):
-    shortest_path = nx.shortest_path(state_graph, src_node, dest_node)
-    return [get_node_xy(node) for node in shortest_path]
+def get_start_and_goal_states(state_graph):
+    start_states = []
+    goal_states = []
+    for node in state_graph.nodes():
+        state_dict = eval(node)
+        if state_dict.get("is_start"):
+            start_states.append(node)
+        elif state_dict.get("goal_reached"):
+            goal_states.append(node)
+    return start_states, goal_states
 
-# def state_coord_from_node(state_node):
-#     state_dict = eval(state_node)
-#     return state_dict['x'], state_dict['y']
-#
-#
-# # return edges where the dest node is outside of the start node's metatile
-# def get_edges_with_external_links(metatile_graph, half_player_w=20, half_player_h=20, tile_dim=40):
-#
-#     external_edges = []
-#     for edge in metatile_graph.edges():
-#         src_node = edge[0]
-#         src_state_coord = state_coord_from_node(src_node)
-#         dest_node = edge[1]
-#         dest_state_coord = state_coord_from_node(dest_node)
-#
-#         src_metatile_coord = metatile_coord_from_state_coord(src_state_coord, half_player_w, half_player_h, tile_dim)
-#
-#         if not state_in_metatile(src_metatile_coord, dest_state_coord, half_player_w, half_player_h, tile_dim):
-#             external_edges.append(edge)
-#
-#     return external_edges
+
+def shortest_path_xy(state_graph):
+    start_states, goal_states = get_start_and_goal_states(state_graph)
+    for src in start_states:
+        for dest in goal_states:
+            if nx.has_path(state_graph, src, dest):
+                shortest_path = nx.shortest_path(state_graph, src, dest)
+                return [get_node_xy(node) for node in shortest_path]
+    return None
