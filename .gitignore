@@ -1,7 +1,7 @@
 *__pycache__*
 venv/
 *level_saved_files_*
-level_structural_layers/
+level_structural_layers/generated/
 level_screenshots/
 level_solution_paths/
 solver_console_output/
