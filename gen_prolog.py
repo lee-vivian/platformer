@@ -11,7 +11,7 @@ import utils
 # - WFC in ASP implementation: based on Karth, I., & Smith, A. M. (2017). WaveFunctionCollapse is constraint solving in the wild. Proceedings of the 12th International Conference on the Foundations of Digital Games, 68. ACM.
 
 
-def main(game, level, player_img, level_width, level_height, debug, print_pl):
+def main(game, level, player_img, level_width, level_height, debug, print_pl, min_perc_blocks):
 
     print("Generating prolog file for level: %s ..." % level)
 
@@ -161,6 +161,12 @@ def main(game, level, player_img, level_width, level_height, debug, print_pl):
     # Limit number of start tiles
     prolog_statements += "limit(%s, 1, 1).\n" % start_tile_id
 
+    if min_perc_blocks is not None:
+        # Limit number of block tiles
+        total_tiles = int(level_width * level_height)
+        prolog_statements += "limit(%s, %d, %d).\n" % (block_tile_id, int(min_perc_blocks / 100 * total_tiles), total_tiles)
+        print("limit(%s, %d, %d).\n" % (block_tile_id, int(min_perc_blocks / 100 * total_tiles), total_tiles))
+
     # ASP WFC algorithm rule
     wfc_rule = ":- adj(X1,Y1,X2,Y2,DX,DY), assignment(X1,Y1,MT1), not 1 { assignment(X2,Y2,MT2) : legal(DX,DY,MT1,MT2) }."
     prolog_statements += wfc_rule + "\n"
@@ -196,6 +202,7 @@ if __name__ == "__main__":
     parser.add_argument('--level_height', type=int, help='Number of tiles in a column', default=None)
     parser.add_argument('--debug', const=True, nargs='?', type=bool, help='Allow blank tiles if no suitable assignment can be found', default=False)
     parser.add_argument('--print_pl', const=True, nargs='?', type=bool, help='Print prolog statements to console', default=False)
+    parser.add_argument('--min_perc_blocks', type=int, help='Percent number of block tiles in a level', default=None)
     args = parser.parse_args()
 
-    main(args.game, args.level, args.player_img, args.level_width, args.level_height, args.debug, args.print_pl)
+    main(args.game, args.level, args.player_img, args.level_width, args.level_height, args.debug, args.print_pl, args.min_perc_blocks)
