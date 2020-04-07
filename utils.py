@@ -124,9 +124,17 @@ def get_start_and_goal_states(state_graph):
 
 def shortest_path_xy(state_graph):
     start_states, goal_states = get_start_and_goal_states(state_graph)
+
+    if len(start_states) < 1:
+        error_exit("No start states found in state graph")
+
+    if len(goal_states) < 1:
+        error_exit("No goal states found in state graph")
+
     for src in start_states:
         for dest in goal_states:
             if nx.has_path(state_graph, src, dest):
                 shortest_path = nx.shortest_path(state_graph, src, dest)
                 return [get_node_xy(node) for node in shortest_path]
-    return None
+
+    error_exit("No solution path found in state graph")
