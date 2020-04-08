@@ -35,9 +35,10 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
             import enumerate
             state_graph_file = enumerate.main(game, level, player_img)
 
-        if process_all or extract_metatiles:
+        if process_all or (enumerate and extract_metatiles):
             import extract_metatiles
-            extract_metatiles.main(game, level, player_img, print_stats=True)
+            extract_metatiles.main(save_filename=level, player_img=player_img, print_stats=False,
+                                   state_graph_files=[state_graph_file])
 
         if process_all or get_metatile_id_map:
             import get_metatile_id_map

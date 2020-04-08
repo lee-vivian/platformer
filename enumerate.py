@@ -6,6 +6,7 @@ Enumerate the state space of a level
 
 import os
 import networkx as nx
+import re
 import datetime
 import argparse
 
@@ -27,8 +28,19 @@ else:
 
 def get_state_graph_file(game_name, level_name, player_img):
     game_state_graph_directory = "level_saved_files_%s/enumerated_state_graphs/%s" % (player_img, game_name)
-    state_graph_file = get_filepath(game_state_graph_directory, "%s.gpickle" % level_name)
+    save_filename = "%s.gpickle" % level_name
+    state_graph_file = get_filepath(game_state_graph_directory, save_filename)
     return state_graph_file
+
+
+def parse_state_graph_filename(state_graph_file):
+    match = re.match(r'level_saved_files_[^/]+/enumerated_state_graphs/([^/]+)/([a-zA-Z0-9_-]+).gpickle', state_graph_file)
+    game = match.group(1)
+    level = match.group(2)
+    return {
+        "game": game,
+        "level": level
+    }
 
 
 def get_action_set():

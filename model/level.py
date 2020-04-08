@@ -16,8 +16,8 @@ class Level:
 
     def __init__(self, name, width, height, platform_coords, goal_coords, start_coord):
         self.name = name
-        self.width = width
-        self.height = height
+        self.width = width  # in px
+        self.height = height  # in px
         self.platform_coords = platform_coords
         self.goal_coords = goal_coords
         self.start_coord = start_coord
@@ -38,11 +38,7 @@ class Level:
         return self.start_coord
 
     def get_all_possible_coords(self):
-        coords = []
-        for x in range(int(self.width / TILE_DIM)):
-            for y in range(int(self.height / TILE_DIM)):
-                coords.append((x * TILE_DIM, y * TILE_DIM))
-        return coords
+        return Level.all_possible_coords(self.width, self.height)
 
     @staticmethod
     def get_level_dimensions_in_tiles(game, level):
@@ -50,6 +46,14 @@ class Level:
         level_w = int(level_obj.get_width() / TILE_DIM)
         level_h = int(level_obj.get_height() / TILE_DIM)
         return level_w, level_h
+
+    @staticmethod
+    def all_possible_coords(level_w, level_h):  # level_w and level_h in px
+        coords = []
+        for x in range(int(level_w / TILE_DIM)):
+            for y in range(int(level_h / TILE_DIM)):
+                coords.append((x * TILE_DIM, y * TILE_DIM))
+        return coords
 
     @staticmethod
     def generate_level_from_file(game, level):

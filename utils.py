@@ -73,6 +73,13 @@ def all_equal(list):
     return all(i == list[0] for i in list)
 
 
+def list_to_dict(list):
+    dictionary = {}
+    for item in list:
+        dictionary[item] = 1
+    return dictionary
+
+
 def get_metatile_id(metatile_to_find, metatile_id_map):
     from model.metatile import Metatile
     for metatile_str, metatile_id in metatile_id_map.items():
