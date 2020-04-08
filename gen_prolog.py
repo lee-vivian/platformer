@@ -11,7 +11,7 @@ import utils
 # - WFC in ASP implementation: based on Karth, I., & Smith, A. M. (2017). WaveFunctionCollapse is constraint solving in the wild. Proceedings of the 12th International Conference on the Foundations of Digital Games, 68. ACM.
 
 
-def main(game, level, player_img, level_width, level_height, debug, print_pl, min_perc_blocks):
+def main(game, level, player_img, level_width, level_height, debug, print_pl, min_perc_blocks, start_bottom_left):
 
     print("Generating prolog file for level: %s ..." % level)
 
@@ -151,6 +151,11 @@ def main(game, level, player_img, level_width, level_height, debug, print_pl, mi
         block_tile_assignment = "assignment(%d, %d, %s)." % (x, y, block_tile_id)
         prolog_statements += block_tile_assignment + "\n"
 
+    # Set start tile to be on the bottom left
+    if start_bottom_left:
+        start_tile_assignment = "assignment(%d, %d, %s)." % (1, level_height-2, start_tile_id)
+        prolog_statements += start_tile_assignment
+
     # Limit number of tiles of specified tile id
     limit_tile_type_rule = "MIN { assignment(X,Y,MT) : metatile(MT), tile(X,Y) } MAX :- limit(MT, MIN, MAX)."
     prolog_statements += limit_tile_type_rule + "\n"
@@ -203,6 +208,8 @@ if __name__ == "__main__":
     parser.add_argument('--debug', const=True, nargs='?', type=bool, help='Allow blank tiles if no suitable assignment can be found', default=False)
     parser.add_argument('--print_pl', const=True, nargs='?', type=bool, help='Print prolog statements to console', default=False)
     parser.add_argument('--min_perc_blocks', type=int, help='Percent number of block tiles in a level', default=None)
+    parser.add_argument('--start_bottom_left', const=True, nargs='?', type=bool, default=False)
     args = parser.parse_args()
 
-    main(args.game, args.level, args.player_img, args.level_width, args.level_height, args.debug, args.print_pl, args.min_perc_blocks)
+    main(args.game, args.level, args.player_img, args.level_width, args.level_height, args.debug, args.print_pl,
+         args.min_perc_blocks, args.start_bottom_left)

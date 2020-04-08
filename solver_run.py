@@ -8,12 +8,13 @@ import gen_prolog, solver_process, solver_validate
 import utils
 
 
-def main(game, level, player_img, level_w, level_h, min_perc_blocks, debug, max_sol, skip_print_answers,
-         print_tiles_per_level, save, validate):
+def main(game, level, player_img, level_w, level_h, debug, min_perc_blocks, start_bottom_left, max_sol,
+         skip_print_answers, print_tiles_per_level, save, validate):
 
     # Generate prolog file for level and return prolog dictionary
-    prolog_dictionary = gen_prolog.main(game, level, player_img, level_w, level_h, debug,
-                                        print_pl=False, min_perc_blocks=min_perc_blocks)
+    prolog_dictionary = gen_prolog.main(game, level, player_img, level_w, level_h,
+                                        debug=debug, print_pl=False, min_perc_blocks=min_perc_blocks,
+                                        start_bottom_left=start_bottom_left)
 
     # Get id_metatile map for level
     id_metatile_map = get_metatile_id_map.main([game], [level], player_img, outfile=None,
@@ -128,8 +129,9 @@ if __name__ == "__main__":
     parser.add_argument('--player_img', type=str, help='Player image', default='block')
     parser.add_argument('--level_w', type=int, help='Number of tiles in a row', default=None)
     parser.add_argument('--level_h', type=int, help='Number of tiles in a column', default=None)
-    parser.add_argument('--min_perc_blocks', type=int, help='Percent number of block tiles in a level', default=None)
     parser.add_argument('--debug', const=True, nargs='?', type=bool, help='Allow blank tiles if no suitable assignment can be found', default=False)
+    parser.add_argument('--min_perc_blocks', type=int, help='Percent number of block tiles in a level', default=None)
+    parser.add_argument('--start_bottom_left', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--max_sol', type=int, help='Maximum number of solutions to solve for; 0 = all', default=0)
     parser.add_argument('--skip_print_answers', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--print_tiles_per_level', const=True, nargs='?', type=bool, default=False)
@@ -138,5 +140,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     main(args.game, args.level, args.player_img, args.level_w, args.level_h,
-         args.min_perc_blocks, args.debug, args.max_sol, args.skip_print_answers,
-         args.print_tiles_per_level, args.save, args.validate)
+         args.debug, args.min_perc_blocks, args.start_bottom_left,
+         args.max_sol, args.skip_print_answers, args.print_tiles_per_level, args.save, args.validate)
