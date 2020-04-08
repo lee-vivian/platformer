@@ -24,21 +24,9 @@ def get_directory(path):
     return cur_dir
 
 
-def get_save_directory(dir_name, player_img='block'):
-
-    level_saved_files_dir = "level_saved_files_%s" % player_img
-    if not os.path.exists(level_saved_files_dir):
-        os.makedirs(level_saved_files_dir)
-
-    save_dir_path = os.path.join(level_saved_files_dir, dir_name)
-    if not os.path.exists(save_dir_path):
-        os.makedirs(save_dir_path)
-
-    return save_dir_path
-
-
 def get_filepath(directory, file):
-    return os.path.join(directory, file)
+    dir = get_directory(directory)
+    return os.path.join(dir, file)
 
 
 def read_json(filepath):

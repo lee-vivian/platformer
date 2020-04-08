@@ -10,6 +10,7 @@ import datetime
 import argparse
 
 from model.level import Level
+from utils import get_filepath
 
 # game specifics
 if os.getenv('MAZE'):
@@ -24,19 +25,9 @@ else:
     from model_platformer.action import ActionPlatformer as Action
 
 
-
 def get_state_graph_file(game_name, level_name, player_img):
-
-    level_saved_files_dir = "level_saved_files_%s/" % player_img
-    enumerated_state_graphs_dir = level_saved_files_dir + "enumerated_state_graphs/"
-    game_enumerated_state_graphs_dir = enumerated_state_graphs_dir + game_name + "/"
-    saved_files_directories = [level_saved_files_dir, enumerated_state_graphs_dir, game_enumerated_state_graphs_dir]
-
-    for directory in saved_files_directories:
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-
-    state_graph_file = game_enumerated_state_graphs_dir + str(level_name) + ".gpickle"
+    game_state_graph_directory = "level_saved_files_%s/enumerated_state_graphs/%s" % (player_img, game_name)
+    state_graph_file = get_filepath(game_state_graph_directory, "%s.gpickle" % level_name)
     return state_graph_file
 
 
@@ -91,6 +82,7 @@ def main(game_name, level_name, player_img):
 
     end_time = datetime.datetime.now()
     print("Runtime: ", end_time - start_time, "\n")
+    return state_graph_file
 
 
 if __name__ == "__main__":

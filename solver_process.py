@@ -36,8 +36,9 @@ Create {(tile_id, extra_info): list-of-coords} map for generated level
 
 
 def create_tile_id_coords_map(assignments_dict, answer_set_filename, player_img, save):
-    tile_id_coords_map_dir = utils.get_directory("level_saved_files_%s/tile_id_coords_maps" % player_img)
-    outfile = utils.get_filepath(tile_id_coords_map_dir, "%s.pickle" % answer_set_filename)
+
+    level_saved_files_dir = "level_saved_files_%s/" % player_img
+    outfile = utils.get_filepath(level_saved_files_dir + "tile_id_coords_maps", "%s.pickle" % answer_set_filename)
 
     tile_id_coords_map = {}
     for tile_coord, tile_id in assignments_dict.items():  # {(tile_x, tile_y): tile_id}

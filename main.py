@@ -33,7 +33,7 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
 
         if process_all or enumerate:
             import enumerate
-            enumerate.main(game, level, player_img)
+            state_graph_file = enumerate.main(game, level, player_img)
 
         if process_all or extract_metatiles:
             import extract_metatiles
@@ -58,33 +58,28 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
 
 if __name__ == "__main__":
 
-    # import networkx as nx
-    # from get_states_per_metatile import print_level_stats
-    #
     # GAME_LEVEL_PAIRS = [
-    #     ('sample', 'sample_mini'),
-    #     ('sample', 'sample_small'),
-    #     ('sample', 'sample_medium'),
-    #     ('sample', 'sample_medium2')
-    # ]
-    #
-    # for game, level in GAME_LEVEL_PAIRS:
-    #     state_graph_filepath = "level_saved_files_block/enumerated_state_graphs/%s/%s.gpickle" % (game, level)
-    #     state_graph = nx.read_gpickle(state_graph_filepath)
-    #     print("LEVEL: ", level)
-    #     print("Num nodes: ", len(state_graph.nodes()))
-    #     print("Num edges: ", len(state_graph.edges()))
-    #     print_level_stats(level)
-    #     print("------------------------\n")
-
-    # GAME_LEVEL_PAIRS = [
-    #     ('sample', 'sample_mini'),
-    #     ('sample', 'sample_hallway'),
-    #     ('sample', 'sample_hallway_flat'),
     #     ('super_mario_bros', 'mario-1-1'),
     #     ('super_mario_bros', 'mario-2-1'),
+    #     ('super_mario_bros', 'mario-3-1'),
+    #     ('super_mario_bros', 'mario-3-2'),
+    #     ('super_mario_bros', 'mario-4-1'),
+    #     ('super_mario_bros', 'mario-5-1'),
+    #     ('super_mario_bros', 'mario-5-2'),
+    #     ('super_mario_bros', 'mario-6-1'),
+    #     ('super_mario_bros', 'mario-6-2'),
+    #     ('super_mario_bros', 'mario-7-1'),
+    #     ('super_mario_bros', 'mario-8-1'),
+    #     ('super_mario_bros', 'mario-8-2'),
+    #     ('super_mario_bros', 'mario-8-3'),
     #     ('kid_icarus', 'kidicarus_1')
     # ]
+
+    # for game, level in GAME_LEVEL_PAIRS:
+    #     main("platformer", game, level, player_img="block", use_graph=False, draw_all_labels=False, draw_dup_labels=False,
+    #          draw_path=False, enumerate=False, extract_metatiles=False, get_metatile_id_map=False, get_tile_id_coords_map=False,
+    #          get_states_per_metatile=False, process_all=True)
+    # exit(0)
 
     parser = argparse.ArgumentParser(description='Process or play a level')
     parser.add_argument('environment', type=str, help='platformer or maze')

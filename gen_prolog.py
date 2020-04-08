@@ -26,16 +26,15 @@ def main(game, level, player_img, level_width, level_height, debug, print_pl, mi
     print("Gen dimensions (%d, %d)" % (level_width, level_height))
 
     # Setup save file directory
-    level_prolog_dir = utils.get_directory("level_saved_files_%s/level_prolog_files" % player_img)
-    outfile_name = "%s_%d_%d" % (level, level_width, level_height)
-    outfile_path = utils.get_filepath(level_prolog_dir, "%s.pl" % outfile_name)
+    level_saved_files_dir = "level_saved_files_%s/" % player_img
+    outfile_name = "%s_%d_%d.pl" % (level, level_width, level_height)
+    outfile_path = utils.get_filepath(level_saved_files_dir + "level_prolog_files", outfile_name)
 
     # Get training level unique metatiles
     metatiles = Metatile.get_unique_metatiles_for_level(game, level, player_img)
 
     # Get training level tileset constraints dictionary
-    metatile_id_map_dir = utils.get_directory("level_saved_files_%s/metatile_id_maps" % player_img)
-    metatile_id_map_file = utils.get_filepath(metatile_id_map_dir, "%s.pickle" % level)
+    metatile_id_map_file = utils.get_filepath(level_saved_files_dir + "metatile_id_maps", "%s.pickle" % level)
     tileset_dict = extract_constraints.get_tileset_dict(metatile_id_map_file, game, level, player_img)
     tile_constraints_dict = tileset_dict.get("tiles")
 
