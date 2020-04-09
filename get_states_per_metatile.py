@@ -1,106 +1,64 @@
-'''
+"""
 Returns a map of the states associated with each metatile for a given level {metatile_str : {state_coord: 1}}
-'''
+"""
 
 import argparse
 import networkx as nx
-import os
+from datetime import datetime
 
-from model.metatile import Metatile
-import utils
-
-
-def get_metatile_num_states_dir(player_img):
-    directory = "level_saved_files_%s/metatile_num_states/" % player_img
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    return directory
+from utils import read_pickle, write_pickle, get_filepath
 
 
-def get_unique_metatile_strs(game, level, player_img):
-    filepath = "level_saved_files_%s/metatile_coords_dicts/%s/%s.pickle" % (player_img, game, level)
-    metatile_coords_dict = utils.read_pickle(filepath)
-    return list(metatile_coords_dict.keys())
+def get_metatile_num_states_stats(metatile_num_states_dict):
+    total_metatile_count = 0
+    total_state_count = 0
+    max_states_per_metatile = 0
+
+    for metatile, num_states in metatile_num_states_dict.items():
+        total_metatile_count += 1
+        total_state_count += num_states
+        max_states_per_metatile = max(max_states_per_metatile, num_states)
+
+    stats = "Num metatiles: %d\n" % total_metatile_count
+    stats += "Num states: %d\n" % total_state_count
+    stats += "Max states per metatile: %d\n" % max_states_per_metatile
+    stats += "Avg states per metatile: %d\n" % int(total_state_count / total_metatile_count)
+    return stats
 
 
-def get_metatile_num_states_dict_from_strs(metatile_strs):
+def main(save_filename, unique_metatiles_file, player_img, print_stats):
+
+    print("Calculating states per metatile stats for the given unique_metatiles_file: %s" % unique_metatiles_file)
+    start_time = datetime.now()
+
+    save_directory = "level_saved_files_%s/metatile_num_states_dicts/" % player_img
+    save_file = "%s.pickle" % save_filename
+    metatile_num_states_dict_file = get_filepath(save_directory, save_file)
+
+    unique_metatiles = read_pickle(unique_metatiles_file)
     metatile_num_states_dict = {}
-    for m in metatile_strs:
-        metatile = Metatile.from_str(m)
+
+    for metatile in unique_metatiles:
+        metatile_str = metatile.to_str()
         metatile_graph = nx.DiGraph(metatile.graph_as_dict)
         num_states = len(metatile_graph.nodes())
-        metatile_num_states_dict[m] = num_states
-    return metatile_num_states_dict
-
-
-def get_metatile_num_states_dict_from_metatiles(metatiles):
-    metatile_num_states_dict = {}
-    for m in metatiles:
-        metatile_str = Metatile.to_str(m)
-        metatile_graph = nx.DiGraph(m.graph_as_dict)
-        num_states = len(metatile_graph.nodes())
         metatile_num_states_dict[metatile_str] = num_states
-    return metatile_num_states_dict
 
+    write_pickle(metatile_num_states_dict_file, metatile_num_states_dict)
 
-def print_level_stats(level):
-    metatile_num_states_file = "level_saved_files_block/metatile_num_states/%s.json" % level
-    metatile_num_states_dict = utils.read_json(metatile_num_states_file)
-    metatile_count = 0
-    total_states = 0
-    max_states_per_metatile = 0
-    for metatile, num_states in metatile_num_states_dict.items():
-        metatile_count += 1
-        total_states += num_states
-        max_states_per_metatile = max(max_states_per_metatile, num_states)
-    print("Level: %s" % level)
-    print("Total states: %d" % total_states)
-    print("Max states per metatile: %d" % max_states_per_metatile)
-    print("Avg states per metatile: %d" % int(total_states / metatile_count))
+    end_time = datetime.now()
+    print("Runtime: %s" % str(end_time-start_time))
 
-
-def main(games, levels, player_img, merge, outfile):
-
-    if len(games) != len(levels):
-            utils.error_exit("Given number of games must equal the given number of levels")
-    elif len(levels) == 0:
-        utils.error_exit("No levels specified")
-
-    metatile_num_states_dir = get_metatile_num_states_dir(player_img)
-
-    if not merge:
-        for game, level in zip(games, levels):
-            print("Counting states per metatile for level %s" % level)
-            unique_metatile_strs = get_unique_metatile_strs(game, level, player_img)
-            metatile_num_states_dict = get_metatile_num_states_dict_from_strs(unique_metatile_strs)
-            outfile_path = os.path.join(metatile_num_states_dir, "%s.json" % level)
-            utils.write_json(outfile_path, metatile_num_states_dict)
-    else:
-        print("Counting states per metatile for levels: %s" % str(levels))
-        all_metatiles = []
-        for game, level in zip(games, levels):
-            level_unique_metatile_strs = get_unique_metatile_strs(game, level, player_img)
-            all_metatiles += [Metatile.from_str(s) for s in level_unique_metatile_strs]
-        unique_metatiles = Metatile.get_unique_metatiles(all_metatiles)
-        metatile_num_states_dict = get_metatile_num_states_dict_from_metatiles(unique_metatiles)
-        outfile_name = '_'.join(levels) if outfile is None else outfile
-        outfile_path = os.path.join(metatile_num_states_dir, "%s.json" % outfile_name)
-        utils.write_json(outfile_path, metatile_num_states_dict)
+    if print_stats:
+        print(get_metatile_num_states_stats(metatile_num_states_dict))
 
 
 if __name__ == "__main__":
-    # games = ['sample', 'sample', 'sample', 'super_mario_bros', 'super_mario_bros', 'kid_icarus']
-    # levels = ['sample_mini', 'sample_hallway', 'sample_hallway_flat', 'mario-1-1', 'mario-2-1', 'kidicarus_1']
-    #
-    # main(games, levels, 'block', merge=False, outfile=None)  # individual levels
-    # main(games, levels, 'block', merge=True, outfile='all_levels')  # merge levels
-
-    parser = argparse.ArgumentParser(description='Get number of states per metatile')
-    parser.add_argument('--games', type=str, nargs="+", help='Name of the games')
-    parser.add_argument('--levels', type=str, nargs="+", help='Name of the levels')
+    parser = argparse.ArgumentParser(description='Get number of states per metatile from the unique_metatiles file')
+    parser.add_argument('save_filename', type=str, help='File name to save extracted info to')
+    parser.add_argument('unique_metatiles_file', type=str, help='File path of the unique_metatiles file to use')
     parser.add_argument('--player_img', type=str, help='Player image', default='block')
-    parser.add_argument('--merge', type=bool, help='Merge level metatile results', default=False)
-    parser.add_argument('--outfile', type=str, help='Outfile name if merging level metatiles', default=None)
+    parser.add_argument('--print_stats', const=True, nargs='?', type=bool, default=False)
     args = parser.parse_args()
 
-    main(args.games, args.levels, args.player_img, args.merge, args.outfile)
+    main(args.save_filename, args.unique_metatiles_file, args.player_img, args.print_stats)

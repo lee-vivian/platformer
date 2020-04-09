@@ -37,10 +37,9 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
         import get_tile_id_coords_map
         get_tile_id_coords_map.main(game, level, metatile_coords_dict_file, metatile_id_map_file, player_img)
 
-        # TODO update scripts starting below
-
         import get_states_per_metatile
-        get_states_per_metatile.main([game], [level], player_img, merge=False, outfile=None)
+        get_states_per_metatile.main(save_filename=level, unique_metatiles_file=unique_metatiles_file,
+                                     player_img=player_img, print_stats=False)
 
     else:
         import platformer
