@@ -79,22 +79,8 @@ def list_to_dict(list):
         dictionary[item] = 1
     return dictionary
 
-
-def get_metatile_id(metatile_to_find, metatile_id_map):
-    from model.metatile import Metatile
-    for metatile_str, metatile_id in metatile_id_map.items():
-        if Metatile.from_str(metatile_str) == metatile_to_find:
-            return metatile_id
-    return None
-
-
-def metatile_coord_from_state_coord(state_coord, half_player_w, half_player_h, tile_dim):
-    return (state_coord[0] - half_player_w) - (state_coord[0] - half_player_w) % tile_dim, \
-           (state_coord[1] - half_player_h) - (state_coord[1] - half_player_h) % tile_dim
-
-
-def state_in_metatile(metatile_coord, state_coord, half_player_w, half_player_h, tile_dim):
-    return metatile_coord == metatile_coord_from_state_coord(state_coord, half_player_w, half_player_h, tile_dim)
+# def state_in_metatile(metatile_coord, state_coord, half_player_w, half_player_h, tile_dim):
+#     return metatile_coord == metatile_coord_from_state_coord(state_coord, half_player_w, half_player_h, tile_dim)
 
 
 def get_node_xy(node):

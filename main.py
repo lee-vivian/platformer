@@ -1,56 +1,46 @@
-'''
+"""
 A. Process a level [use pypy3 interpreter]
-
-1. Enumerate level state graph
-2. Extract level metatiles
-3. Get metatile_id and id_metatile maps
-4. Get {tile_id: coords} map
-5. Get {metatile: num_states} map
-
 B. Play a level [use python3 interpreter]
-
-1. Run platformer.py
-'''
+"""
 
 import os
 import argparse
 
 import utils
 
+ENVIRONMENTS = ['maze', 'platformer']
 
-def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path,
-         enumerate, extract_metatiles, get_metatile_id_map, get_tile_id_coords_map, get_states_per_metatile, process_all):
 
+def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, process):
+
+    # Set environment variable
+    if environment not in ENVIRONMENTS:
+        utils.error_exit("invalid environment - environment must be one of %s" % str(ENVIRONMENTS))
     if environment == 'maze':
         os.environ['MAZE'] = "1"
-    elif environment != 'platformer':
-        utils.error_exit("invalid environment - environment must be one of ['maze', 'platformer']")
 
-    any_processing = process_all or (enumerate or extract_metatiles or get_metatile_id_map or get_tile_id_coords_map
-                                     or get_states_per_metatile)
+    if process:
+        import enumerate
+        state_graph_file = enumerate.main(game, level, player_img)
 
-    if any_processing:
+        import extract_metatiles
+        unique_metatiles_file, metatile_coords_dict_file = extract_metatiles.main(save_filename=level,
+                                                                                  player_img=player_img,
+                                                                                  print_stats=False,
+                                                                                  state_graph_files=[state_graph_file])
 
-        if process_all or enumerate:
-            import enumerate
-            state_graph_file = enumerate.main(game, level, player_img)
+        import get_metatile_id_map
+        id_metatile_map_file, metatile_id_map_file = get_metatile_id_map.main(save_filename=level,
+                                                                              unique_metatiles_file=unique_metatiles_file,
+                                                                              player_img=player_img)
 
-        if process_all or (enumerate and extract_metatiles):
-            import extract_metatiles
-            extract_metatiles.main(save_filename=level, player_img=player_img, print_stats=False,
-                                   state_graph_files=[state_graph_file])
+        import get_tile_id_coords_map
+        get_tile_id_coords_map.main(game, level, metatile_coords_dict_file, metatile_id_map_file, player_img)
 
-        if process_all or get_metatile_id_map:
-            import get_metatile_id_map
-            get_metatile_id_map.main([game], [level], player_img, outfile=None, save=True)
+        # TODO update scripts starting below
 
-        if process_all or get_tile_id_coords_map:
-            import get_tile_id_coords_map
-            get_tile_id_coords_map.main(game, level, player_img)
-
-        if process_all or get_states_per_metatile:
-            import get_states_per_metatile
-            get_states_per_metatile.main([game], [level], player_img, merge=False, outfile=None)
+        import get_states_per_metatile
+        get_states_per_metatile.main([game], [level], player_img, merge=False, outfile=None)
 
     else:
         import platformer
@@ -75,11 +65,11 @@ if __name__ == "__main__":
     #     ('super_mario_bros', 'mario-8-3'),
     #     ('kid_icarus', 'kidicarus_1')
     # ]
-
+    #
     # for game, level in GAME_LEVEL_PAIRS:
-    #     main("platformer", game, level, player_img="block", use_graph=False, draw_all_labels=False, draw_dup_labels=False,
-    #          draw_path=False, enumerate=False, extract_metatiles=False, get_metatile_id_map=False, get_tile_id_coords_map=False,
-    #          get_states_per_metatile=False, process_all=True)
+    #     unique_metatiles_file = "level_saved_files_block/unique_metatiles/%s.pickle" % level
+    #     metatile_coords_dict_file = "level_saved_files_block/metatile_coords_dicts/%s/%s.pickle" % (game, level)
+    #
     # exit(0)
 
     parser = argparse.ArgumentParser(description='Process or play a level')
@@ -91,17 +81,9 @@ if __name__ == "__main__":
     parser.add_argument('--draw_all_labels', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_dup_labels', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_path', const=True, nargs='?', type=bool, default=False)
-    parser.add_argument('--enumerate', const=True, nargs='?', type=bool, default=False)
-    parser.add_argument('--extract_metatiles', const=True, nargs='?', type=bool, default=False)
-    parser.add_argument('--get_metatile_id_map', const=True, nargs='?', type=bool, default=False)
-    parser.add_argument('--get_tile_id_coords_map', const=True, nargs='?', type=bool, default=False)
-    parser.add_argument('--get_states_per_metatile', const=True, nargs='?', type=bool, default=False)
-    parser.add_argument('--process_all', const=True, nargs='?', type=bool,
-                        help="Run all process scripts for the given level", default=False)
+    parser.add_argument('--process', const=True, nargs='?', type=bool, help="Run process scripts", default=False)
 
     args = parser.parse_args()
 
     main(args.environment, args.game, args.level, args.player_img,
-         args.use_graph, args.draw_all_labels, args.draw_dup_labels, args.draw_path,
-         args.enumerate, args.extract_metatiles, args.get_metatile_id_map, args.get_tile_id_coords_map,
-         args.get_states_per_metatile, args.process_all)
+         args.use_graph, args.draw_all_labels, args.draw_dup_labels, args.draw_path, args.process)

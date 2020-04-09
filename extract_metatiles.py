@@ -21,10 +21,12 @@ def get_unique_metatiles_file(save_filename, player_img):
     return unique_metatiles_file
 
 
-def get_metatile_coords_dict_file(save_filename, player_img):
-    level_saved_files_dir = "level_saved_files_%s/" % player_img
-    save_file = "%s.pickle" % save_filename
-    metatile_coords_dict_file = utils.get_filepath(level_saved_files_dir + "metatile_coords_dicts", save_file)
+def get_metatile_coords_dict_file(state_graph_file, player_img):
+    level_info = parse_state_graph_filename(state_graph_file)
+    game, level = level_info['game'], level_info['level']
+    save_directory = "level_saved_files_%s/metatile_coords_dicts/%s/" % (player_img, game)
+    save_file = "%s.pickle" % level
+    metatile_coords_dict_file = utils.get_filepath(save_directory, save_file)
     return metatile_coords_dict_file
 
 
@@ -173,7 +175,7 @@ def main(save_filename, player_img, print_stats, state_graph_files):
 
     # Only construct metatile_coords dictionary if extracting metatiles from ONE state graph (one level)
     if len(state_graph_files) == 1:
-        metatile_coords_dict_file = get_metatile_coords_dict_file(save_filename, player_img)
+        metatile_coords_dict_file = get_metatile_coords_dict_file(state_graph_files[0], player_img)
     else:
         metatile_coords_dict_file = None
 
@@ -196,6 +198,8 @@ def main(save_filename, player_img, print_stats, state_graph_files):
 
         end_time = datetime.now()
         print("Runtime: %s" % str(end_time-start_time))
+
+    return unique_metatiles_file, metatile_coords_dict_file
 
 
 if __name__ == "__main__":

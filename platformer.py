@@ -38,13 +38,13 @@ def get_metatile_labels_at_coords(coords, tile_id, extra_info, label_font, font_
     return new_labels
 
 
-def setup_metatile_labels(level, player_img, draw_all_labels, draw_dup_labels):
+def setup_metatile_labels(game, level, player_img, draw_all_labels, draw_dup_labels):
     metatile_labels = []
     font_color = (255, 255, 100)
     label_padding = (8, 12)
     label_font = pygame.font.SysFont('Comic Sans MS', 20)
 
-    tile_id_coords_map_filepath = "level_saved_files_%s/tile_id_coords_maps/%s.pickle" % (player_img, level)
+    tile_id_coords_map_filepath = "level_saved_files_%s/tile_id_coords_maps/%s/%s.pickle" % (player_img, game, level)
     tile_id_coords_map = read_pickle(tile_id_coords_map_filepath)
 
     for (tile_id, extra_info), coords in tile_id_coords_map.items():
@@ -109,7 +109,7 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
     # Setup drawing metatile labels
     if draw_all_labels or draw_dup_labels:
         metatile_labels, font_color, label_padding = \
-            setup_metatile_labels(level, player_img, draw_all_labels, draw_dup_labels)
+            setup_metatile_labels(game, level, player_img, draw_all_labels, draw_dup_labels)
 
     # Setup drawing solution path
     if draw_path:

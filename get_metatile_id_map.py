@@ -55,7 +55,7 @@ def main(save_filename, unique_metatiles_file, player_img):
     end_time = datetime.now()
     print("Runtime: %s" % str(end_time-start_time))
 
-    return id_metatile_map, metatile_id_map
+    return id_metatile_map_file, metatile_id_map_file
 
 
 if __name__ == '__main__':
