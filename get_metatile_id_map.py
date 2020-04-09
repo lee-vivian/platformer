@@ -4,9 +4,9 @@ Creates and saves a map of {metatile-id: Metatile} for a given list of metatiles
 
 import argparse
 import os
+from datetime import datetime
 
-from model.metatile import Metatile
-from utils import error_exit, write_pickle
+from utils import read_pickle, write_pickle, get_filepath
 
 
 def get_id_metatile_map_file(player_img, outfile):
@@ -25,24 +25,16 @@ def get_metatile_id_map_file(player_img, outfile):
     return metatile_id_map_file
 
 
-def main(games, levels, player_img, outfile, save):
+def main(save_filename, unique_metatiles_file, player_img):
 
-    print("\nGet metatile_id maps for levels: " + str(levels) + "...")
-
-    if len(games) != len(levels):
-        error_exit("Given number of games must equal the given number of levels")
-    elif len(levels) == 0:
-        error_exit("No levels specified")
-
-    if outfile is None:
-        outfile = '_'.join(levels)
+    print("Creating id maps from unique metatiles file %s..." % unique_metatiles_file)
+    start_time = datetime.now()
 
     metatile_count = 0
     id_metatile_map = {}
     metatile_id_map = {}
 
-    game_level_pairs = zip(games, levels)
-    unique_metatiles = Metatile.get_unique_metatiles_for_levels(game_level_pairs, player_img)
+    unique_metatiles = read_pickle(unique_metatiles_file)
 
     for metatile in unique_metatiles:
         metatile_count += 1
@@ -51,32 +43,26 @@ def main(games, levels, player_img, outfile, save):
         id_metatile_map[metatile_id] = metatile_str
         metatile_id_map[metatile_str] = metatile_id
 
-    id_metatile_map_file = get_id_metatile_map_file(player_img, outfile)
-    metatile_id_map_file = get_metatile_id_map_file(player_img, outfile)
+    level_saved_files_dir = "level_saved_files_%s/" % player_img
+    outfile = "%s.pickle" % save_filename
 
-    # Save maps to file
-    if save:
-        write_pickle(id_metatile_map_file, id_metatile_map)
-        write_pickle(metatile_id_map_file, metatile_id_map)
+    id_metatile_map_file = get_filepath(level_saved_files_dir + "id_metatile_maps", outfile)
+    metatile_id_map_file = get_filepath(level_saved_files_dir + "metatile_id_maps", outfile)
 
-    print("Finished generating metatile_id and id_metatile maps")
+    write_pickle(id_metatile_map_file, id_metatile_map)
+    write_pickle(metatile_id_map_file, metatile_id_map)
 
-    return {
-        "id_metatile_map": id_metatile_map,
-        "metatile_id_map": metatile_id_map
-    }
+    end_time = datetime.now()
+    print("Runtime: %s" % str(end_time-start_time))
+
+    return id_metatile_map, metatile_id_map
 
 
 if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser(description='Get metatile_id maps for the given game levels')
-    parser.add_argument('--games', type=str, nargs="+", help='List of games', default="")
-    parser.add_argument('--levels', type=str, nargs="+", help='List of game levels', default="")
-    parser.add_argument('--player_img', type=str, help="Player image", default='block')
-    parser.add_argument('--outfile', type=str, help="Output filename", default=None)
-    parser.add_argument('--save', const=True, nargs='?', type=bool, default=False)
+    parser = argparse.ArgumentParser(description='Get metatile_id maps for the given unique_metatiles file')
+    parser.add_argument('save_filename', type=str, help='File name to save extracted info to')
+    parser.add_argument('unique_metatiles_file', type=str, help='File path of unique_metatiles file to use')
+    parser.add_argument('--player_img', type=str, help='Player image', default='block')
     args = parser.parse_args()
 
-    main(args.games, args.levels, args.player_img, args.outfile, args.save)
-
-# pypy3 get_metatile_id_map.py --games sample sample sample super_mario_bros super_mario_bros kid_icarus --levels sample_mini sample_hallway_flat sample_hallway mario-1-1 mario-2-1 kidicarus_1 --outfile all_levels
+    main(args.save_filename, args.unique_metatiles_file, args.player_img)
