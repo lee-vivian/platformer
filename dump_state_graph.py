@@ -1,36 +1,19 @@
-'''
+"""
 Dump info about the precomputed state graph.
-'''
+"""
 
 # Note: use pypy3 to run; use pip_pypy3 to install third-party packages (e.g. networkx)
 
-import os
 import networkx as nx
-import datetime
 import argparse
 
-def get_state_graph_file(game_name, level_name, player_img):
-    level_saved_files_dir = "level_saved_files_%s/" % player_img
-    enumerated_state_graphs_dir = level_saved_files_dir + "enumerated_state_graphs/"
-    game_enumerated_state_graphs_dir = enumerated_state_graphs_dir + game_name + "/"
-    saved_files_directories = [level_saved_files_dir, enumerated_state_graphs_dir, game_enumerated_state_graphs_dir]
 
-    for directory in saved_files_directories:
-        if not os.path.exists(directory):
-            os.makedirs(directory)
+def main(state_graph_file):
 
-    state_graph_file = game_enumerated_state_graphs_dir + str(level_name) + ".gpickle"
-    return state_graph_file
-
-
-def main(game_name, level_name, player_img):
-    # Level saved file paths
-    state_graph_file = get_state_graph_file(game_name, level_name, player_img)
-
-    # Retrieve level state graph
+    # Load in state graph
     state_graph = nx.read_gpickle(state_graph_file)
 
-    # print
+    # Print
     for node in state_graph.nodes:
         print(node)
 
@@ -42,10 +25,8 @@ def main(game_name, level_name, player_img):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Extract metatiles for the given level')
-    parser.add_argument('game', type=str, help='Name of the game')
-    parser.add_argument('level', type=str, help='Name of the level')
-    parser.add_argument('--player_img', type=str, help='Player image', default='block')
+    parser = argparse.ArgumentParser(description='Print state graph')
+    parser.add_argument('state_graph_file', type=str, help="File path of the state graph to print")
     args = parser.parse_args()
 
-    main(args.game, args.level, args.player_img)
+    main(args.state_graph_file)
