@@ -1,6 +1,7 @@
 import networkx as nx
 import re
 import argparse
+from datetime import datetime
 
 from model.level import TILE_DIM
 from model.metatile import METATILE_TYPES
@@ -23,6 +24,7 @@ def main(tile_constraints_file, level_w, level_h, min_perc_blocks, start_bottom_
 
     print("Generating prolog file for constraints file: %s ..." % tile_constraints_file)
     print("Generated level dimensions in tiles (%d, %d)" % (level_w, level_h))
+    start_time = datetime.now()
 
     # Set up save file directory
     level_saved_files_dir, prolog_filename = parse_constraints_filepath(tile_constraints_file)
@@ -31,18 +33,11 @@ def main(tile_constraints_file, level_w, level_h, min_perc_blocks, start_bottom_
 
     # Load in tile constraints dictionary
     tile_id_constraints_dict = utils.read_pickle(tile_constraints_file)
-    # tile_id_constraints_dict[tile_id] = {
-    #     "type": metatile.type,
-    #     "graph": metatile.graph_as_dict,
-    #     "adjacent": {
-    #         TOP: [], BOTTOM: [], LEFT: [], RIGHT: [], TOP_LEFT: [], BOTTOM_LEFT: [], TOP_RIGHT: [], BOTTOM_RIGHT: []
-    #     }
-    # }
 
     # Generate prolog statements
     prolog_statements = ""
-    prolog_statements += "dim_width(0..%d).\n" % (level_w - 1)
-    prolog_statements += "dim_height(0..%d).\n" % (level_h - 1)
+    prolog_statements += "dim_width(0..%d).\n" % (level_w-1)
+    prolog_statements += "dim_height(0..%d).\n" % (level_h-1)
     prolog_statements += "dim_metatiles(1..%d).\n" % (len(tile_id_constraints_dict.keys()))
 
     # Create tile facts
@@ -113,7 +108,7 @@ def main(tile_constraints_file, level_w, level_h, min_perc_blocks, start_bottom_
 
         # Create legal rules based on valid adjacent tiles
         for direction, adjacent_tiles in tile_constraints.get("adjacent").items():  # for each adjacent dir
-            dx, dy = eval(direction)
+            dx, dy = direction
 
             for adjacent_id in adjacent_tiles:  # for each adjacent metatile
                 legal_statement = "legal(DX, DY, MT1, MT2) :- DX == %d, DY == %d, metatile(MT1), metatile(MT2), " \
@@ -142,20 +137,19 @@ def main(tile_constraints_file, level_w, level_h, min_perc_blocks, start_bottom_
     prolog_statements += state_reachable_rule + "\n"
 
     # Set border tiles to be block tiles
-    # TODO update here and below
     block_tile_coords = []
     for x in range(level_w):
         block_tile_coords += [(x, 0), (x, level_h-1)]
     for y in range(level_h):
-        block_tile_coords += [(0, y), (level_x-1, y)]
+        block_tile_coords += [(0, y), (level_w-1, y)]
     for x, y in list(set(block_tile_coords)):
         block_tile_assignment = "assignment(%d, %d, %s)." % (x, y, block_tile_id)
         prolog_statements += block_tile_assignment + "\n"
 
     # Set start tile to be on the bottom left
     if start_bottom_left:
-        start_tile_assignment = "assignment(%d, %d, %s)." % (1, level_height-2, start_tile_id)
-        prolog_statements += start_tile_assignment
+        start_tile_assignment = "assignment(%d, %d, %s)." % (1, level_h-2, start_tile_id)
+        prolog_statements += start_tile_assignment + "\n"
 
     # Limit number of tiles of specified tile id
     limit_tile_type_rule = "MIN { assignment(X,Y,MT) : metatile(MT), tile(X,Y) } MAX :- limit(MT, MIN, MAX)."
@@ -169,9 +163,9 @@ def main(tile_constraints_file, level_w, level_h, min_perc_blocks, start_bottom_
 
     if min_perc_blocks is not None:
         # Limit number of block tiles
-        total_tiles = int(level_width * level_height)
-        prolog_statements += "limit(%s, %d, %d).\n" % (block_tile_id, int(min_perc_blocks / 100 * total_tiles), total_tiles)
-        print("limit(%s, %d, %d).\n" % (block_tile_id, int(min_perc_blocks / 100 * total_tiles), total_tiles))
+        total_tiles = int(level_w * level_h)
+        min_perc_blocks_statement = "limit(%s, %d, %d)." % (block_tile_id, int(min_perc_blocks / 100 * total_tiles), total_tiles)
+        prolog_statements += min_perc_blocks_statement + "\n"
 
     # ASP WFC algorithm rule
     wfc_rule = ":- adj(X1,Y1,X2,Y2,DX,DY), assignment(X1,Y1,MT1), not 1 { assignment(X2,Y2,MT2) : legal(DX,DY,MT1,MT2) }."
@@ -182,19 +176,20 @@ def main(tile_constraints_file, level_w, level_h, min_perc_blocks, start_bottom_
         print(prolog_statements)
 
     # Save
-    outfile_path = utils.write_file(outfile_path, prolog_statements)
+    utils.write_file(prolog_filepath, prolog_statements)
 
     prolog_dictionary = {
-        "filename": outfile_name,
-        "filepath": outfile_path,
-        "level_w": level_width,  # in tile units
-        "level_h": level_height,  # in tile units
+        "filename": prolog_filename,
+        "filepath": prolog_filepath,
+        "level_w": level_w,  # in tile units
+        "level_h": level_h,  # in tile units
         "block_tile_id": block_tile_id,
         "start_tile_id": start_tile_id,
         "goal_tile_id": goal_tile_id
     }
 
-    print("Finished generating prolog file")
+    end_time = datetime.now()
+    print("Runtime: %s" % str(end_time-start_time))
 
     return prolog_dictionary
 

@@ -41,6 +41,10 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
         get_states_per_metatile.main(save_filename=level, unique_metatiles_file=unique_metatiles_file,
                                      player_img=player_img, print_stats=False)
 
+        import extract_constraints
+        extract_constraints.main(save_filename=level, metatile_id_map_file=metatile_id_map_file, id_metatile_map_file=id_metatile_map_file,
+                                 metatile_coords_dict_files=[metatile_coords_dict_file], player_img=player_img)
+
     else:
         import platformer
         platformer.main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path)

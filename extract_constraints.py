@@ -134,14 +134,26 @@ if __name__ == "__main__":
     #     ('super_mario_bros', 'mario-8-3'), ('kid_icarus', 'kidicarus_1')
     # ]
     #
-    # metatile_id_map_file = "level_saved_files_block/metatile_id_maps/combined_levels.pickle"
-    # id_metatile_map_file = "level_saved_files_block/id_metatile_maps/combined_levels.pickle"
+    # metatile_id_map_file_format = "level_saved_files_block/metatile_id_maps/%s.pickle"
+    # id_metatile_map_file_format = "level_saved_files_block/id_metatile_maps/%s.pickle"
+    # metatile_coords_dict_file_format = "level_saved_files_block/metatile_coords_dicts/%s/%s.pickle"
+    #
+    # # For individual level constraints
+    # for game, level in GAME_LEVEL_PAIRS:
+    #     main(save_filename=level,
+    #          metatile_id_map_file=metatile_id_map_file_format % level,
+    #          id_metatile_map_file=id_metatile_map_file_format % level,
+    #          metatile_coords_dict_files=[metatile_coords_dict_file_format % (game, level)],
+    #          player_img='block')
+    #
+    # combined = 'combined_levels'
     # metatile_coords_dict_files = []
     # for game, level in GAME_LEVEL_PAIRS:
     #     file = "level_saved_files_block/metatile_coords_dicts/%s/%s.pickle" % (game, level)
     #     metatile_coords_dict_files.append(file)
+    # main(combined, metatile_id_map_file_format % combined, id_metatile_map_file_format % combined,
+    #      metatile_coords_dict_files, player_img='block')
     #
-    # main('combined_levels', metatile_id_map_file, id_metatile_map_file, metatile_coords_dict_files, player_img='block')
     # exit(0)
 
     parser = argparse.ArgumentParser(description='Extract combined tileset constraints for the specified levels')
