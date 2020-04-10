@@ -53,27 +53,12 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
 if __name__ == "__main__":
 
     # GAME_LEVEL_PAIRS = [
-    #     ('super_mario_bros', 'mario-1-1'),
-    #     ('super_mario_bros', 'mario-2-1'),
-    #     ('super_mario_bros', 'mario-3-1'),
-    #     ('super_mario_bros', 'mario-3-2'),
-    #     ('super_mario_bros', 'mario-4-1'),
-    #     ('super_mario_bros', 'mario-5-1'),
-    #     ('super_mario_bros', 'mario-5-2'),
-    #     ('super_mario_bros', 'mario-6-1'),
-    #     ('super_mario_bros', 'mario-6-2'),
-    #     ('super_mario_bros', 'mario-7-1'),
-    #     ('super_mario_bros', 'mario-8-1'),
-    #     ('super_mario_bros', 'mario-8-2'),
-    #     ('super_mario_bros', 'mario-8-3'),
-    #     ('kid_icarus', 'kidicarus_1')
+    #     ('super_mario_bros', 'mario-1-1'), ('super_mario_bros', 'mario-2-1'), ('super_mario_bros', 'mario-3-1'),
+    #     ('super_mario_bros', 'mario-3-2'), ('super_mario_bros', 'mario-4-1'), ('super_mario_bros', 'mario-5-1'),
+    #     ('super_mario_bros', 'mario-5-2'), ('super_mario_bros', 'mario-6-1'), ('super_mario_bros', 'mario-6-2'),
+    #     ('super_mario_bros', 'mario-7-1'), ('super_mario_bros', 'mario-8-1'), ('super_mario_bros', 'mario-8-2'),
+    #     ('super_mario_bros', 'mario-8-3')
     # ]
-    #
-    # for game, level in GAME_LEVEL_PAIRS:
-    #     unique_metatiles_file = "level_saved_files_block/unique_metatiles/%s.pickle" % level
-    #     metatile_coords_dict_file = "level_saved_files_block/metatile_coords_dicts/%s/%s.pickle" % (game, level)
-    #
-    # exit(0)
 
     parser = argparse.ArgumentParser(description='Process or play a level')
     parser.add_argument('environment', type=str, help='platformer or maze')

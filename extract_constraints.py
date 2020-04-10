@@ -157,7 +157,7 @@ if __name__ == "__main__":
     # exit(0)
 
     parser = argparse.ArgumentParser(description='Extract combined tileset constraints for the specified levels')
-    parser.add_argument('save_filename', type=str, help='File name to save tileset constraints to')
+    parser.add_argument('save_filename', type=str, help='File name to save tile constraints to')
     parser.add_argument('metatile_id_map_file', type=str, help='Filepath for metatile_id map')
     parser.add_argument('id_metatile_map_file', type=str, help='Filepath for id_metatile map')
     parser.add_argument('metatile_coords_dict_files', type=str, nargs="+", help="Filepath to metatile_coord_dict files to use")
