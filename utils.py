@@ -2,6 +2,7 @@ import os
 import json
 import pickle
 import networkx as nx
+from math import sqrt, pow
 
 
 def error_exit(msg):
@@ -79,6 +80,12 @@ def list_to_dict(list):
         dictionary[item] = 1
     return dictionary
 
+
+def euclidean_distance(coord_a, coord_b):
+    x1, y1 = coord_a
+    x2, y2 = coord_b
+    return int(sqrt(pow(x1-x2, 2) + pow(y1-y2, 2)))
+
 # def state_in_metatile(metatile_coord, state_coord, half_player_w, half_player_h, tile_dim):
 #     return metatile_coord == metatile_coord_from_state_coord(state_coord, half_player_w, half_player_h, tile_dim)
 
@@ -119,7 +126,7 @@ def shortest_path_xy(state_graph):
     for src in start_states:
         for dest in goal_states:
             if nx.has_path(state_graph, src, dest):
-                shortest_path = nx.shortest_path(state_graph, src, dest)
+                shortest_path = nx.dijkstra_path(state_graph, src, dest, weight='weight')
                 return [get_node_xy(node) for node in shortest_path]
 
     error_exit("No solution path found in state graph")

@@ -11,7 +11,7 @@ import datetime
 import argparse
 
 from model.level import Level
-from utils import get_filepath
+from utils import get_filepath, euclidean_distance
 
 # game specifics
 if os.getenv('MAZE'):
@@ -67,7 +67,10 @@ def enumerate_states(player_model, start_state, graph, action_set, platform_coor
                 graph.add_node(next_state_str)
                 unexplored_states.append(next_state_str)
             if not graph.has_edge(cur_state_str, next_state_str):
-                graph.add_edge(cur_state_str, next_state_str, action=[action.to_str()])
+                cur_state_dict, next_state_dict = eval(cur_state_str), eval(next_state_str)
+                distance = euclidean_distance((cur_state_dict['x'], cur_state_dict['y']),
+                                              (next_state_dict['x'], next_state_dict['y']))
+                graph.add_edge(cur_state_str, next_state_str, weight=distance, action=[action.to_str()])
             else:
                 graph.get_edge_data(cur_state_str, next_state_str)["action"].append(action.to_str())
 
