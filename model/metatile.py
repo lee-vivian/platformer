@@ -1,6 +1,6 @@
-'''
+"""
 Metatile Object that describes each grid cell in a Level
-'''
+"""
 
 import networkx as nx
 
@@ -16,25 +16,36 @@ TYPE_IMG_MAP = {
 
 
 class Metatile:
-    def __init__(self, type, graph_as_dict):
+    def __init__(self, type, graph_as_dict, games=None):
         if type not in METATILE_TYPES:
             error_exit("Given metatile type [%s] must be one of %s" % (type, str(METATILE_TYPES)))
         self.type = type
         self.graph_as_dict = graph_as_dict
+        self.games = [] if games is None else games
 
     def __eq__(self, other):
         if isinstance(other, Metatile):
             return self.type == other.type and self.graph_as_dict == other.graph_as_dict
         return False
 
+    def get_games(self):
+        return self.games.copy()
+
+    def merge_games(self, other):
+        if not self == other:
+            error_exit("Cannot merge metatiles that have different types or graphs")
+
+        combined_games = list(set(self.get_games() + other.get_games()))
+        return Metatile(self.type, self.graph_as_dict, games=combined_games)
+
     def to_str(self):
         graph = str(self.graph_as_dict)
-        return "{'type': '%s', 'graph': %s}" % (self.type, graph)
+        return "{'type': '%s', 'graph': %s, 'games': %s}" % (self.type, graph, str(self.games))
 
     @staticmethod
     def from_str(string):
         metatile_dict = eval(string)
-        return Metatile(metatile_dict['type'], metatile_dict['graph'])
+        return Metatile(metatile_dict['type'], metatile_dict['graph'], metatile_dict['games'])
 
     @staticmethod
     def get_metatile_coord_from_state_coord(state_coord, tile_dim):
@@ -89,4 +100,3 @@ class Metatile:
             normalized_graph.add_edge(source_node, dest_node, action=edge_attr_dict[edge])
 
         return normalized_graph
-

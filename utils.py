@@ -86,6 +86,10 @@ def euclidean_distance(coord_a, coord_b):
     x2, y2 = coord_b
     return int(sqrt(pow(x1-x2, 2) + pow(y1-y2, 2)))
 
+
+def get_all_indices(item, list):
+    return [i for i, x in enumerate(list) if x == item]
+
 # def state_in_metatile(metatile_coord, state_coord, half_player_w, half_player_h, tile_dim):
 #     return metatile_coord == metatile_coord_from_state_coord(state_coord, half_player_w, half_player_h, tile_dim)
 

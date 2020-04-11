@@ -46,7 +46,7 @@ def get_metatile_coord_states_map(state_graph, all_possible_coords):
     return metatile_coord_states_map
 
 
-def construct_metatile(metatile_coord, level_start_coord, level_goal_coords_dict, level_platform_coords_dict,
+def construct_metatile(metatile_coord, game, level_start_coord, level_goal_coords_dict, level_platform_coords_dict,
                        state_graph, metatile_coord_states_map):
     # Determine metatile type
     if metatile_coord == level_start_coord:
@@ -72,15 +72,14 @@ def construct_metatile(metatile_coord, level_start_coord, level_goal_coords_dict
 
     # Construct new Metatile obj
     metatile_graph_as_dict = nx.to_dict_of_dicts(metatile_graph)
-    return Metatile(metatile_type, metatile_graph_as_dict)
+    return Metatile(metatile_type, metatile_graph_as_dict, games=[game])
 
 
 def extract_metatiles(state_graph_files, unique_metatiles_file, metatile_coords_dict_file):
 
     all_metatiles = []
     unique_metatiles = []
-    metatile_str_metatile_dict = {}
-    metatile_coords_dict = {}
+    metatile_coord_dict = {}
 
     for state_graph_file in state_graph_files:
 
@@ -105,6 +104,7 @@ def extract_metatiles(state_graph_files, unique_metatiles_file, metatile_coords_
         for metatile_coord in all_possible_coords:
 
             new_metatile = construct_metatile(metatile_coord,
+                                              game=game,
                                               level_start_coord=level_obj.get_start_coord(),
                                               level_goal_coords_dict=goal_coords_dict,
                                               level_platform_coords_dict=platform_coords_dict,
@@ -114,29 +114,40 @@ def extract_metatiles(state_graph_files, unique_metatiles_file, metatile_coords_
             # Add new_metatile to list of all_metatiles
             all_metatiles.append(new_metatile)
 
-            # Add new_metatile to list of unique metatiles if it hasn't been added yet
-            new_metatile_str = new_metatile.to_str()
+            # Update unique_metatiles list
             if new_metatile not in unique_metatiles:
-                unique_metatiles.append(new_metatile)
-                metatile_str_metatile_dict[new_metatile_str] = new_metatile
+                unique_metatiles.append(new_metatile)  # add new metatile
+            else:
+                metatile_idx = unique_metatiles.index(new_metatile)
+                existing_metatile = unique_metatiles.pop(metatile_idx)  # remove old metatile
+                new_metatile = existing_metatile.merge_games(new_metatile)  # merge metatile games
+                unique_metatiles.append(new_metatile)  # add new (merged) metatile
 
-            # Create {metatile: coords} dictionary
-            if metatile_coords_dict_file is not None:
-                for metatile_str, metatile in metatile_str_metatile_dict.items():
-                    if metatile == new_metatile:
-                        new_metatile_str = metatile_str  # get standardized metatile str
-                        break
-                if metatile_coords_dict.get(new_metatile_str) is None:
-                    metatile_coords_dict[new_metatile_str] = [metatile_coord]
-                else:
-                    metatile_coords_dict[new_metatile_str].append(metatile_coord)
+            # Create {metatile: coord} dictionary
+            if metatile_coords_dict_file is not None:  # only one state graph file given => only one game per metatile
+                new_metatile_str = new_metatile.to_str()
+                metatile_coord_dict[new_metatile_str] = metatile_coord
 
-    # Save {metatile: coords} dict to file
-    if metatile_coords_dict_file is not None:
-        utils.write_pickle(metatile_coords_dict_file, metatile_coords_dict)
-
-    # Save unique metatiles to file
+    # Save unique_metatiles to file
     utils.write_pickle(unique_metatiles_file, unique_metatiles)
+
+    # Create {metatile: coords} dictionary
+    if metatile_coords_dict_file is not None:
+        metatile_coords_dict = {}
+        ordered_metatiles = []
+        ordered_coords = []
+
+        for metatile_str, coord in metatile_coord_dict.items():
+            ordered_metatiles.append(Metatile.from_str(metatile_str))
+            ordered_coords.append(coord)
+
+        for unique_metatile in unique_metatiles:
+            unique_metatile_indices = utils.get_all_indices(unique_metatile, ordered_metatiles)
+            unique_metatile_coords = [ordered_coords[idx] for idx in unique_metatile_indices]
+            unique_metatile_str = unique_metatile.to_str()
+            metatile_coords_dict[unique_metatile_str] = unique_metatile_coords
+
+        utils.write_pickle(metatile_coords_dict_file, metatile_coords_dict)  # save to file
 
     return all_metatiles, unique_metatiles
 
