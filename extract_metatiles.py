@@ -153,31 +153,30 @@ def extract_metatiles(state_graph_files, unique_metatiles_file, metatile_coords_
 
 
 def get_metatile_stats_dict(all_metatiles, unique_metatiles):
+    stats_dict = {}
+    key_order = ["all_metatiles", "all_metatiles_with_graphs"]
+    key_order += ["all_%s_metatiles" % type for type in METATILE_TYPES]
+    key_order += ["unique_metatiles", "unique_metatiles_with_graphs"]
+    key_order += ["unique_%s_metatiles" % type for type in METATILE_TYPES]
 
-    stats_dict = {"num_total_metatiles": 0,
-                  "num_metatiles_with_graphs": 0,
-                  "num_unique_metatiles": 0,
-                  "num_unique_metatiles_with_graphs": 0}
-
-    for type in METATILE_TYPES:
-        metatile_type_key = "num_%s_metatiles" % type
-        stats_dict[metatile_type_key] = 0
+    for key in key_order:
+        stats_dict[key] = 0
 
     for metatile in all_metatiles:
-        stats_dict["num_total_metatiles"] += 1
-        stats_dict["num_%s_metatiles" % metatile.type] += 1
-
+        stats_dict["all_metatiles"] += 1
+        stats_dict["all_%s_metatiles" % metatile.type] += 1
         has_graph = bool(metatile.graph_as_dict)
         if has_graph:
-            stats_dict["num_metatiles_with_graphs"] += 1
+            stats_dict["all_metatiles_with_graphs"] += 1
 
     for unique_metatile in unique_metatiles:
-        stats_dict["num_unique_metatiles"] += 1
+        stats_dict["unique_metatiles"] += 1
+        stats_dict["unique_%s_metatiles" % unique_metatile.type] += 1
         has_graph = bool(unique_metatile.graph_as_dict)
         if has_graph:
-            stats_dict["num_unique_metatiles_with_graphs"] += 1
+            stats_dict["unique_metatiles_with_graphs"] += 1
 
-    return stats_dict
+    return stats_dict, key_order
 
 
 def main(save_filename, player_img, print_stats, state_graph_files):
@@ -202,9 +201,9 @@ def main(save_filename, player_img, print_stats, state_graph_files):
         print("Calculating stats for extracted metatiles...")
         start_time = datetime.now()
 
-        metatile_stats_dict = get_metatile_stats_dict(all_metatiles, unique_metatiles)
+        metatile_stats_dict, key_order = get_metatile_stats_dict(all_metatiles, unique_metatiles)
         print("---- Stats for Extracted Metatiles ----")
-        for key in metatile_stats_dict.keys():
+        for key in key_order:
             print(key, ": ", metatile_stats_dict.get(key))
 
         end_time = datetime.now()
