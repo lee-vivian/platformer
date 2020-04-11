@@ -190,7 +190,7 @@ def main(save_filename, player_img, print_stats, state_graph_files):
         metatile_coords_dict_file = None
 
     # Extract metatiles from state graph files
-    print("Extracting metatiles ...")
+    print("Extracting metatiles from %d state graphs..." % len(state_graph_files))
     start_time = datetime.now()
     all_metatiles, unique_metatiles = extract_metatiles(state_graph_files, unique_metatiles_file, metatile_coords_dict_file)
     end_time = datetime.now()
@@ -221,5 +221,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args.save_filename, args.player_img, args.print_stats, args.state_graph_files)
-
-

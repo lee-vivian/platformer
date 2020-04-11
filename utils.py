@@ -42,7 +42,7 @@ def write_json(filepath, contents):
     with open(filepath, 'w') as file:
         json.dump(contents, file, indent=2, sort_keys=True)
     file.close()
-    print("Saved to:", filepath, "\n")
+    print("Saved to:", filepath)
     return filepath
 
 
@@ -58,7 +58,7 @@ def write_pickle(filepath, contents):
     with open(filepath, 'wb') as file:
         pickle.dump(contents, file, protocol=pickle.HIGHEST_PROTOCOL)
     file.close()
-    print("Saved to:", filepath, "\n")
+    print("Saved to:", filepath)
     return filepath
 
 
@@ -66,7 +66,7 @@ def write_file(filepath, statements):
     with open(filepath, 'w') as file:
         file.write("%s" % statements)
     file.close()
-    print("Saved to:", filepath, "\n")
+    print("Saved to:", filepath)
     return filepath
 
 
