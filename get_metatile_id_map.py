@@ -1,6 +1,6 @@
-'''
+"""
 Creates and saves a map of {metatile-id: Metatile} for a given list of metatiles
-'''
+"""
 
 import argparse
 import os

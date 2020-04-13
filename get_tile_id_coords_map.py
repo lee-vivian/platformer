@@ -29,13 +29,13 @@ def main(game, level, metatile_coords_dict_file, metatile_id_map_file, player_im
         tile_id_extra_info_coords_map[(metatile_id, extra_info)] = coords
 
     save_directory = "level_saved_files_%s/tile_id_coords_maps/%s/" % (player_img, game)
-    save_file = get_filepath(save_directory, "%s.pickle" % level)
-    write_pickle(save_file, tile_id_extra_info_coords_map)
+    tile_id_extra_info_coords_map_file = get_filepath(save_directory, "%s.pickle" % level)
+    write_pickle(tile_id_extra_info_coords_map_file, tile_id_extra_info_coords_map)
 
     end_time = datetime.now()
     print("Runtime: ", end_time - start_time, "\n")
 
-    return save_file
+    return tile_id_extra_info_coords_map_file
 
 
 if __name__ == "__main__":

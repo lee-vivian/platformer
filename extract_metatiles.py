@@ -1,6 +1,6 @@
-'''
+"""
 Enumerate the state space of a level and extract level metatiles
-'''
+"""
 
 # Note: use pypy3 to run; use pip_pypy3 to install third-party packages (e.g. networkx)
 
@@ -79,7 +79,7 @@ def extract_metatiles(state_graph_files, unique_metatiles_file, metatile_coords_
 
     all_metatiles = []
     unique_metatiles = []
-    metatile_coord_dict = {}
+    metatile_coords_dict = {}
 
     for state_graph_file in state_graph_files:
 
@@ -123,31 +123,33 @@ def extract_metatiles(state_graph_files, unique_metatiles_file, metatile_coords_
                 new_metatile = existing_metatile.merge_games(new_metatile)  # merge metatile games
                 unique_metatiles.append(new_metatile)  # add new (merged) metatile
 
-            # Create {metatile: coord} dictionary
+            # Create {metatile: coords} dictionary
             if metatile_coords_dict_file is not None:  # only one state graph file given => only one game per metatile
                 new_metatile_str = new_metatile.to_str()
-                metatile_coord_dict[new_metatile_str] = metatile_coord
+                if metatile_coords_dict.get(new_metatile_str) is None:
+                    metatile_coords_dict[new_metatile_str] = [metatile_coord]
+                else:
+                    metatile_coords_dict[new_metatile_str].append(metatile_coord)
 
     # Save unique_metatiles to file
     utils.write_pickle(unique_metatiles_file, unique_metatiles)
 
-    # Create {metatile: coords} dictionary
+    # Create {unique_metatile: coords} dictionary
     if metatile_coords_dict_file is not None:
-        metatile_coords_dict = {}
+        unique_metatile_coords_dict = {}
         ordered_metatiles = []
-        ordered_coords = []
+        ordered_coords_lists = []
 
-        for metatile_str, coord in metatile_coord_dict.items():
+        for metatile_str, coords in metatile_coords_dict.items():
             ordered_metatiles.append(Metatile.from_str(metatile_str))
-            ordered_coords.append(coord)
-
+            ordered_coords_lists.append(coords)
         for unique_metatile in unique_metatiles:
-            unique_metatile_indices = utils.get_all_indices(unique_metatile, ordered_metatiles)
-            unique_metatile_coords = [ordered_coords[idx] for idx in unique_metatile_indices]
             unique_metatile_str = unique_metatile.to_str()
-            metatile_coords_dict[unique_metatile_str] = unique_metatile_coords
+            unique_metatile_coords_dict[unique_metatile_str] = []
+            for idx in utils.get_all_indices(unique_metatile, ordered_metatiles):
+                unique_metatile_coords_dict[unique_metatile_str] += ordered_coords_lists[idx]
 
-        utils.write_pickle(metatile_coords_dict_file, metatile_coords_dict)  # save to file
+        utils.write_pickle(metatile_coords_dict_file, unique_metatile_coords_dict)  # save to file
 
     return all_metatiles, unique_metatiles
 
@@ -200,12 +202,10 @@ def main(save_filename, player_img, print_stats, state_graph_files):
     if print_stats:
         print("Calculating stats for extracted metatiles...")
         start_time = datetime.now()
-
         metatile_stats_dict, key_order = get_metatile_stats_dict(all_metatiles, unique_metatiles)
         print("---- Stats for Extracted Metatiles ----")
         for key in key_order:
             print(key, ": ", metatile_stats_dict.get(key))
-
         end_time = datetime.now()
         print("Runtime: %s" % str(end_time-start_time))
 
