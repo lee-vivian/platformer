@@ -125,37 +125,6 @@ def main(save_filename, metatile_id_map_file, id_metatile_map_file, metatile_coo
 
 
 if __name__ == "__main__":
-
-    # GAME_LEVEL_PAIRS = [
-    #     ('super_mario_bros', 'mario-1-1'), ('super_mario_bros', 'mario-2-1'), ('super_mario_bros', 'mario-3-1'),
-    #     ('super_mario_bros', 'mario-3-2'), ('super_mario_bros', 'mario-4-1'), ('super_mario_bros', 'mario-5-1'),
-    #     ('super_mario_bros', 'mario-5-2'), ('super_mario_bros', 'mario-6-1'), ('super_mario_bros', 'mario-6-2'),
-    #     ('super_mario_bros', 'mario-7-1'), ('super_mario_bros', 'mario-8-1'), ('super_mario_bros', 'mario-8-2'),
-    #     ('super_mario_bros', 'mario-8-3'), ('kid_icarus', 'kidicarus_1')
-    # ]
-    #
-    # metatile_id_map_file_format = "level_saved_files_block/metatile_id_maps/%s.pickle"
-    # id_metatile_map_file_format = "level_saved_files_block/id_metatile_maps/%s.pickle"
-    # metatile_coords_dict_file_format = "level_saved_files_block/metatile_coords_dicts/%s/%s.pickle"
-    #
-    # # For individual level constraints
-    # for game, level in GAME_LEVEL_PAIRS:
-    #     main(save_filename=level,
-    #          metatile_id_map_file=metatile_id_map_file_format % level,
-    #          id_metatile_map_file=id_metatile_map_file_format % level,
-    #          metatile_coords_dict_files=[metatile_coords_dict_file_format % (game, level)],
-    #          player_img='block')
-    #
-    # combined = 'combined_levels'
-    # metatile_coords_dict_files = []
-    # for game, level in GAME_LEVEL_PAIRS:
-    #     file = "level_saved_files_block/metatile_coords_dicts/%s/%s.pickle" % (game, level)
-    #     metatile_coords_dict_files.append(file)
-    # main(combined, metatile_id_map_file_format % combined, id_metatile_map_file_format % combined,
-    #      metatile_coords_dict_files, player_img='block')
-    #
-    # exit(0)
-
     parser = argparse.ArgumentParser(description='Extract combined tileset constraints for the specified levels')
     parser.add_argument('save_filename', type=str, help='File name to save tile constraints to')
     parser.add_argument('metatile_id_map_file', type=str, help='Filepath for metatile_id map')
