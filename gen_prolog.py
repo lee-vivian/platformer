@@ -142,11 +142,14 @@ def main(tile_constraints_file, debug, print_pl):
     wfc_rule = ":- adj(X1,Y1,X2,Y2,DX,DY), assignment(X1,Y1,MT1), not 1 { assignment(X2,Y2,MT2) : legal(DX,DY,MT1,MT2) }."
     prolog_statements += wfc_rule + "\n"
 
+    # Remove duplicate statements
+    prolog_statements = utils.get_unique_lines(prolog_statements)
+
     # Print
     if print_pl:
         print(prolog_statements)
 
-    # Save
+    # Save prolog file
     utils.write_file(prolog_filepath, prolog_statements)
 
     # Update all_prolog_info file
