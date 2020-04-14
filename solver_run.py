@@ -4,6 +4,52 @@ import re
 import argparse
 from datetime import datetime
 
+import clingo
+
+MODEL_COUNT = 0
+MAX_SOL = 1
+
+# TODO test with sample_mini
+# update tmp_prolog to return str of prolog statements not create/delete file
+# read in pl file
+# remove duplicate lines
+# add unique statements to clingo_control
+# solve
+
+# update args and make this part functions
+# handle UNSAT and parsing valid solutions
+
+files = ['tmp_prolog.pl', 'level_saved_files_block/prolog_files/sample_mini.pl']  #, 'level_saved_files_block/prolog_files/mario-all.pl']
+clingo_args = []
+clingo_control = clingo.Control(clingo_args)
+for file in files:
+    print("Loading file: %s ..." % file)
+    clingo_control.load(file)
+clingo_control.add('base', [], "")
+clingo_control.ground([('base', [])])
+
+
+def onmodel(m):
+    print(repr(m))
+    # global MODEL_COUNT
+    # global MAX_SOL
+    # if MODEL_COUNT == MAX_SOL:
+    #     exit(0)
+    # MODEL_COUNT += 1
+
+
+def add_pl_statements(clingo_control, statements):
+    with clingo_control.builder() as builder:
+        clingo.parse_program(statements, lambda stm: builder.add(stm))
+
+
+print((clingo_control.solve(on_model=onmodel)))
+
+
+exit(0)
+
+
+
 import get_metatile_id_map
 import solver_process, solver_validate
 from utils import get_directory, read_pickle, write_file, get_filepath
@@ -184,6 +230,26 @@ def main(prolog_file, level_w, level_h, min_perc_blocks, start_bottom_left, max_
 
 
 if __name__ == "__main__":
+
+    main('level_saved_files_block/prolog_files/mario-all.pl', level_w=50, level_h=6, min_perc_blocks=None,
+         start_bottom_left=True, max_sol=2, skip_print_answers=False, print_tiles_per_level=True, save=True,
+         validate=True)
+
+    main('level_saved_files_block/prolog_files/mario-all.pl', level_w=50, level_h=6, min_perc_blocks=65,
+         start_bottom_left=True, max_sol=2, skip_print_answers=False, print_tiles_per_level=True, save=True,
+         validate=True)
+
+    # main('level_saved_files_block/prolog_files/mario-icarus-1.pl', level_w=30, level_h=6, min_perc_blocks=None,
+    #      start_bottom_left=True, max_sol=2, skip_print_answers=False, print_tiles_per_level=True, save=True,
+    #      validate=True)
+    #
+    # main('level_saved_files_block/prolog_files/mario-icarus-1.pl', level_w=18, level_h=100, min_perc_blocks=None,
+    #      start_bottom_left=True, max_sol=2, skip_print_answers=False, print_tiles_per_level=True, save=True,
+    #      validate=True)
+
+    exit(0)
+
+
     parser = argparse.ArgumentParser(description='Run solver and create new levels from valid answer sets')
     parser.add_argument('prolog_file', type=str, help="File path of the prolog file to use")
     parser.add_argument('level_w', type=int, help="Number of tiles in a row")

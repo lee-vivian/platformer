@@ -172,6 +172,11 @@ def main(tile_constraints_file, debug, print_pl):
 
 
 if __name__ == "__main__":
+    # main("level_saved_files_block/metatile_constraints/sample_mini.pickle", debug=False, print_pl=False)
+    # main("level_saved_files_block/metatile_constraints/mario-icarus-1.pickle", debug=False, print_pl=False)
+    # main("level_saved_files_block/metatile_constraints/mario-all.pickle", debug=False, print_pl=False)
+    # exit(0)
+
     parser = argparse.ArgumentParser(description='Generate prolog file')
     parser.add_argument('tile_constraints_file', type=str, help="File path of the tile constraints dictionary to use")
     parser.add_argument('--debug', const=True, nargs='?', type=bool, default=False, help='Allow empty tiles if no suitable assignment can be found')
