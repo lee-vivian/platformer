@@ -81,6 +81,30 @@ def list_to_dict(list):
     return dictionary
 
 
+def get_unique_lines(lines_str):
+    unique_str_dict = {}
+    parts = lines_str.split("\n")
+    for part in parts:
+        unique_str_dict[part] = 1
+    unique_lines_str = "\n".join(unique_str_dict.keys())
+    return unique_lines_str
+
+
+def remove_duplicate_lines_from_file(filepath):
+    all_lines_str = ""
+    all_lines_count = 0
+    f = open(filepath, 'r')
+    for line in f:
+        all_lines_str += line
+        all_lines_count += 1
+    unique_lines_str = get_unique_lines(all_lines_str)
+    write_file(filepath, unique_lines_str)
+
+    print("Filepath: %s" % filepath)
+    print("Lines before: %d" % all_lines_count)
+    print("Lines after: %d" % len(unique_lines_str.split("\n")))
+
+
 def euclidean_distance(coord_a, coord_b):
     x1, y1 = coord_a
     x2, y2 = coord_b
