@@ -1,4 +1,3 @@
-from math import inf
 import argparse
 
 from solver import Solver
@@ -65,7 +64,7 @@ if __name__ == "__main__":
     parser.add_argument('level_h', type=int, help="Number of tiles in a column")
     parser.add_argument('--min_perc_blocks', type=int, default=None, help='Minimum percentage of block tiles in a level')
     parser.add_argument('--start_bottom_left', const=True, nargs='?', type=bool, default=False, help='Fix start position to the bottom left of the level')
-    parser.add_argument('--max_sol', type=int, default=inf, help="Max number of answer sets to return. Default = inf")
+    parser.add_argument('--max_sol', type=int, default=0, help="Max number of answer sets to return. 0 = all solutions")
     parser.add_argument('--print_level_stats', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--save', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--validate', const=True, nargs='?', type=bool, default=False, help="Validate generated levels")

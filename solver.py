@@ -80,13 +80,19 @@ class Solver:
 
     def solve(self, max_sol):
         prg = clingo.Control([])
-        prg.configuration.solve.__desc_models
         prg.configuration.solve.models = max_sol  # compute at most max_sol models (0 = all)
-        prg.load(self.prolog_file)  # load statements from prolog file
+
+        print("Loading prolog file: %s..." % self.prolog_file)
+        prg.load(self.prolog_file)
+
+        print("Adding tmp_prolog_statements...")
         with prg.builder() as builder:
-            clingo.parse_program(self.tmp_prolog_statements, lambda stm: builder.add(stm))  # add tmp prolog statements
+            clingo.parse_program(self.tmp_prolog_statements, lambda stm: builder.add(stm))
+
         prg.add('base', [], "")
         prg.ground([('base', [])])
+
+        print("Solving...")
         prg.solve(on_model=lambda m: self.process_answer_set(repr(m)))
 
     def create_assignments_dict(self, model_str):
