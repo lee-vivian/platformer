@@ -7,14 +7,6 @@ from utils import get_filepath, read_pickle
 Run clingo solver on the given prolog file with the specified params
 """
 
-# TODO UPDATE END AND VALIDATE
-# def end_and_validate(answer_set_count, gen_level_dict, id_metatile_map, player_img, start_time):
-#     print("Num Levels Generated: %d" % answer_set_count)
-#     if gen_level_dict is not None:
-#         solver_validate.main(gen_level_dict, id_metatile_map, player_img)
-#     end_time = datetime.now()
-#     print("Total Runtime: %s" % str(end_time-start_time))
-
 
 def main(prolog_file, level_w, level_h, min_perc_blocks, start_bottom_left, max_sol, print_level_stats, save, validate):
 
@@ -31,7 +23,7 @@ def main(prolog_file, level_w, level_h, min_perc_blocks, start_bottom_left, max_
                     goal_tile_id=prolog_file_info.get('goal_tile_id'))
 
     # Run clingo solver
-    solver.solve(max_sol)
+    solver.solve(max_sol=max_sol, validate=validate)
 
 
 if __name__ == "__main__":
