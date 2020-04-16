@@ -23,12 +23,14 @@ Pygame, Python, Clingo
 
 - Run "conda install -c potassco clingo"
 
+- Run "python3 -m pip install -U pygame"
+
 
 ### II. Playing the game
 
-Run "python main.py **environment** **game** **level**"
+Run "python3 main.py **environment** **game** **level**"
 
-Run "python main.py --help" for a full list of options available (includes drawing metatile labels and solution paths)
+Run "python3 main.py --help" for a full list of options available (includes drawing metatile labels and solution paths)
 
 
 ### IIIa. Processing a new level individually (Creating metatile constraints file from a single level)
