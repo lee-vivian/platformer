@@ -89,6 +89,7 @@ class Solver:
         prg.configuration.solve.models = max_sol  # compute at most max_sol models (0 = all)
 
         print("----- LOADING -----")
+        start_time = datetime.now()
         print("Loading prolog file: %s..." % self.prolog_file)
         prg.load(self.prolog_file)
 
@@ -99,8 +100,13 @@ class Solver:
         prg.add('base', [], "")
         prg.ground([('base', [])])
 
+        print("Loading Runtime: %s" % str(datetime.now()-start_time))
+
         print("----- SOLVING -----")
+
+        start_time = datetime.now()
         prg.solve(on_model=lambda m: self.process_answer_set(repr(m), validate))
+        print("Solving Runtime: %s" % str(datetime.now()-start_time))
         self.end_and_validate(validate)
 
     def create_assignments_dict(self, model_str):
