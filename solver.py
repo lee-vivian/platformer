@@ -15,7 +15,7 @@ from utils import get_directory, get_filepath, write_pickle, read_pickle, write_
 class Solver:
 
     def __init__(self, prolog_file, level_w, level_h, min_perc_blocks, start_bottom_left, print_level_stats, save,
-                 start_tile_id, block_tile_id, goal_tile_id):
+                 validate, start_tile_id, block_tile_id, goal_tile_id):
         self.prolog_file = prolog_file
         self.level_w = level_w
         self.level_h = level_h
@@ -23,6 +23,7 @@ class Solver:
         self.start_bottom_left = start_bottom_left
         self.print_level_stats = print_level_stats
         self.save = save
+        self.validate = validate
 
         self.tile_ids = {"start": start_tile_id, "block": block_tile_id, "goal": goal_tile_id}
         self.tmp_prolog_statements = ""
@@ -38,6 +39,11 @@ class Solver:
         player_img = match.group(1)
         prolog_filename = match.group(2)
         return player_img, prolog_filename
+
+    def get_command_str(self):
+        player_img, prolog_filename = Solver.parse_prolog_filepath(self.prolog_file)
+        return "prolog: %s, width: %d, height: %d, min_perc_blocks: %s, start_bottom_left: %s" % \
+               (prolog_filename, self.level_w, self.level_h, str(self.min_perc_blocks), str(self.start_bottom_left))
 
     def increment_answer_set_count(self):
         self.answer_set_count += 1
@@ -84,7 +90,7 @@ class Solver:
         self.tmp_prolog_statements = tmp_prolog_statements
         return True
 
-    def solve(self, max_sol, validate):
+    def solve(self, max_sol):
         prg = clingo.Control([])
         prg.configuration.solve.models = max_sol  # compute at most max_sol models (0 = all)
 
@@ -105,9 +111,8 @@ class Solver:
         print("----- SOLVING -----")
 
         start_time = datetime.now()
-        prg.solve(on_model=lambda m: self.process_answer_set(repr(m), validate))
+        prg.solve(on_model=lambda m: self.process_answer_set(repr(m)))
         print("Solving Runtime: %s" % str(datetime.now()-start_time))
-        self.end_and_validate(validate)
 
     def create_assignments_dict(self, model_str):
         assignments = re.findall(r'assignment\([0-9t,]*\)', model_str)
@@ -167,67 +172,62 @@ class Solver:
             'goal_coord': goal_coord
         }
 
-    def process_answer_set(self, model_str, validate):
-        try:
-            player_img, prolog_filename = Solver.parse_prolog_filepath(self.prolog_file)
-            answer_set_filename = self.get_cur_answer_set_filename(prolog_filename)
+    def process_answer_set(self, model_str):
+        player_img, prolog_filename = Solver.parse_prolog_filepath(self.prolog_file)
+        answer_set_filename = self.get_cur_answer_set_filename(prolog_filename)
 
-            # Create assignments dictionary {(tile_x, tile_y): tile_id}
-            assignments_dict = self.create_assignments_dict(model_str)
+        # Create assignments dictionary {(tile_x, tile_y): tile_id}
+        assignments_dict = self.create_assignments_dict(model_str)
 
-            # Create {(tile_id, extra_info): coords} map
-            tile_id_extra_info_coords_map = self.create_tile_id_coords_map(assignments_dict, player_img, answer_set_filename)
+        # Create {(tile_id, extra_info): coords} map
+        tile_id_extra_info_coords_map = self.create_tile_id_coords_map(assignments_dict, player_img, answer_set_filename)
 
-            # Print tiles per level
-            if self.print_level_stats:
-                num_tiles, num_start_tiles, num_block_tiles, num_goal_tiles = 0, 0, 0, 0
-                for (tile_id, extra_info), coords in tile_id_extra_info_coords_map.items():
-                    len_coords = len(coords)
-                    num_tiles += len_coords
-                    if tile_id == self.tile_ids.get('block'):
-                        num_block_tiles += len_coords
-                    elif tile_id == self.tile_ids.get('start'):
-                        num_start_tiles += len_coords
-                    elif tile_id == self.tile_ids.get('goal'):
-                        num_goal_tiles += len_coords
-                print("Total tiles: %d (%d%%)" % (num_tiles, num_tiles / num_tiles * 100))
-                print("Block tiles:  %d (%d%%)" % (num_block_tiles, num_block_tiles / num_tiles * 100))
-                print("Start tiles:  %d (%d%%)" % (num_start_tiles, num_start_tiles / num_tiles * 100))
-                print("Goal tiles:  %d (%d%%)" % (num_goal_tiles, num_goal_tiles / num_tiles * 100))
+        # Print tiles per level
+        if self.print_level_stats:
+            num_tiles, num_start_tiles, num_block_tiles, num_goal_tiles = 0, 0, 0, 0
+            for (tile_id, extra_info), coords in tile_id_extra_info_coords_map.items():
+                len_coords = len(coords)
+                num_tiles += len_coords
+                if tile_id == self.tile_ids.get('block'):
+                    num_block_tiles += len_coords
+                elif tile_id == self.tile_ids.get('start'):
+                    num_start_tiles += len_coords
+                elif tile_id == self.tile_ids.get('goal'):
+                    num_goal_tiles += len_coords
+            print("Total tiles: %d (%d%%)" % (num_tiles, num_tiles / num_tiles * 100))
+            print("Block tiles:  %d (%d%%)" % (num_block_tiles, num_block_tiles / num_tiles * 100))
+            print("Start tiles:  %d (%d%%)" % (num_start_tiles, num_start_tiles / num_tiles * 100))
+            print("Goal tiles:  %d (%d%%)" % (num_goal_tiles, num_goal_tiles / num_tiles * 100))
 
-            # Create and save structural txt file for the generated level
-            level_structural_txt = ""
-            for row in range(self.level_h):
-                for col in range(self.level_w):
-                    tile_xy = (col, row)
-                    tile_id = assignments_dict.get(tile_xy)
-                    tile_char = self.get_tile_char(tile_id)
-                    level_structural_txt += tile_char
-                level_structural_txt += "\n"
+        # Create and save structural txt file for the generated level
+        level_structural_txt = ""
+        for row in range(self.level_h):
+            for col in range(self.level_w):
+                tile_xy = (col, row)
+                tile_id = assignments_dict.get(tile_xy)
+                tile_char = self.get_tile_char(tile_id)
+                level_structural_txt += tile_char
+            level_structural_txt += "\n"
 
-            if self.save:
-                generated_level_txt_dir = "level_structural_layers/generated/"
-                level_structural_txt_file = get_filepath(generated_level_txt_dir, "%s.txt" % answer_set_filename)
-                write_file(level_structural_txt_file, level_structural_txt)
+        if self.save:
+            generated_level_txt_dir = "level_structural_layers/generated/"
+            level_structural_txt_file = get_filepath(generated_level_txt_dir, "%s.txt" % answer_set_filename)
+            write_file(level_structural_txt_file, level_structural_txt)
 
-            print(level_structural_txt)
+        print(level_structural_txt)  # TODO uncomment
 
-            # Add to generated_levels_dict if validate is True
-            if validate:
-                self.add_to_generated_levels_dict(answer_set_filename=answer_set_filename,
-                                                  tile_id_coords_map=tile_id_extra_info_coords_map,
-                                                  start_coord=self.get_fact_coord(model_str, 'start'),
-                                                  goal_coord=self.get_fact_coord(model_str, 'goal'))
+        # Add to generated_levels_dict if validate is True
+        if self.validate:
+            self.add_to_generated_levels_dict(answer_set_filename=answer_set_filename,
+                                              tile_id_coords_map=tile_id_extra_info_coords_map,
+                                              start_coord=self.get_fact_coord(model_str, 'start'),
+                                              goal_coord=self.get_fact_coord(model_str, 'goal'))
 
-            # Increment answer set count
-            self.increment_answer_set_count()
+        # Increment answer set count
+        self.increment_answer_set_count()
 
-        except KeyboardInterrupt:
-            self.end_and_validate(validate)
-
-    def end_and_validate(self, validate):
-
-        if not validate:
+    def end_and_validate(self):
+        if not self.validate:
             print("----- SUMMARY -----")
             print("Levels generated: %d" % self.answer_set_count)
 
@@ -280,9 +280,10 @@ class Solver:
             print("Validation Runtime: %s" % str(end_time - start_time))
 
             print("----- SUMMARY -----")
+            print("Command: [%s]" % self.get_command_str())
             print("Levels generated: %d" % self.answer_set_count)
             print("Valid levels : %d" % valid_level_count)
             print("Invalid levels: %d" % invalid_level_count)
 
-        exit(0)
+        return True
 

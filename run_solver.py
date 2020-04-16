@@ -1,3 +1,4 @@
+import signal
 import argparse
 
 from solver import Solver
@@ -8,8 +9,13 @@ Run clingo solver on the given prolog file with the specified params
 """
 
 
-def main(prolog_file, level_w, level_h, min_perc_blocks, start_bottom_left, max_sol, print_level_stats, save, validate):
+def keyboard_interrupt_handler(signal, frame, solver):
+    print("----- KEYBOARD INTERRUPT -----")
+    solver.end_and_validate()
+    exit(0)
 
+
+def main(prolog_file, level_w, level_h, min_perc_blocks, start_bottom_left, max_sol, print_level_stats, save, validate):
     player_img, prolog_filename = Solver.parse_prolog_filepath(prolog_file)
     level_saved_files_dir = "level_saved_files_%s/" % player_img
     all_prolog_info_file = get_filepath(level_saved_files_dir + "prolog_files", "all_prolog_info.pickle")
@@ -17,20 +23,36 @@ def main(prolog_file, level_w, level_h, min_perc_blocks, start_bottom_left, max_
     prolog_file_info = all_prolog_info_map.get(prolog_filename)
 
     # Create Solver object
-    solver = Solver(prolog_file=prolog_file, level_w=level_w, level_h=level_h, min_perc_blocks=min_perc_blocks,
-                    start_bottom_left=start_bottom_left, print_level_stats=print_level_stats, save=save,
-                    start_tile_id=prolog_file_info.get('start_tile_id'), block_tile_id=prolog_file_info.get('block_tile_id'),
+    solver = Solver(prolog_file=prolog_file, level_w=level_w, level_h=level_h,
+                    min_perc_blocks=min_perc_blocks, start_bottom_left=start_bottom_left,
+                    print_level_stats=print_level_stats, save=save, validate=validate,
+                    start_tile_id=prolog_file_info.get('start_tile_id'),
+                    block_tile_id=prolog_file_info.get('block_tile_id'),
                     goal_tile_id=prolog_file_info.get('goal_tile_id'))
 
+    # Set up keyboard interrupt handlers
+    signal.signal(signal.SIGINT, handler=lambda s, f: keyboard_interrupt_handler(signal=s, frame=f, solver=solver))
+    signal.signal(signal.SIGTSTP, handler=lambda s, f: keyboard_interrupt_handler(signal=s, frame=f, solver=solver))
+
     # Run clingo solver
-    solver.solve(max_sol=max_sol, validate=validate)
+    solver.solve(max_sol=max_sol)
+
+    # Validate generated levels
+    solver.end_and_validate()
 
 
 if __name__ == "__main__":
-    # main('level_saved_files_block/prolog_files/mario-all.pl', level_w=50, level_h=6, min_perc_blocks=65,
-    #      start_bottom_left=True, max_sol=10, print_level_stats=False, save=True, validate=True)
+
+    # main('level_saved_files_block/prolog_files/sample_mini.pl', level_w=9, level_h=6, min_perc_blocks=65,
+    #      start_bottom_left=False, max_sol=0, print_level_stats=False, save=True, validate=True)
     #
-    # main('level_saved_files_block/prolog_files/mario-icarus-1.pl', level_w=30, level_h=6, min_perc_blocks=None,
+    # main('level_saved_files_block/prolog_files/mario-all.pl', level_w=50, level_h=16, min_perc_blocks=65,
+    #      start_bottom_left=False, max_sol=10, print_level_stats=False, save=True, validate=True)
+    #
+    # main('level_saved_files_block/prolog_files/mario-all.pl', level_w=200, level_h=16, min_perc_blocks=None,
+    #      start_bottom_left=False, max_sol=10, print_level_stats=False, save=True, validate=True)
+    #
+    # main('level_saved_files_block/prolog_files/mario-icarus-1.pl', level_w=30, level_h=16, min_perc_blocks=None,
     #      start_bottom_left=False, max_sol=10, print_level_stats=False, save=True, validate=True)
     #
     # main('level_saved_files_block/prolog_files/mario-icarus-1.pl', level_w=18, level_h=100, min_perc_blocks=None,

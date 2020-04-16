@@ -190,7 +190,6 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(description='Play platformer game')
     parser.add_argument('game', type=str, help='The game to play')
     parser.add_argument('level', type=str, help='The game level to play')
