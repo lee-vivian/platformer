@@ -49,7 +49,11 @@ Run "python3 main.py --help" for a full list of options available (includes draw
   - Run "python gen_prolog.py **metatile_constraints_filepath**"
 
 - Run clingo solver  
-  - Run "python run_solver.py **prolog_filepath** **level_width** **level_height** --max_sol **num_levels_to_generate**" (level width and height are measured in tile units)  
+  - Run "python run_solver.py **prolog_filepath** **level_width** **level_height** --max_sol **num_levels_to_generate**"  
+    - Level width and height are measured in tile units  
+    - Max sol = 0 generates all solutions
+    - Keyboard Interrupt (Ctrl+C or Ctrl+Z) forces solver to stop and validate generated levels if --validate=True
+    
   - Run "python run_solver.py --help" for a full list of options available (includes saving and validating generated levels)
 
 
