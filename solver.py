@@ -280,18 +280,3 @@ class Solver:
 
         exit(0)
 
-
-        # >> > import clingo
-        # >> > prg = clingo.Control()
-        # >> > prg.configuration.solve.__desc_models
-        # 'Compute at most %A models (0 for all)\n'
-        # >> > prg.configuration.solve.models = 0
-        # >> > prg.add("base", [], "{a;b}.")
-        # >> > prg.ground([("base", [])])
-        # >> > prg.solve(on_model=lambda m: print("Answer: {}".format(m)))
-        # Answer:
-        # Answer: a
-        # Answer: b
-        # Answer: a
-        # b
-        # SAT
