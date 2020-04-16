@@ -51,18 +51,18 @@ def main(save_filename, games, levels, player_img):
 
 if __name__ == "__main__":
 
-    GAME_LEVEL_PAIRS = [
-        ('super_mario_bros', 'mario-1-1'), ('super_mario_bros', 'mario-2-1'), ('super_mario_bros', 'mario-3-1'),
-        ('super_mario_bros', 'mario-3-2'), ('super_mario_bros', 'mario-4-1'), ('super_mario_bros', 'mario-5-1'),
-        ('super_mario_bros', 'mario-5-2'), ('super_mario_bros', 'mario-6-1'), ('super_mario_bros', 'mario-6-2'),
-        ('super_mario_bros', 'mario-7-1'), ('super_mario_bros', 'mario-8-1'), ('super_mario_bros', 'mario-8-2'),
-        ('super_mario_bros', 'mario-8-3')
-    ]
-    GAMES = [item[0] for item in GAME_LEVEL_PAIRS]
-    LEVELS = [item[1] for item in GAME_LEVEL_PAIRS]
-
-    main(save_filename='mario-all', games=GAMES, levels=LEVELS, player_img='block')
-    exit(0)
+    # GAME_LEVEL_PAIRS = [
+    #     ('super_mario_bros', 'mario-1-1'), ('super_mario_bros', 'mario-2-1'), ('super_mario_bros', 'mario-3-1'),
+    #     ('super_mario_bros', 'mario-3-2'), ('super_mario_bros', 'mario-4-1'), ('super_mario_bros', 'mario-5-1'),
+    #     ('super_mario_bros', 'mario-5-2'), ('super_mario_bros', 'mario-6-1'), ('super_mario_bros', 'mario-6-2'),
+    #     ('super_mario_bros', 'mario-7-1'), ('super_mario_bros', 'mario-8-1'), ('super_mario_bros', 'mario-8-2'),
+    #     ('super_mario_bros', 'mario-8-3')
+    # ]
+    # GAMES = [item[0] for item in GAME_LEVEL_PAIRS]
+    # LEVELS = [item[1] for item in GAME_LEVEL_PAIRS]
+    #
+    # main(save_filename='mario-all', games=GAMES, levels=LEVELS, player_img='block')
+    # exit(0)
 
     parser = argparse.ArgumentParser(description='Get combined tile constraints file for the given levels')
     parser.add_argument('save_filename', type=str, help='File name to save combined tile constraints to')

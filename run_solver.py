@@ -27,26 +27,14 @@ def main(prolog_file, level_w, level_h, min_perc_blocks, start_bottom_left, max_
 
 
 if __name__ == "__main__":
-
-    # prolog_files = ['level_saved_files_block/prolog_files/sample_mini.pl',
-    #                 'level_saved_files_block/prolog_files/mario-icarus-1.pl',
-    #                 'level_saved_files_block/prolog_files/mario-all.pl']
-    #
-    # main('level_saved_files_block/prolog_files/mario-all.pl', level_w=50, level_h=6, min_perc_blocks=None,
-    #      start_bottom_left=True, max_sol=2, skip_print_answers=False, print_tiles_per_level=True, save=True,
-    #      validate=True)
-    #
     # main('level_saved_files_block/prolog_files/mario-all.pl', level_w=50, level_h=6, min_perc_blocks=65,
-    #      start_bottom_left=True, max_sol=2, skip_print_answers=False, print_tiles_per_level=True, save=True,
-    #      validate=True)
+    #      start_bottom_left=True, max_sol=10, print_level_stats=False, save=True, validate=True)
     #
     # main('level_saved_files_block/prolog_files/mario-icarus-1.pl', level_w=30, level_h=6, min_perc_blocks=None,
-    #      start_bottom_left=True, max_sol=2, skip_print_answers=False, print_tiles_per_level=True, save=True,
-    #      validate=True)
+    #      start_bottom_left=False, max_sol=10, print_level_stats=False, save=True, validate=True)
     #
     # main('level_saved_files_block/prolog_files/mario-icarus-1.pl', level_w=18, level_h=100, min_perc_blocks=None,
-    #      start_bottom_left=True, max_sol=2, skip_print_answers=False, print_tiles_per_level=True, save=True,
-    #      validate=True)
+    #      start_bottom_left=False, max_sol=10, print_level_stats=False, save=True, validate=True)
     #
     # exit(0)
 
