@@ -5,10 +5,10 @@ Solver Object
 import clingo
 import re
 import networkx as nx
-from datetime import datetime
 
 from model.metatile import Metatile
 from model.level import TILE_DIM, TILE_CHARS, START_CHAR, GOAL_CHAR, BLANK_CHAR
+from stopwatch import Stopwatch
 from utils import get_directory, get_filepath, write_pickle, read_pickle, write_file, error_exit, get_node_at_coord
 
 
@@ -32,6 +32,7 @@ class Solver:
 
         # { answer_set_filename: { tile_id_coord_map: map, start_coord: coord, goal_coord: coord} }
         self.generated_levels_dict = {}
+        self.stopwatch = Stopwatch()
 
     @staticmethod
     def parse_prolog_filepath(prolog_filepath):
@@ -94,25 +95,27 @@ class Solver:
         prg = clingo.Control([])
         prg.configuration.solve.models = max_sol  # compute at most max_sol models (0 = all)
 
+        self.stopwatch.start()  # start the stopwatch
+
         print("----- LOADING -----")
-        start_time = datetime.now()
         print("Loading prolog file: %s..." % self.prolog_file)
         prg.load(self.prolog_file)
+        print(self.stopwatch.get_lap_time_str("Load prolog file"))
 
-        print("Adding tmp_prolog_statements...")
+        print("Adding %d tmp_prolog_statements..." % (len(self.tmp_prolog_statements.split("\n"))))
         with prg.builder() as builder:
             clingo.parse_program(self.tmp_prolog_statements, lambda stm: builder.add(stm))
+        print(self.stopwatch.get_lap_time_str("Parse tmp prolog statements"))
 
         prg.add('base', [], "")
-        prg.ground([('base', [])])
 
-        print("Loading Runtime: %s" % str(datetime.now()-start_time))
+        print("Grounding...")
+        prg.ground([('base', [])])
+        print(self.stopwatch.get_lap_time_str("Ground"))
 
         print("----- SOLVING -----")
-
-        start_time = datetime.now()
         prg.solve(on_model=lambda m: self.process_answer_set(repr(m)))
-        print("Solving Runtime: %s" % str(datetime.now()-start_time))
+        print(self.stopwatch.get_lap_time_str("Solve"))
 
     def create_assignments_dict(self, model_str):
         assignments = re.findall(r'assignment\([0-9t,]*\)', model_str)
@@ -227,14 +230,16 @@ class Solver:
         self.increment_answer_set_count()
 
     def end_and_validate(self):
+        self.stopwatch.stop()  # stop stopwatch
+
         if not self.validate:
             print("----- SUMMARY -----")
             print("Levels generated: %d" % self.answer_set_count)
 
         # Validate generated levels
         else:
+            self.stopwatch.start()  # start stopwatch
             print("----- VALIDATING -----")
-            start_time = datetime.now()
             player_img, prolog_filename = Solver.parse_prolog_filepath(self.prolog_file)
             level_saved_files_dir = "level_saved_files_%s/" % player_img
             generated_state_graph_dir = get_directory(level_saved_files_dir + "generated_state_graphs")
@@ -276,8 +281,8 @@ class Solver:
                     print("Saved to: %s" % state_graph_file)
                     valid_level_count += 1
 
-            end_time = datetime.now()
-            print("Validation Runtime: %s" % str(end_time - start_time))
+            print(self.stopwatch.get_lap_time_str("Validation"))
+            self.stopwatch.stop()
 
             print("----- SUMMARY -----")
             print("Command: [%s]" % self.get_command_str())
