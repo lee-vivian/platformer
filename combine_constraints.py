@@ -44,7 +44,7 @@ def main(save_filename, games, levels, player_img):
                                                          player_img=player_img)
 
     end_time = datetime.now()
-    print("Runtime: %s" % str(end_time-start_time))
+    print("Total Runtime: %s" % str(end_time-start_time))
 
     return combined_constraints_file
 

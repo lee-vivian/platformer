@@ -56,6 +56,35 @@ class Level:
         return coords
 
     @staticmethod
+    def print_tile_summary(game, level):
+        filepath = "level_structural_layers/%s/%s.txt" % (game, level)
+        num_tiles, num_block_tiles, num_start_tiles, num_goal_tiles = 0, 0, 0, 0
+        f = open(filepath, 'r')
+        for line in f:
+            for char in line.rstrip():  # for each char in the line
+                if char in TILE_CHARS:
+                    num_block_tiles += 1
+                elif char == START_CHAR:
+                    num_start_tiles += 1
+                elif char == GOAL_CHAR:
+                    num_goal_tiles += 1
+                num_tiles += 1
+        f.close()
+
+        print("Level: %s/%s" % (game, level))
+        print("Total tiles: %d (%d%%)" % (num_tiles, num_tiles / num_tiles * 100))
+        print("Block tiles:  %d (%d%%)" % (num_block_tiles, num_block_tiles / num_tiles * 100))
+        print("Start tiles:  %d (%d%%)" % (num_start_tiles, num_start_tiles / num_tiles * 100))
+        print("Goal tiles:  %d (%d%%)" % (num_goal_tiles, num_goal_tiles / num_tiles * 100))
+
+    @staticmethod
+    def print_structural_txt(game, level):
+        filepath = "level_structural_layers/%s/%s.txt" % (game, level)
+        f = open(filepath, 'r')
+        structural_txt = f.read()
+        print(structural_txt)
+
+    @staticmethod
     def generate_level_from_file(game, level):
 
         add_border_tiles = game != "generated"  # generated levels from solver already include border tiles
@@ -109,4 +138,3 @@ class Level:
 
         return Level(filepath, level_width * TILE_DIM, level_height * TILE_DIM,
                      platform_coords, goal_coords, start_coord)
-
