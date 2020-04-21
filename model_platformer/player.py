@@ -1,6 +1,7 @@
 from model.level import TILE_DIM
-
 from model_platformer.state import StatePlatformer
+
+from math import inf
 
 
 '''
@@ -45,11 +46,26 @@ class PlayerPlatformer:
                 return True
         return False
 
+    def get_xy_bounds(self, platform_coords):
+        tile_min_x, tile_max_x = inf, -inf  # leftmost and rightmost
+        tile_min_y, tile_max_y = 0, -inf  # ceiling and floor
+
+        for x, y in platform_coords:
+            tile_min_x = min(tile_min_x, x)
+            tile_max_x = max(tile_max_x, x)
+            tile_max_y = max(tile_max_y, y)
+
+        return (tile_min_x + self.half_player_w, tile_max_x + self.half_player_w,
+                tile_min_y + self.half_player_h, tile_max_y + self.half_player_h)
+
     def next_state(self, state, action, platform_coords, goal_coords):
+
         new_state = state.clone()
 
         if new_state.goal_reached:
             return new_state
+
+        min_x, max_x, min_y, max_y = self.get_xy_bounds(platform_coords)  # bounds to prevent player moving off screen
 
         new_state.movey += self.gravity
         if new_state.movey > self.max_vel:
@@ -72,7 +88,7 @@ class PlayerPlatformer:
             elif new_state.movex > 0:
                 new_state.x += 1
 
-            if self.collide(new_state.x, new_state.y, platform_coords):
+            if self.collide(new_state.x, new_state.y, platform_coords) or new_state.x < min_x or new_state.x > max_x:
                 new_state.x = old_x
                 new_state.movex = 0
                 break
@@ -93,6 +109,9 @@ class PlayerPlatformer:
                 new_state.movey = 0
                 break
 
+        if new_state.y > max_y + TILE_DIM * 10:  # reset position if player falls off the screen (e.g. in a pit)
+            return self.start_state()
+
         new_state.is_start = False
         new_state.goal_reached = self.collide(new_state.x, new_state.y, goal_coords)
 
@@ -109,3 +128,4 @@ class PlayerPlatformer:
                     edge_dest = edge[1]
                     self.state = StatePlatformer.from_str(edge_dest)
                     break
+
