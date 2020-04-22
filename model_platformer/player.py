@@ -46,26 +46,15 @@ class PlayerPlatformer:
                 return True
         return False
 
-    def get_xy_bounds(self, platform_coords):
-        tile_min_x, tile_max_x = inf, -inf  # leftmost and rightmost
-        tile_min_y, tile_max_y = 0, -inf  # ceiling and floor
-
-        for x, y in platform_coords:
-            tile_min_x = min(tile_min_x, x)
-            tile_max_x = max(tile_max_x, x)
-            tile_max_y = max(tile_max_y, y)
-
-        return (tile_min_x + self.half_player_w, tile_max_x + self.half_player_w,
-                tile_min_y + self.half_player_h, tile_max_y + self.half_player_h)
-
-    def next_state(self, state, action, platform_coords, goal_coords):
+    def next_state(self, state, action, level_w, level_h, platform_coords, goal_coords):
 
         new_state = state.clone()
 
         if new_state.goal_reached:
             return new_state
 
-        min_x, max_x, min_y, max_y = self.get_xy_bounds(platform_coords)  # bounds to prevent player moving off screen
+        min_x, max_x = 0 + self.half_player_w, level_w - self.half_player_w
+        min_y, max_y = 0 + self.half_player_h, level_h - self.half_player_h
 
         new_state.movey += self.gravity
         if new_state.movey > self.max_vel:
@@ -102,7 +91,7 @@ class PlayerPlatformer:
             elif new_state.movey > 0:
                 new_state.y += 1
 
-            if self.collide(new_state.x, new_state.y, platform_coords):
+            if self.collide(new_state.x, new_state.y, platform_coords) or new_state.y < min_y:
                 new_state.y = old_y
                 if new_state.movey > 0:
                     new_state.onground = True
@@ -117,9 +106,9 @@ class PlayerPlatformer:
 
         return new_state
 
-    def update(self, action, platform_coords, goal_coords, precomputed_graph=None, edge_actions_dict=None):
+    def update(self, action, level_w, level_h, platform_coords, goal_coords, precomputed_graph=None, edge_actions_dict=None):
         if precomputed_graph is None or edge_actions_dict is None:
-            self.state = self.next_state(self.state, action, platform_coords, goal_coords)
+            self.state = self.next_state(self.state, action, level_w, level_h, platform_coords, goal_coords)
         else:
             action_str = action.to_str()
             state_edges = precomputed_graph.edges(self.state.to_str())

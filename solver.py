@@ -65,15 +65,15 @@ class Solver:
         create_tiles_statement = "tile(TX,TY) :- dim_width(TX), dim_height(TY)."
         tmp_prolog_statements += create_tiles_statement + "\n"
 
-        # Set border tiles to be block tiles
-        block_tile_coords = []
-        for x in range(self.level_w):
-            block_tile_coords += [(x, 0), (x, self.level_h - 1)]
-        for y in range(self.level_h):
-            block_tile_coords += [(0, y), (self.level_w - 1, y)]
-        for x, y in list(set(block_tile_coords)):
-            block_tile_assignment = "assignment(%d, %d, %s)." % (x, y, block_tile_id)
-            tmp_prolog_statements += block_tile_assignment + "\n"
+        # # Set border tiles to be block tiles
+        # block_tile_coords = []
+        # for x in range(self.level_w):
+        #     block_tile_coords += [(x, 0), (x, self.level_h - 1)]
+        # for y in range(self.level_h):
+        #     block_tile_coords += [(0, y), (self.level_w - 1, y)]
+        # for x, y in list(set(block_tile_coords)):
+        #     block_tile_assignment = "assignment(%d, %d, %s)." % (x, y, block_tile_id)
+        #     tmp_prolog_statements += block_tile_assignment + "\n"
 
         # Fix start tile to be within first section of level and goal tile to be within last section of level
         tiles_per_section = int(self.level_w/self.level_sections)
@@ -135,7 +135,6 @@ class Solver:
         return assignments_dict  # {(tile_x, tile_y): tile_id}
 
     def create_tile_id_coords_map(self, assignments_dict, player_img, answer_set_filename):
-
         tile_id_coords_map = {}
         for tile_coord, tile_id in assignments_dict.items():  # {(tile_x, tile_y): tile_id}
             if tile_id_coords_map.get(tile_id) is None:

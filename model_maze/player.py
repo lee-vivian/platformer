@@ -36,14 +36,15 @@ class PlayerMaze:
                 return True
         return False
 
-    def next_state(self, state, action, platform_coords, goal_coords):
+    def next_state(self, state, action, level_w, level_h, platform_coords, goal_coords):
         new_state = state.clone()
-
         if new_state.goal_reached:
             return new_state
 
-        dx = 0
-        dy = 0
+        min_x, max_x = 0 + self.half_player_w, level_w - self.half_player_w
+        min_y, max_y = 0 + self.half_player_h, level_h - self.half_player_h
+
+        dx, dy = 0, 0
         if action.direction == ActionMaze.NORTH:
             dy = -TILE_DIM
         elif action.direction == ActionMaze.SOUTH:
@@ -53,7 +54,10 @@ class PlayerMaze:
         elif action.direction == ActionMaze.WEST:
             dx = -TILE_DIM
 
-        if not self.collide(new_state.x + dx, new_state.y + dy, platform_coords):
+        collide_with_platform_tile = self.collide(new_state.x + dx, new_state.y + dy, platform_coords)
+        move_off_screen = not (min_x <= new_state.x + dx <= max_x) or not (min_y <= new_state.y + dy <= max_y)
+
+        if not collide_with_platform_tile and not move_off_screen:
             new_state.x += dx
             new_state.y += dy
 
@@ -62,9 +66,9 @@ class PlayerMaze:
 
         return new_state
 
-    def update(self, action, platform_coords, goal_coords, precomputed_graph=None, edge_actions_dict=None):
+    def update(self, action, level_w, level_h, platform_coords, goal_coords, precomputed_graph=None, edge_actions_dict=None):
         if precomputed_graph is None or edge_actions_dict is None:
-            self.state = self.next_state(self.state, action, platform_coords, goal_coords)
+            self.state = self.next_state(self.state, action, level_w, level_h, platform_coords, goal_coords)
         else:
             action_str = action.to_str()
             state_edges = precomputed_graph.edges(self.state.to_str())

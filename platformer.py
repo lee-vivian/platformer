@@ -155,8 +155,12 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
         world.fill(BACKGROUND_COLOR)
         camera.update(player_view)  # set camera to track player
 
-        player_model.update(input_handler.getAction(), level_obj.platform_coords, level_obj.goal_coords,
-                            state_graph, edge_actions_dict)
+        player_model.update(action=input_handler.getAction(),
+                            level_w=level_obj.get_width(), level_h=level_obj.get_height(),
+                            platform_coords=level_obj.get_platform_coords(),
+                            goal_coords=level_obj.get_goal_coords(),
+                            precomputed_graph=state_graph, edge_actions_dict=edge_actions_dict)
+
         player_view.update(player_model.state.x, player_model.state.y,
                            player_model.half_player_w, player_model.half_player_h)
 

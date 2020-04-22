@@ -11,13 +11,16 @@ import utils
 ENVIRONMENTS = ['maze', 'platformer']
 
 
-def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, process):
+def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, process, solve):
 
     # Set environment variable
     if environment not in ENVIRONMENTS:
         utils.error_exit("invalid environment - environment must be one of %s" % str(ENVIRONMENTS))
     if environment == 'maze':
         os.environ['MAZE'] = "1"
+
+    if solve and not process:
+        utils.error_exit("missing --process flag in command; required to run --solve")
 
     if process:
         import enumerate
@@ -42,8 +45,20 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
                                      player_img=player_img, print_stats=False)
 
         import extract_constraints
-        extract_constraints.main(save_filename=level, metatile_id_map_file=metatile_id_map_file, id_metatile_map_file=id_metatile_map_file,
-                                 metatile_coords_dict_files=[metatile_coords_dict_file], player_img=player_img)
+        metatile_constraints_file = extract_constraints.main(save_filename=level, metatile_id_map_file=metatile_id_map_file,
+                                                             id_metatile_map_file=id_metatile_map_file,
+                                                             metatile_coords_dict_files=[metatile_coords_dict_file],
+                                                             player_img=player_img)
+
+        import gen_prolog
+        prolog_file = gen_prolog.main(tile_constraints_file=metatile_constraints_file, debug=False, print_pl=False)
+
+        if solve:
+            from model.level import Level
+            import run_solver
+            level_w, level_h = Level.get_level_dimensions_in_tiles(game, level)
+            run_solver.main(prolog_file=prolog_file, level_w =level_w, level_h=level_h, min_perc_blocks=None,
+                            level_sections=1, max_sol=0, print_level_stats=False, save=True, validate=True)
 
     else:
         import platformer
@@ -150,8 +165,9 @@ if __name__ == "__main__":
     parser.add_argument('--draw_dup_labels', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_path', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--process', const=True, nargs='?', type=bool, help="Run process scripts", default=False)
+    parser.add_argument('--solve', const=True, nargs='?', type=bool, help="Run solver", default=False)
 
     args = parser.parse_args()
 
     main(args.environment, args.game, args.level, args.player_img,
-         args.use_graph, args.draw_all_labels, args.draw_dup_labels, args.draw_path, args.process)
+         args.use_graph, args.draw_all_labels, args.draw_dup_labels, args.draw_path, args.process, args.solve)
