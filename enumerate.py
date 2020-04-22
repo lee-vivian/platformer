@@ -47,7 +47,7 @@ def get_action_set():
     return Action.allActions()
 
 
-def enumerate_states(player_model, start_state, graph, action_set, platform_coords, goal_coords):
+def enumerate_states(player_model, start_state, graph, action_set, level_w, level_h, platform_coords, goal_coords):
     start_state_str = start_state.to_str()
     graph.add_node(start_state_str)
 
@@ -61,7 +61,8 @@ def enumerate_states(player_model, start_state, graph, action_set, platform_coor
 
         for action in action_set:
             cur_state = State.from_str(cur_state_str)
-            next_state = player_model.next_state(cur_state, action, platform_coords, goal_coords)
+            next_state = player_model.next_state(state=cur_state, action=action, level_w=level_w, level_h=level_h,
+                                                 platform_coords=platform_coords, goal_coords=goal_coords)
             next_state_str = next_state.to_str()
             if next_state_str not in explored_states and next_state_str not in unexplored_states:
                 graph.add_node(next_state_str)
@@ -81,7 +82,9 @@ def build_state_graph(game_name, level, player_img, state_graph_file):
     player_model = Player(player_img, level.start_coord, game_name)
     start_state = player_model.start_state()
     action_set = get_action_set()
-    state_graph = enumerate_states(player_model, start_state, nx.DiGraph(), action_set, level.platform_coords, level.goal_coords)
+    state_graph = enumerate_states(player_model=player_model, start_state=start_state, graph=nx.DiGraph(),
+                                   action_set=action_set, level_w=level.get_width(), level_h=level.get_height(),
+                                   platform_coords=level.get_platform_coords(), goal_coords=level.get_goal_coords())
     nx.write_gpickle(state_graph, state_graph_file)
     print("Saved to:", state_graph_file)
 
