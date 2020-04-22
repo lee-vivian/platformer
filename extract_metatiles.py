@@ -40,7 +40,7 @@ def get_metatile_coord_states_map(state_graph, all_possible_coords):
         state_coord = (state_dict['x'], state_dict['y'])
         metatile_coord = Metatile.get_metatile_coord_from_state_coord(state_coord, TILE_DIM)
         if metatile_coord_states_map.get(metatile_coord) is None:
-            utils.error_exit("State coord is outside of the level bounds")
+            continue  # state not on screen (e.g. falling down a pit) - ignore since we only care about tiles on screen
         else:
             metatile_coord_states_map[metatile_coord].append(node)
     return metatile_coord_states_map

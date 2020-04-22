@@ -1,6 +1,6 @@
-'''
+"""
 Enumerate the state space of a level
-'''
+"""
 
 # Note: use pypy3 to run; use pip_pypy3 to install third-party packages (e.g. networkx)
 
