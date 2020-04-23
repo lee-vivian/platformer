@@ -6,12 +6,13 @@ import networkx as nx
 
 from utils import error_exit, read_pickle, get_filepath
 
-METATILE_TYPES = ["start", "goal", "blank", "block"]
+METATILE_TYPES = ["start", "goal", "blank", "block", "bonus"]
 TYPE_IMG_MAP = {
     "start": "player.png",
-    "blank": "blank_tile.png",
+    "goal": "pizza.png",
     "block": "gray_tile.png",
-    "goal": "pizza.png"
+    "bonus": "bonus_tile.png",
+    "blank": "blank_tile.png"
 }
 
 

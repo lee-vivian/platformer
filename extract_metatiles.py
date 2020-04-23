@@ -47,7 +47,8 @@ def get_metatile_coord_states_map(state_graph, all_possible_coords):
 
 
 def construct_metatile(metatile_coord, game, level_start_coord, level_goal_coords_dict, level_platform_coords_dict,
-                       state_graph, metatile_coord_states_map):
+                       level_bonus_coords_dict, state_graph, metatile_coord_states_map):
+
     # Determine metatile type
     if metatile_coord == level_start_coord:
         metatile_type = 'start'
@@ -55,6 +56,8 @@ def construct_metatile(metatile_coord, game, level_start_coord, level_goal_coord
         metatile_type = 'goal'
     elif level_platform_coords_dict.get(metatile_coord) is not None:
         metatile_type = 'block'
+    elif level_bonus_coords_dict.get(metatile_coord) is not None:
+        metatile_type = 'bonus'
     else:
         metatile_type = 'blank'
 
@@ -93,8 +96,9 @@ def extract_metatiles(state_graph_files, unique_metatiles_file, metatile_coords_
         # Generate level object from file
         level_obj = Level.generate_level_from_file(game, level)
 
-        # Create dictionaries for level platform coords and goal coords
+        # Create dictionaries for level platform coords, bonus coords, and goal coords
         platform_coords_dict = utils.list_to_dict(level_obj.get_platform_coords())
+        bonus_coords_dict = utils.list_to_dict(level_obj.get_bonus_coords())
         goal_coords_dict = utils.list_to_dict(level_obj.get_goal_coords())
 
         # Extract metatiles from level
@@ -108,6 +112,7 @@ def extract_metatiles(state_graph_files, unique_metatiles_file, metatile_coords_
                                               level_start_coord=level_obj.get_start_coord(),
                                               level_goal_coords_dict=goal_coords_dict,
                                               level_platform_coords_dict=platform_coords_dict,
+                                              level_bonus_coords_dict=bonus_coords_dict,
                                               state_graph=state_graph,
                                               metatile_coord_states_map=metatile_coord_states_map)
 
