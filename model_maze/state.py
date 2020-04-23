@@ -22,7 +22,7 @@ class StateMaze:
         string += "'x': " + str(self.x) + ", "
         string += "'y': " + str(self.y) + ", "
         string += "'is_start': " + str(self.is_start) + ", "
-        string += "'goal_reached': " + str(self.goal_reached)
+        string += "'goal_reached': " + str(self.goal_reached) + ", "
         string += "'score': " + str(self.score) + ", "
         string += "'uncollected_bonus_coords': " + str(self.uncollected_bonus_coords) + ", "
         string += "'collected_bonus_coords': " + str(self.collected_bonus_coords)

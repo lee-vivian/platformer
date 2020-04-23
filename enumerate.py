@@ -47,7 +47,7 @@ def get_action_set():
     return Action.allActions()
 
 
-def enumerate_states(player_model, start_state, graph, action_set, level_w, level_h, platform_coords, goal_coords):
+def enumerate_states(player_model, start_state, graph, action_set):
     start_state_str = start_state.to_str()
     graph.add_node(start_state_str)
 
@@ -55,14 +55,12 @@ def enumerate_states(player_model, start_state, graph, action_set, level_w, leve
     explored_states = []
 
     while len(unexplored_states) > 0:
-
         cur_state_str = unexplored_states.pop(0)
         explored_states.append(cur_state_str)
 
         for action in action_set:
             cur_state = State.from_str(cur_state_str)
-            next_state = player_model.next_state(state=cur_state, action=action, level_w=level_w, level_h=level_h,
-                                                 platform_coords=platform_coords, goal_coords=goal_coords)
+            next_state = player_model.next_state(state=cur_state, action=action)
             next_state_str = next_state.to_str()
             if next_state_str not in explored_states and next_state_str not in unexplored_states:
                 graph.add_node(next_state_str)
@@ -78,13 +76,12 @@ def enumerate_states(player_model, start_state, graph, action_set, level_w, leve
     return graph
 
 
-def build_state_graph(game_name, level, player_img, state_graph_file):
-    player_model = Player(player_img, level.start_coord, game_name)
-    start_state = player_model.start_state()
+def build_state_graph(player_img, level_obj, state_graph_file):
+    player_model = Player(player_img, level_obj)
+    start_state = player_model.get_start_state()
     action_set = get_action_set()
     state_graph = enumerate_states(player_model=player_model, start_state=start_state, graph=nx.DiGraph(),
-                                   action_set=action_set, level_w=level.get_width(), level_h=level.get_height(),
-                                   platform_coords=level.get_platform_coords(), goal_coords=level.get_goal_coords())
+                                   action_set=action_set)
     nx.write_gpickle(state_graph, state_graph_file)
     print("Saved to:", state_graph_file)
 
@@ -94,9 +91,9 @@ def main(game_name, level_name, player_img):
     start_time = datetime.datetime.now()
     print("\nEnumerating states for level: " + str(level_name) + " ...")
 
-    level = Level.generate_level_from_file(game_name, level_name)
+    level_obj = Level.generate_level_from_file(game_name, level_name)
     state_graph_file = get_state_graph_file(game_name, level_name, player_img)
-    build_state_graph(game_name, level, player_img, state_graph_file)
+    build_state_graph(player_img, level_obj, state_graph_file)
 
     end_time = datetime.datetime.now()
     print("Runtime: ", end_time - start_time, "\n")
@@ -104,7 +101,6 @@ def main(game_name, level_name, player_img):
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(description='Enumerate state graph for the given level')
     parser.add_argument('game', type=str, help='Name of the game')
     parser.add_argument('level', type=str, help='Name of the level')
