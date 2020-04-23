@@ -179,8 +179,8 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
         entities_to_draw += list(platform_sprites) # draw platforms tiles
         entities_to_draw += list(get_uncollected_bonus_sprites(player_model))  # draw uncollected bonus tiles
         entities_to_draw += list(get_collected_bonus_sprites(player_model))  # draw collected bonus tiles
-        entities_to_draw += list(goal_sprites)  # draw goal tiles
         entities_to_draw += list(player_list)  # draw player
+        entities_to_draw += list(goal_sprites)  # draw goal tiles
 
         for e in entities_to_draw:
             world.blit(e.image, camera.apply(e))

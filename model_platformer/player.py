@@ -1,9 +1,6 @@
 from model.level import TILE_DIM
 from model_platformer.state import StatePlatformer
 
-from math import inf
-
-
 '''
 Player Model Object
 '''
@@ -102,8 +99,8 @@ class PlayerPlatformer:
             elif new_state.movey > 0:
                 new_state.y += 1
 
-            block_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_platform_coords() + self.get_collected_bonus_coords())
-            bonus_tile_collision_coord = self.collide(new_state.x, new_state.y, self.get_uncollected_bonus_coords())
+            block_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_platform_coords() + new_state.collected_bonus_coords)
+            bonus_tile_collision_coord = self.collide(new_state.x, new_state.y, new_state.uncollected_bonus_coords)
             move_off_screen = new_state.y < min_y
 
             if block_tile_collision_coord is not None or bonus_tile_collision_coord is not None or move_off_screen:
