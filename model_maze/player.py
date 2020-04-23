@@ -13,36 +13,46 @@ HALF_TILE_WIDTH = int(TILE_DIM / 2)
 
 class PlayerMaze:
 
-    def __init__(self, img, start_tile_coord, game=None):
-        self.state = None
+    def __init__(self, img, level):
         self.half_player_h = HALF_TILE_WIDTH
         self.half_player_w = HALF_TURTLE_WIDTH if img == 'turtle' else HALF_TILE_WIDTH
-        self.start_tile_coord = start_tile_coord
+
+        self.level = level
+        self.state = None
         self.reset()
 
-    def start_state(self):
-        start_x = self.start_tile_coord[0]
-        start_y = self.start_tile_coord[1]
-        return StateMaze(x=start_x + self.half_player_w, y=start_y + self.half_player_h, is_start=True, goal_reached=False)
+    def get_start_state(self):
+        start_x, start_y = self.level.get_start_coord()
+        start_x += self.half_player_w
+        start_y += self.half_player_h
+        return StateMaze(x=start_x, y=start_y, is_start=True, goal_reached=False, score=0,
+                         uncollected_bonus_coords=self.level.get_bonus_coords(), collected_bonus_coords=[])
 
     def reset(self):
-        self.state = self.start_state()
+        self.state = self.get_start_state()
+
+    def get_uncollected_bonus_coords(self):
+        return list(self.state.uncollected_bonus_coords)
+
+    def get_collected_bonus_coords(self):
+        return list(self.state.collected_bonus_coords)
 
     def collide(self, x, y, tile_coords):
         for tile_coord in tile_coords:
             x_overlap = tile_coord[0] < (x + self.half_player_w) and (tile_coord[0] + TILE_DIM) > (x - self.half_player_w)
             y_overlap = tile_coord[1] < (y + self.half_player_h) and (tile_coord[1] + TILE_DIM) > (y - self.half_player_h)
             if x_overlap and y_overlap:
-                return True
-        return False
+                return tile_coord
+        return None
 
-    def next_state(self, state, action, level_w, level_h, platform_coords, goal_coords):
+    def next_state(self, state, action):
         new_state = state.clone()
         if new_state.goal_reached:
             return new_state
 
-        min_x, max_x = 0 + self.half_player_w, level_w - self.half_player_w
-        min_y, max_y = 0 + self.half_player_h, level_h - self.half_player_h
+        # Get level bounds
+        min_x, max_x = 0 + self.half_player_w, self.level.get_width() - self.half_player_w
+        min_y, max_y = 0 + self.half_player_h, self.level.get_height() - self.half_player_h
 
         dx, dy = 0, 0
         if action.direction == ActionMaze.NORTH:
@@ -54,21 +64,29 @@ class PlayerMaze:
         elif action.direction == ActionMaze.WEST:
             dx = -TILE_DIM
 
-        collide_with_platform_tile = self.collide(new_state.x + dx, new_state.y + dy, platform_coords)
+        block_tile_collision_coord = self.collide(new_state.x + dx, new_state.y + dy,
+                                                  self.level.get_platform_coords() + self.get_collected_bonus_coords())
+        bonus_tile_collision_coord = self.collide(new_state.x + dx, new_state.y + dy,
+                                                  self.get_uncollected_bonus_coords())
         move_off_screen = not (min_x <= new_state.x + dx <= max_x) or not (min_y <= new_state.y + dy <= max_y)
 
-        if not collide_with_platform_tile and not move_off_screen:
+        if block_tile_collision_coord is None and bonus_tile_collision_coord is None and not move_off_screen:
             new_state.x += dx
             new_state.y += dy
 
+        if bonus_tile_collision_coord is not None:
+            new_state.score += 10  # award bonus points
+            new_state.uncollected_bonus_coords.remove(bonus_tile_collision_coord)  # remove from uncollected list
+            new_state.collected_bonus_coords.append(bonus_tile_collision_coord)  # add to collected list
+
         new_state.is_start = False
-        new_state.goal_reached = self.collide(new_state.x, new_state.y, goal_coords)
+        new_state.goal_reached = self.collide(new_state.x, new_state.y, self.level.get_goal_coords())
 
         return new_state
 
-    def update(self, action, level_w, level_h, platform_coords, goal_coords, precomputed_graph=None, edge_actions_dict=None):
+    def update(self, action, precomputed_graph=None, edge_actions_dict=None):
         if precomputed_graph is None or edge_actions_dict is None:
-            self.state = self.next_state(self.state, action, level_w, level_h, platform_coords, goal_coords)
+            self.state = self.next_state(self.state, action)
         else:
             action_str = action.to_str()
             state_edges = precomputed_graph.edges(self.state.to_str())

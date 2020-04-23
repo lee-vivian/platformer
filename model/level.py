@@ -3,10 +3,11 @@ Level Object
 """
 
 TILE_DIM = 40
-TILE_CHARS = ['#', '?', 'B', 'T']
+TILE_CHARS = ['#', 'B', 'T']
 GOAL_CHAR = '!'
 START_CHAR = 'S'
 BLANK_CHAR = '-'
+BONUS_CHAR = '?'
 
 MAX_WIDTH = 1200
 MAX_HEIGHT = 600
@@ -14,13 +15,21 @@ MAX_HEIGHT = 600
 
 class Level:
 
-    def __init__(self, name, width, height, platform_coords, goal_coords, start_coord):
+    def __init__(self, name, game, width, height, platform_coords, goal_coords, start_coord, bonus_coords):
         self.name = name
+        self.game = game
         self.width = width  # in px
         self.height = height  # in px
         self.platform_coords = platform_coords
         self.goal_coords = goal_coords
         self.start_coord = start_coord
+        self.bonus_coords = bonus_coords
+
+    def get_name(self):
+        return self.name
+
+    def get_game(self):
+        return self.game
 
     def get_width(self):
         return self.width
@@ -36,6 +45,9 @@ class Level:
 
     def get_start_coord(self):
         return self.start_coord
+
+    def get_bonus_coords(self):
+        return list(self.bonus_coords)
 
     def get_all_possible_coords(self):
         return Level.all_possible_coords(self.width, self.height)
@@ -58,22 +70,25 @@ class Level:
     @staticmethod
     def print_tile_summary(game, level):
         filepath = "level_structural_layers/%s/%s.txt" % (game, level)
-        num_tiles, num_block_tiles, num_start_tiles, num_goal_tiles = 0, 0, 0, 0
+        num_tiles, num_start_tiles, num_goal_tiles, num_bonus_tiles, num_block_tiles = 0, 0, 0, 0, 0
         f = open(filepath, 'r')
         for line in f:
             for char in line.rstrip():  # for each char in the line
-                if char in TILE_CHARS:
-                    num_block_tiles += 1
-                elif char == START_CHAR:
+                if char == START_CHAR:
                     num_start_tiles += 1
                 elif char == GOAL_CHAR:
                     num_goal_tiles += 1
+                elif char == BONUS_CHAR:
+                    num_bonus_tiles += 1
+                elif char in TILE_CHARS:
+                    num_block_tiles += 1
                 num_tiles += 1
         f.close()
 
         print("Level: %s/%s" % (game, level))
         print("Total tiles: %d (%d%%)" % (num_tiles, num_tiles / num_tiles * 100))
         print("Block tiles:  %d (%d%%)" % (num_block_tiles, num_block_tiles / num_tiles * 100))
+        print("Bonus tiles: %d (%d%%)" % (num_bonus_tiles, num_bonus_tiles / num_tiles * 100))
         # print("Start tiles:  %d (%d%%)" % (num_start_tiles, num_start_tiles / num_tiles * 100))
         # print("Goal tiles:  %d (%d%%)" % (num_goal_tiles, num_goal_tiles / num_tiles * 100))
 
@@ -86,12 +101,10 @@ class Level:
 
     @staticmethod
     def generate_level_from_file(game, level):
-
         filepath = "level_structural_layers/%s/%s.txt" % (game, level)
-
-        level_width = 0
-        level_height = 0
+        level_width, level_height = 0, 0
         platform_coords = []
+        bonus_coords = []
         goal_coords = []
         start_coord = None
 
@@ -108,16 +121,22 @@ class Level:
             for char_index in range(level_width):
                 char_coord = (char_index * TILE_DIM, level_height * TILE_DIM)
                 char = line[char_index]
-                if char in TILE_CHARS:
-                    platform_coords.append(char_coord)
+
+                if start_coord is None and char == START_CHAR:  # start coord can only be defined once
+                    start_coord = char_coord
                 elif char == GOAL_CHAR:
                     goal_coords.append(char_coord)
-                elif start_coord is None and char == START_CHAR:  # start coord can only be defined once
-                    start_coord = char_coord
+                elif char == BONUS_CHAR:
+                    bonus_coords.append(char_coord)
+                elif char in TILE_CHARS:
+                    platform_coords.append(char_coord)
 
             # Increment the level_height
             level_height += 1
 
         f.close()
 
-        return Level(filepath, level_width * TILE_DIM, level_height * TILE_DIM, platform_coords, goal_coords, start_coord)
+        return Level(name=level, game=game, width=level_width * TILE_DIM, height=level_height * TILE_DIM,  # in px
+                     platform_coords=platform_coords, goal_coords=goal_coords, start_coord=start_coord,
+                     bonus_coords=bonus_coords)
+
