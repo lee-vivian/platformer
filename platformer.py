@@ -1,9 +1,9 @@
-'''
+"""
 Basic Platform Game
 author: Vivian Lee
 created: 02-12-2020
 acknowledgements: followed tutorial from opensource.com
-'''
+"""
 
 import pygame
 import os
@@ -27,6 +27,14 @@ else:
     print('***** USING PLATFORMER RULES *****')
     from model_platformer.player import PlayerPlatformer as Player
     from model_platformer.inputs import InputsPlatformer as Inputs
+
+
+def get_score_label(score):
+    font_color = (255, 255, 100)
+    label_font = pygame.font.SysFont('Comic Sans MS', 50)
+    label_text = "Score: %d" % score
+    score_label = label_font.render(label_text, False, font_color)
+    return score_label
 
 
 def get_metatile_labels_at_coords(coords, tile_id, extra_info, label_font, font_color): #, graph_is_empty, font, color):
@@ -184,6 +192,10 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
 
         for e in entities_to_draw:
             world.blit(e.image, camera.apply(e))
+
+        score_label = get_score_label(player_model.get_score())
+        score_label_x_padding = 65
+        world.blit(score_label, (WORLD_X/2 - score_label_x_padding, 0))
 
         if draw_all_labels or draw_dup_labels:
             for coord in level_obj.get_all_possible_coords():  # draw metatile border outlines

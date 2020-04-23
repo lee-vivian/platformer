@@ -40,6 +40,9 @@ class PlayerPlatformer:
     def get_collected_bonus_coords(self):
         return list(self.state.collected_bonus_coords)
 
+    def get_score(self):
+        return self.state.score
+
     def collide(self, x, y, tile_coords):
         for tile_coord in tile_coords:
             x_overlap = tile_coord[0] < (x + self.half_player_w) and (tile_coord[0] + TILE_DIM) > (x - self.half_player_w)
