@@ -116,6 +116,10 @@ def main(tile_constraints_file, debug, print_pl):
     start_tile_id = metatile_type_ids_map.get("start")[0]
     goal_tile_id = metatile_type_ids_map.get("goal")[0]
 
+    # Get bonus tile id if exists
+    bonus_tile_ids = metatile_type_ids_map.get("bonus")
+    bonus_tile_id = None if len(bonus_tile_ids) == 0 else bonus_tile_ids[0]
+
     # Start state is inherently reachable
     start_reachable_rule = "reachable(X,Y) :- start(X,Y)."
     prolog_statements += start_reachable_rule + "\n"
@@ -123,6 +127,8 @@ def main(tile_constraints_file, debug, print_pl):
     # Goal state must be reachable
     goal_reachable_rule = ":- goal(X,Y), not reachable(X,Y)."
     prolog_statements += goal_reachable_rule + "\n"
+
+    # Bonus tiles must be reachable TODO
 
     # State reachable rule
     state_reachable_rule = "reachable(X2,Y2) :- link(X1,Y1,X2,Y2), state(X1,Y2), state(X2,Y2), reachable(X1,Y1)."
@@ -163,7 +169,8 @@ def main(tile_constraints_file, debug, print_pl):
         "filepath": prolog_filepath,
         "block_tile_id": block_tile_id,
         "start_tile_id": start_tile_id,
-        "goal_tile_id": goal_tile_id
+        "goal_tile_id": goal_tile_id,
+        "bonus_tile_id": bonus_tile_id
     }
 
     utils.write_pickle(all_prolog_info_filepath, all_prolog_info_map)

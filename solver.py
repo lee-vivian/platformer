@@ -7,25 +7,27 @@ import re
 import networkx as nx
 
 from model.metatile import Metatile
-from model.level import TILE_DIM, TILE_CHARS, START_CHAR, GOAL_CHAR, BLANK_CHAR
+from model.level import TILE_DIM, TILE_CHARS, START_CHAR, GOAL_CHAR, BLANK_CHAR, BONUS_CHAR
 from stopwatch import Stopwatch
 from utils import get_directory, get_filepath, write_pickle, read_pickle, write_file, error_exit, get_node_at_coord
 
 
 class Solver:
 
-    def __init__(self, prolog_file, level_w, level_h, min_perc_blocks, level_sections, print_level_stats,
-                 save, validate, start_tile_id, block_tile_id, goal_tile_id):
+    def __init__(self, prolog_file, level_w, level_h, min_perc_blocks, min_num_bonus_tiles,
+                 level_sections, print_level_stats, save, validate,
+                 start_tile_id, block_tile_id, goal_tile_id, bonus_tile_id):
         self.prolog_file = prolog_file
         self.level_w = level_w
         self.level_h = level_h
         self.min_perc_blocks = min_perc_blocks
+        self.min_num_bonus_tiles = min_num_bonus_tiles
         self.level_sections = level_sections
         self.print_level_stats = print_level_stats
         self.save = save
         self.validate = validate
 
-        self.tile_ids = {"start": start_tile_id, "block": block_tile_id, "goal": goal_tile_id}
+        self.tile_ids = {"start": start_tile_id, "block": block_tile_id, "goal": goal_tile_id, "bonus": bonus_tile_id}
         self.tmp_prolog_statements = ""
         self.init_tmp_prolog_statements()  # create tmp prolog statements
         self.answer_set_count = 0
@@ -36,15 +38,16 @@ class Solver:
 
     @staticmethod
     def parse_prolog_filepath(prolog_filepath):
-        match = re.match('level_saved_files_([^/]+)/prolog_files/([a-zA-Z0-9_-]+).pl', prolog_filepath)
+        match = re.match('level_saved_files_([^/]+)/prolog_files/([a-zA-Z0-9_\-]+)\.pl', prolog_filepath)
         player_img = match.group(1)
         prolog_filename = match.group(2)
         return player_img, prolog_filename
 
     def get_command_str(self):
         player_img, prolog_filename = Solver.parse_prolog_filepath(self.prolog_file)
-        return "prolog: %s, width: %d, height: %d, min_perc_blocks: %s, level_sections: %d" % \
-               (prolog_filename, self.level_w, self.level_h, str(self.min_perc_blocks), self.level_sections)
+        return "prolog: %s, width: %d, height: %d, min_perc_blocks: %s, min_num_bonus_tiles: %d, level_sections: %d" % \
+               (prolog_filename, self.level_w, self.level_h, str(self.min_perc_blocks),
+                self.min_num_bonus_tiles, self.level_sections)
 
     def increment_answer_set_count(self):
         self.answer_set_count += 1
@@ -56,6 +59,7 @@ class Solver:
         start_tile_id = self.tile_ids.get('start')
         block_tile_id = self.tile_ids.get('block')
         goal_tile_id = self.tile_ids.get('goal')
+        bonus_tile_id = self.tile_ids.get('bonus')
 
         tmp_prolog_statements = ""
         tmp_prolog_statements += "dim_width(0..%d).\n" % (self.level_w - 1)
@@ -65,15 +69,10 @@ class Solver:
         create_tiles_statement = "tile(TX,TY) :- dim_width(TX), dim_height(TY)."
         tmp_prolog_statements += create_tiles_statement + "\n"
 
-        # # Set border tiles to be block tiles
-        # block_tile_coords = []
+        # # Set floor tiles to be block tiles
         # for x in range(self.level_w):
-        #     block_tile_coords += [(x, 0), (x, self.level_h - 1)]
-        # for y in range(self.level_h):
-        #     block_tile_coords += [(0, y), (self.level_w - 1, y)]
-        # for x, y in list(set(block_tile_coords)):
-        #     block_tile_assignment = "assignment(%d, %d, %s)." % (x, y, block_tile_id)
-        #     tmp_prolog_statements += block_tile_assignment + "\n"
+        #     floor_tile_assignment = "assignment(%d, %d, %s)." % (x, self.level_h-1, block_tile_id)
+        #     tmp_prolog_statements += floor_tile_assignment + "\n"
 
         # Fix start tile to be within first section of level and goal tile to be within last section of level
         tiles_per_section = int(self.level_w/self.level_sections)
@@ -85,13 +84,20 @@ class Solver:
         tmp_prolog_statements += start_tile_max_rule + "\n"
         tmp_prolog_statements += goal_tile_min_rule + "\n"
 
+        # Total tiles in generated level
+        num_total_tiles = int(self.level_w * self.level_h)
+
         # Set minimum percentage of block tiles allowed in generated level
         if self.min_perc_blocks is not None:
-            # Limit number of block tiles
-            total_tiles = int(self.level_w * self.level_h)
-            min_perc_blocks_statement = "limit(%s, %d, %d)." % (
-                block_tile_id, int(self.min_perc_blocks / 100 * total_tiles), total_tiles)
+            min_num_block_tiles = int(self.min_perc_blocks / 100 * num_total_tiles)
+            min_perc_blocks_statement = "limit(%s, %d, %d)." % (block_tile_id, min_num_block_tiles, num_total_tiles)
             tmp_prolog_statements += min_perc_blocks_statement + "\n"
+
+        # Set minimum number of bonus tile ids allowed in generated level
+        if bonus_tile_id is not None and self.min_num_bonus_tiles > 0:
+            min_num_bonus_tiles_statement = "limit(%s, %d, %d)." % (bonus_tile_id, self.min_num_bonus_tiles, num_total_tiles)
+            print(min_num_bonus_tiles_statement)
+            tmp_prolog_statements += min_num_bonus_tiles_statement + "\n"
 
         # Set tmp_prolog_statements
         self.tmp_prolog_statements = tmp_prolog_statements
@@ -157,6 +163,8 @@ class Solver:
     def get_tile_char(self, tile_id):
         if tile_id == self.tile_ids.get('block'):
             return TILE_CHARS[0]
+        elif tile_id == self.tile_ids.get('bonus'):
+            return BONUS_CHAR
         elif tile_id == self.tile_ids.get('start'):
             return START_CHAR
         elif tile_id == self.tile_ids.get('goal'):
@@ -192,18 +200,22 @@ class Solver:
 
         # Print tiles per level
         if self.print_level_stats:
-            num_tiles, num_start_tiles, num_block_tiles, num_goal_tiles = 0, 0, 0, 0
+
+            num_tiles, num_block_tiles, num_bonus_tiles, num_start_tiles, num_goal_tiles = 0, 0, 0, 0, 0
             for (tile_id, extra_info), coords in tile_id_extra_info_coords_map.items():
                 len_coords = len(coords)
                 num_tiles += len_coords
                 if tile_id == self.tile_ids.get('block'):
                     num_block_tiles += len_coords
+                elif tile_id == self.tile_ids.get('bonus'):
+                    num_bonus_tiles += len_coords
                 elif tile_id == self.tile_ids.get('start'):
                     num_start_tiles += len_coords
                 elif tile_id == self.tile_ids.get('goal'):
                     num_goal_tiles += len_coords
             print("Total tiles: %d (%d%%)" % (num_tiles, num_tiles / num_tiles * 100))
             print("Block tiles:  %d (%d%%)" % (num_block_tiles, num_block_tiles / num_tiles * 100))
+            print("Bonus tiles:  %d (%d%%)" % (num_bonus_tiles, num_bonus_tiles / num_tiles * 100))
             print("Start tiles:  %d (%d%%)" % (num_start_tiles, num_start_tiles / num_tiles * 100))
             print("Goal tiles:  %d (%d%%)" % (num_goal_tiles, num_goal_tiles / num_tiles * 100))
 
@@ -222,7 +234,7 @@ class Solver:
             level_structural_txt_file = get_filepath(generated_level_txt_dir, "%s.txt" % answer_set_filename)
             write_file(level_structural_txt_file, level_structural_txt)
 
-        print(level_structural_txt)  # TODO uncomment
+        print(level_structural_txt)
 
         # Add to generated_levels_dict if validate is True
         if self.validate:

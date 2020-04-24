@@ -6,7 +6,7 @@ from math import sqrt, pow
 
 
 def error_exit(msg):
-    print(msg)
+    print("ERROR: %s" % msg)
     exit(0)
 
 

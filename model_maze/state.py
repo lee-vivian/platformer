@@ -18,6 +18,8 @@ class StateMaze:
                          self.score, self.uncollected_bonus_coords, self.collected_bonus_coords)
 
     def to_str(self):
+        self.uncollected_bonus_coords.sort()
+        self.collected_bonus_coords.sort()
         string = "{"
         string += "'x': " + str(self.x) + ", "
         string += "'y': " + str(self.y) + ", "
@@ -33,5 +35,4 @@ class StateMaze:
     def from_str(string):
         state_dict = eval(string)
         return StateMaze(state_dict['x'], state_dict['y'], state_dict['is_start'], state_dict['goal_reached'],
-                         state_dict['score'], state_dict['uncollected_bonus_coords'],
-                         state_dict['collected_bonus_coords'])
+                         state_dict['score'], state_dict['uncollected_bonus_coords'], state_dict['collected_bonus_coords'])

@@ -78,7 +78,7 @@ def get_collected_bonus_sprites(player_model):
     return collected_bonus_sprites
 
 
-def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path):
+def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score):
 
     # Create the Level
     level_obj = Level.generate_level_from_file(game, level)
@@ -193,9 +193,10 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
         for e in entities_to_draw:
             world.blit(e.image, camera.apply(e))
 
-        score_label = get_score_label(player_model.get_score())
-        score_label_x_padding = 65
-        world.blit(score_label, (WORLD_X/2 - score_label_x_padding, 0))
+        if show_score:
+            score_label = get_score_label(player_model.get_score())
+            score_label_x_padding = 65
+            world.blit(score_label, (WORLD_X/2 - score_label_x_padding, 0))
 
         if draw_all_labels or draw_dup_labels:
             for coord in level_obj.get_all_possible_coords():  # draw metatile border outlines
@@ -227,6 +228,8 @@ if __name__ == "__main__":
     parser.add_argument('--draw_all_labels', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_dup_labels', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_path', const=True, nargs='?', type=bool, default=False)
+    parser.add_argument('--show_score', const=True, nargs='?', type=bool, default=False)
     args = parser.parse_args()
 
-    main(args.game, args.level, args.player_img, args.use_graph, args.draw_all_labels, args.draw_dup_labels, args.draw_path)
+    main(args.game, args.level, args.player_img, args.use_graph, args.draw_all_labels, args.draw_dup_labels,
+         args.draw_path, args.show_score)
