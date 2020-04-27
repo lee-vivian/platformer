@@ -14,14 +14,15 @@ from utils import get_directory, get_filepath, write_pickle, read_pickle, write_
 
 class Solver:
 
-    def __init__(self, prolog_file, level_w, level_h, min_perc_blocks, min_num_bonus_tiles,
+    def __init__(self, prolog_file, level_w, level_h, min_perc_blocks, min_bonus, max_bonus,
                  level_sections, print_level_stats, save, validate,
                  start_tile_id, block_tile_id, goal_tile_id, bonus_tile_id):
         self.prolog_file = prolog_file
         self.level_w = level_w
         self.level_h = level_h
         self.min_perc_blocks = min_perc_blocks
-        self.min_num_bonus_tiles = min_num_bonus_tiles
+        self.min_bonus = min_bonus
+        self.max_bonus = max_bonus
         self.level_sections = level_sections
         self.print_level_stats = print_level_stats
         self.save = save
@@ -45,9 +46,9 @@ class Solver:
 
     def get_command_str(self):
         player_img, prolog_filename = Solver.parse_prolog_filepath(self.prolog_file)
-        return "prolog: %s, width: %d, height: %d, min_perc_blocks: %s, min_num_bonus_tiles: %d, level_sections: %d" % \
+        return "prolog: %s, width: %d, height: %d, min perc blocks: %s, bonus tiles: %d-%d, level sections: %d" % \
                (prolog_filename, self.level_w, self.level_h, str(self.min_perc_blocks),
-                self.min_num_bonus_tiles, self.level_sections)
+                self.min_bonus, self.max_bonus, self.level_sections)
 
     def increment_answer_set_count(self):
         self.answer_set_count += 1
@@ -93,11 +94,10 @@ class Solver:
             min_perc_blocks_statement = "limit(%s, %d, %d)." % (block_tile_id, min_num_block_tiles, num_total_tiles)
             tmp_prolog_statements += min_perc_blocks_statement + "\n"
 
-        # Set minimum number of bonus tile ids allowed in generated level
-        if bonus_tile_id is not None and self.min_num_bonus_tiles > 0:
-            min_num_bonus_tiles_statement = "limit(%s, %d, %d)." % (bonus_tile_id, self.min_num_bonus_tiles, num_total_tiles)
-            print(min_num_bonus_tiles_statement)
-            tmp_prolog_statements += min_num_bonus_tiles_statement + "\n"
+        # Set range num bonus tiles allowed in generated level
+        if bonus_tile_id is not None and (self.min_bonus > 0 or self.max_bonus > 0):
+            limit_bonus_tiles_statement = "limit(%s, %d, %d)." % (bonus_tile_id, self.min_bonus, self.max_bonus)
+            tmp_prolog_statements += limit_bonus_tiles_statement + "\n"
 
         # Set tmp_prolog_statements
         self.tmp_prolog_statements = tmp_prolog_statements
