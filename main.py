@@ -12,7 +12,7 @@ ENVIRONMENTS = ['maze', 'platformer']
 
 
 def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score,
-         process, solve, dimensions):
+         process, solve, dimensions, structure, summary):
 
     # Set environment variable
     if environment not in ENVIRONMENTS:
@@ -20,9 +20,14 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
     if environment == 'maze':
         os.environ['MAZE'] = "1"
 
-    if dimensions:
+    if dimensions or structure or summary:
         from model.level import Level
-        print(Level.get_level_dimensions_in_tiles(game, level))
+        if dimensions:
+            print(Level.get_level_dimensions_in_tiles(game, level))
+        if structure:
+            Level.print_structural_txt(game, level)
+        if summary:
+            Level.print_tile_summary(game, level)
         exit(0)
 
     if solve and not process:
@@ -174,9 +179,11 @@ if __name__ == "__main__":
     parser.add_argument('--process', const=True, nargs='?', type=bool, help="Run process scripts", default=False)
     parser.add_argument('--solve', const=True, nargs='?', type=bool, help="Run solver", default=False)
     parser.add_argument('--dimensions',const=True, nargs='?', type=bool, help="Get level dimensions in tiles (width, height)", default=False)
+    parser.add_argument('--structure', const=True, nargs='?', type=bool, help="Print level txt structural layer", default=False)
+    parser.add_argument('--summary', const=True, nargs='?', type=bool, help="Print level tile summmary stats", default=False)
 
     args = parser.parse_args()
 
     main(args.environment, args.game, args.level, args.player_img,
          args.use_graph, args.draw_all_labels, args.draw_dup_labels, args.draw_path, args.show_score,
-         args.process, args.solve, args.dimensions)
+         args.process, args.solve, args.dimensions, args.structure, args.summary)
