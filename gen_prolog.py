@@ -132,14 +132,14 @@ def main(tile_constraints_file, debug, print_pl):
     state_reachable_rule = "reachable(X2,Y2) :- link(X1,Y1,X2,Y2), state(X1,Y2), state(X2,Y2), reachable(X1,Y1)."
     prolog_statements += state_reachable_rule + "\n"
 
-    # Bonus tiles must be reachable (states underneath bonus tiles must be reachable)
-    if bonus_tile_id is not None:
-        state_y = "TY*%d+%d+%d" % (TILE_DIM, TILE_DIM, int(TILE_DIM/2))
+    # Tile reachable rule (only if state in top half of the tile is reachable)
+    reachable_tile_rule = "reachable_tile(X/%d,Y/%d) :- reachable(X,Y), Y\\%d <= %d/2." % (TILE_DIM, TILE_DIM, TILE_DIM, TILE_DIM)
+    prolog_statements += reachable_tile_rule + "\n"
 
-        for i in range(TILE_DIM):
-            state_x = "TX*%d+%d" % (TILE_DIM, i)
-            bonus_reachable_rule = ":- not reachable(%s,%s), assignment(TX, TY, %s)." % (state_x, state_y, bonus_tile_id)
-            prolog_statements += bonus_reachable_rule + "\n"
+    # Ensure that bonus tiles can be collected
+    if bonus_tile_id is not None:
+        bonus_reachable_rule = ":- assignment(TX,TY,%s), not reachable_tile(TX,TY+1)." % bonus_tile_id
+        prolog_statements += bonus_reachable_rule + "\n"
 
     # Limit number of tiles of specified tile id
     limit_tile_type_rule = "MIN { assignment(X,Y,MT) : metatile(MT), tile(X,Y) } MAX :- limit(MT, MIN, MAX)."

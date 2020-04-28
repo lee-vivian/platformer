@@ -37,7 +37,7 @@ def main(prolog_file, level_w, level_h, min_perc_blocks, min_bonus, max_bonus, l
     if max_bonus is None:
         max_bonus = level_w * level_h
         if min_perc_blocks is not None:
-            max_bonus = int(max_bonus * min_perc_blocks / 100)
+            max_bonus = int(max_bonus * (min_perc_blocks / 100))
 
     # Create Solver object
     solver = Solver(prolog_file=prolog_file, level_w=level_w, level_h=level_h,

@@ -85,10 +85,8 @@ class Solver:
         tmp_prolog_statements += start_tile_max_rule + "\n"
         tmp_prolog_statements += goal_tile_min_rule + "\n"
 
-        # Total tiles in generated level
-        num_total_tiles = int(self.level_w * self.level_h)
-
         # Set minimum percentage of block tiles allowed in generated level
+        num_total_tiles = int(self.level_w * self.level_h)
         if self.min_perc_blocks is not None:
             min_num_block_tiles = int(self.min_perc_blocks / 100 * num_total_tiles)
             min_perc_blocks_statement = "limit(%s, %d, %d)." % (block_tile_id, min_num_block_tiles, num_total_tiles)
@@ -172,10 +170,13 @@ class Solver:
         else:
             return BLANK_CHAR
 
+    def get_facts_as_list(self, model_str, fact_name):
+        return re.findall(r'%s\([0-9t,]*\)' % fact_name, model_str)
+
     def get_fact_coord(self, model_str, fact_name):
-        facts = re.findall(r'%s\([0-9t,]*\)' % fact_name, model_str)
+        facts = self.get_facts_as_list(model_str, fact_name)
         if len(facts) == 0:
-            error_exit("Fact '%s' not found in solver output" % fact_name)
+            error_exit("'%s' fact not found in solver output" % fact_name)
         fact = facts[0]
         match = re.match(r'%s\((\d+),(\d+)\)' % fact_name, fact)
         x, y = int(match.group(1)), int(match.group(2))
