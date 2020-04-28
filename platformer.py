@@ -5,6 +5,9 @@ created: 02-12-2020
 acknowledgements: followed tutorial from opensource.com
 """
 
+#  TODO update platformer game to track score when --use_graph flag is on (state graph currently does not track
+#   collected/uncollected bonus tiles)
+
 import pygame
 import os
 import sys
@@ -125,6 +128,10 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
     for (x, y) in level_obj.goal_coords:
         goal_sprites.add(Tile(x, y, 'pizza.png'))
 
+    bonus_sprites = pygame.sprite.Group()
+    for (x, y) in level_obj.bonus_coords:
+        bonus_sprites.add(Tile(x, y, 'bonus_tile.png'))
+
     # Camera
     camera = Camera(Camera.camera_function, level_obj.width, level_obj.height, WORLD_X, WORLD_Y)
 
@@ -185,8 +192,11 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
 
         entities_to_draw = []
         entities_to_draw += list(platform_sprites) # draw platforms tiles
-        entities_to_draw += list(get_uncollected_bonus_sprites(player_model))  # draw uncollected bonus tiles
-        entities_to_draw += list(get_collected_bonus_sprites(player_model))  # draw collected bonus tiles
+        if use_graph:
+            entities_to_draw += list(bonus_sprites)  # draw bonus tiles
+        else:
+            entities_to_draw += list(get_uncollected_bonus_sprites(player_model))  # draw uncollected bonus tiles
+            entities_to_draw += list(get_collected_bonus_sprites(player_model))  # draw collected bonus tiles
         entities_to_draw += list(player_list)  # draw player
         entities_to_draw += list(goal_sprites)  # draw goal tiles
 
