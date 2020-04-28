@@ -48,7 +48,7 @@ def get_action_set():
 
 
 def enumerate_states(player_model, start_state, graph, action_set):
-    start_state_str = start_state.to_str()
+    start_state_str = start_state.to_abrv_str()
     graph.add_node(start_state_str)
 
     unexplored_states = [start_state_str]
@@ -59,9 +59,9 @@ def enumerate_states(player_model, start_state, graph, action_set):
         explored_states.append(cur_state_str)
 
         for action in action_set:
-            cur_state = State.from_str(cur_state_str)
-            next_state = player_model.next_state(state=cur_state, action=action)
-            next_state_str = next_state.to_str()
+            cur_state = State.from_abrv_str(cur_state_str)
+            next_state = player_model.next_state(state=cur_state, action=action, abrv=True)
+            next_state_str = next_state.to_abrv_str()
             if next_state_str not in explored_states and next_state_str not in unexplored_states:
                 graph.add_node(next_state_str)
                 unexplored_states.append(next_state_str)

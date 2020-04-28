@@ -48,7 +48,7 @@ class PlayerMaze:
                 return tile_coord
         return None
 
-    def next_state(self, state, action):
+    def next_state(self, state, action, abrv=False):
         new_state = state.clone()
         if new_state.goal_reached:
             return new_state
@@ -67,20 +67,30 @@ class PlayerMaze:
         elif action.direction == ActionMaze.WEST:
             dx = -TILE_DIM
 
-        block_tile_collision_coord = self.collide(new_state.x + dx, new_state.y + dy,
-                                                  self.level.get_platform_coords() + new_state.collected_bonus_coords)
-        bonus_tile_collision_coord = self.collide(new_state.x + dx, new_state.y + dy,
-                                                  new_state.uncollected_bonus_coords)
-        move_off_screen = not (min_x <= new_state.x + dx <= max_x) or not (min_y <= new_state.y + dy <= max_y)
+        # If using abbreviated state (without bonus tile coord info)
+        if abrv:
+            tile_collision_coord = self.collide(new_state.x + dx, new_state.y + dy, self.level.get_platform_coords() + self.level.get_bonus_coords())
+            move_off_screen = not (min_x <= new_state.x + dx <= max_x) or not (min_y <= new_state.y + dy <= max_y)
+            if tile_collision_coord is None and not move_off_screen:
+                new_state.x += dx
+                new_state.y += dy
 
-        if block_tile_collision_coord is None and bonus_tile_collision_coord is None and not move_off_screen:
-            new_state.x += dx
-            new_state.y += dy
+        # If state contains bonus tile coord tracking info
+        else:
+            block_tile_collision_coord = self.collide(new_state.x + dx, new_state.y + dy,
+                                                      self.level.get_platform_coords() + new_state.collected_bonus_coords)
+            bonus_tile_collision_coord = self.collide(new_state.x + dx, new_state.y + dy,
+                                                      new_state.uncollected_bonus_coords)
+            move_off_screen = not (min_x <= new_state.x + dx <= max_x) or not (min_y <= new_state.y + dy <= max_y)
 
-        if bonus_tile_collision_coord is not None:
-            new_state.score += 10  # award bonus points
-            new_state.uncollected_bonus_coords.remove(bonus_tile_collision_coord)  # remove from uncollected list
-            new_state.collected_bonus_coords.append(bonus_tile_collision_coord)  # add to collected list
+            if block_tile_collision_coord is None and bonus_tile_collision_coord is None and not move_off_screen:
+                new_state.x += dx
+                new_state.y += dy
+
+            if bonus_tile_collision_coord is not None:
+                new_state.score += 10  # award bonus points
+                new_state.uncollected_bonus_coords.remove(bonus_tile_collision_coord)  # remove from uncollected list
+                new_state.collected_bonus_coords.append(bonus_tile_collision_coord)  # add to collected list
 
         new_state.is_start = False
         new_state.goal_reached = self.collide(new_state.x, new_state.y, self.level.get_goal_coords())
@@ -93,9 +103,9 @@ class PlayerMaze:
             self.state = self.next_state(self.state, action)
         else:
             action_str = action.to_str()
-            state_edges = precomputed_graph.edges(self.state.to_str())
+            state_edges = precomputed_graph.edges(self.state.to_abrv_str())
             for edge in state_edges:
                 if action_str in edge_actions_dict[edge]:
                     edge_dest = edge[1]
-                    self.state = StateMaze.from_str(edge_dest)
+                    self.state = StateMaze.from_abrv_str(edge_dest)
                     break
