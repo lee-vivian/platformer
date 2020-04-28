@@ -67,18 +67,11 @@ def setup_metatile_labels(game, level, player_img, draw_all_labels, draw_dup_lab
     return metatile_labels, font_color, label_padding
 
 
-def get_uncollected_bonus_sprites(player_model):
-    uncollected_bonus_sprites = pygame.sprite.Group()
-    for (x, y) in player_model.get_uncollected_bonus_coords():
-        uncollected_bonus_sprites.add(Tile(x, y, 'bonus_tile.png'))
-    return uncollected_bonus_sprites
-
-
-def get_collected_bonus_sprites(player_model):
-    collected_bonus_sprites = pygame.sprite.Group()
-    for (x, y) in player_model.get_collected_bonus_coords():
-        collected_bonus_sprites.add(Tile(x, y, 'gray_tile.png'))
-    return collected_bonus_sprites
+def get_sprites(coords, img):
+    sprites = pygame.sprite.Group()
+    for (x, y) in coords:
+        sprites.add(Tile(x, y, img))
+    return sprites
 
 
 def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score):
@@ -120,17 +113,10 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
     player_list.add(player_view)
 
     # Level
-    platform_sprites = pygame.sprite.Group()
-    for (x, y) in level_obj.platform_coords:
-        platform_sprites.add(Tile(x, y, 'gray_tile.png'))
-
-    goal_sprites = pygame.sprite.Group()
-    for (x, y) in level_obj.goal_coords:
-        goal_sprites.add(Tile(x, y, 'pizza.png'))
-
-    bonus_sprites = pygame.sprite.Group()
-    for (x, y) in level_obj.bonus_coords:
-        bonus_sprites.add(Tile(x, y, 'bonus_tile.png'))
+    platform_sprites = get_sprites(level_obj.get_platform_coords(), 'gray_tile.png')
+    goal_sprites = get_sprites(level_obj.get_goal_coords(), 'pizza.png')
+    bonus_sprites = get_sprites(level_obj.get_bonus_coords(), 'bonus_tile.png')
+    collected_bonus_tile_coords_dict = {}
 
     # Camera
     camera = Camera(Camera.camera_function, level_obj.width, level_obj.height, WORLD_X, WORLD_Y)
@@ -175,6 +161,8 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
                     sys.exit()
                 elif event.key == ord('r'):
                     player_model.reset()
+                    collected_bonus_tile_coords_dict = {}
+                    platform_sprites = get_sprites(level_obj.get_platform_coords(), 'gray_tile.png')
 
             input_handler.onEvent(event)
 
@@ -190,13 +178,15 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
         player_view.update(player_model.state.x, player_model.state.y,
                            player_model.half_player_w, player_model.half_player_h)
 
+        hit_bonus_coord = player_model.get_hit_bonus_coord()
+
+        if hit_bonus_coord is not None and collected_bonus_tile_coords_dict.get(hit_bonus_coord) is None:
+            collected_bonus_tile_coords_dict[hit_bonus_coord] = 1
+            platform_sprites.add(Tile(hit_bonus_coord[0], hit_bonus_coord[1], 'gray_tile.png'))
+
         entities_to_draw = []
+        entities_to_draw += list(bonus_sprites)  # draw bonus tiles
         entities_to_draw += list(platform_sprites) # draw platforms tiles
-        if use_graph:
-            entities_to_draw += list(bonus_sprites)  # draw bonus tiles
-        else:
-            entities_to_draw += list(get_uncollected_bonus_sprites(player_model))  # draw uncollected bonus tiles
-            entities_to_draw += list(get_collected_bonus_sprites(player_model))  # draw collected bonus tiles
         entities_to_draw += list(player_list)  # draw player
         entities_to_draw += list(goal_sprites)  # draw goal tiles
 
@@ -204,7 +194,8 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
             world.blit(e.image, camera.apply(e))
 
         if show_score:
-            score_label = get_score_label(player_model.get_score())
+            score = len(collected_bonus_tile_coords_dict) * 10
+            score_label = get_score_label(score)
             score_label_x_padding = 65
             world.blit(score_label, (WORLD_X/2 - score_label_x_padding, 0))
 

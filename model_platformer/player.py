@@ -28,20 +28,13 @@ class PlayerPlatformer:
         start_x += self.half_player_w
         start_y += self.half_player_h
         return StatePlatformer(x=start_x, y=start_y, movex=0, movey=self.gravity, onground=True, is_start=True,
-                               goal_reached=False, score=0, uncollected_bonus_coords=self.level.get_bonus_coords(),
-                               collected_bonus_coords=[])
+                               goal_reached=False, hit_bonus_coord=None)
 
     def reset(self):
         self.state = self.get_start_state()
 
-    def get_uncollected_bonus_coords(self):
-        return list(self.state.uncollected_bonus_coords)
-
-    def get_collected_bonus_coords(self):
-        return list(self.state.collected_bonus_coords)
-
-    def get_score(self):
-        return self.state.score
+    def get_hit_bonus_coord(self):
+        return self.state.hit_bonus_coord
 
     def collide(self, x, y, tile_coords):
         for tile_coord in tile_coords:
@@ -51,7 +44,7 @@ class PlayerPlatformer:
                 return tile_coord
         return None
 
-    def next_state(self, state, action, abrv=False):
+    def next_state(self, state, action):
         new_state = state.clone()
         if new_state.goal_reached:
             return new_state
@@ -93,6 +86,7 @@ class PlayerPlatformer:
                 break
 
         new_state.onground = False
+        new_state.hit_bonus_coord = None
 
         # Move in y direction
         for jj in range(abs(new_state.movey)):
@@ -102,34 +96,20 @@ class PlayerPlatformer:
             elif new_state.movey > 0:
                 new_state.y += 1
 
-            # If using abbreviated state (without bonus tile coord info)
-            if abrv:
-                tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_platform_coords() + self.level.get_bonus_coords())
-                move_off_screen = new_state.y < min_y
-                if tile_collision_coord is not None or move_off_screen:
-                    new_state.y = old_y
-                    new_state.onground = new_state.movey > 0
-                    new_state.movey = 0
-                    break
+            block_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_platform_coords())
+            bonus_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_bonus_coords())
+            move_off_screen = new_state.y < min_y
 
-            # If state contains bonus tile coord tracking info
-            else:
-                block_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_platform_coords() + new_state.collected_bonus_coords)
-                bonus_tile_collision_coord = self.collide(new_state.x, new_state.y, new_state.uncollected_bonus_coords)
-                move_off_screen = new_state.y < min_y
+            if block_tile_collision_coord is not None or bonus_tile_collision_coord is not None or move_off_screen:
+                new_state.y = old_y
+                new_state.onground = new_state.movey > 0
+                new_state.movey = 0
 
-                if block_tile_collision_coord is not None or bonus_tile_collision_coord is not None or move_off_screen:
-                    new_state.y = old_y
-                    new_state.onground = new_state.movey > 0
-                    new_state.movey = 0
+                # if bonus tile was hit from below
+                if bonus_tile_collision_coord is not None and new_state.y >= bonus_tile_collision_coord[1] + TILE_DIM:
+                    new_state.hit_bonus_coord = bonus_tile_collision_coord
 
-                    # If bonus tile is hit from below
-                    if bonus_tile_collision_coord is not None and new_state.y >= bonus_tile_collision_coord[1] + TILE_DIM:
-                        new_state.score += 10  # award bonus points
-                        new_state.uncollected_bonus_coords.remove(bonus_tile_collision_coord)  # remove from uncollected list
-                        new_state.collected_bonus_coords.append(bonus_tile_collision_coord)   # add to collected list
-
-                    break
+                break
 
             # Reset state if player falls off the screen (e.g. down a pit)
             if new_state.y > max_y + TILE_DIM * 10:
@@ -148,10 +128,10 @@ class PlayerPlatformer:
             self.state = self.next_state(self.state, action)
         else:
             action_str = action.to_str()
-            state_edges = precomputed_graph.edges(self.state.to_abrv_str())
+            state_edges = precomputed_graph.edges(self.state.to_str())
             for edge in state_edges:
                 if action_str in edge_actions_dict[edge]:
                     edge_dest = edge[1]
-                    self.state = StatePlatformer.from_abrv_str(edge_dest)
+                    self.state = StatePlatformer.from_str(edge_dest)
                     break
 
