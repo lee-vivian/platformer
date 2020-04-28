@@ -5,9 +5,6 @@ created: 02-12-2020
 acknowledgements: followed tutorial from opensource.com
 """
 
-#  TODO update platformer game to track score when --use_graph flag is on (state graph currently does not track
-#   collected/uncollected bonus tiles)
-
 import pygame
 import os
 import sys
