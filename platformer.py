@@ -125,7 +125,9 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
 
     # Setup drawing solution path
     if draw_path:
-        path_font_color = (48, 179, 55)
+        path_font_color = (48, 179, 55)  # green
+        start_font_color = (60, 145, 230)  # blue
+        goal_font_color = (237, 33, 14)  # red
         graph = None
         path_coords = None
         if os.path.exists(state_graph_file):
@@ -135,7 +137,10 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
         if graph is None:
             error_exit("No state graph available to draw solution path")
         else:
-            path_coords = shortest_path_xy(graph)
+            shortest_path_dict = shortest_path_xy(graph)
+            path_coords = shortest_path_dict.get("path_coords")
+            start_coord = shortest_path_dict.get("start_coord")
+            goal_coord = shortest_path_dict.get("goal_coord")
 
     # Input handling
     input_handler = Inputs()
@@ -209,9 +214,15 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
 
         if draw_path:
             for coord in path_coords:
+                if coord == start_coord:
+                    color = start_font_color
+                elif coord == goal_coord:
+                    color = goal_font_color
+                else:
+                    color = path_font_color
                 path_component = pygame.Rect(coord[0], coord[1], 2, 2)
                 path_component = camera.apply_to_rect(path_component)
-                pygame.draw.rect(world, path_font_color, path_component, 1)
+                pygame.draw.rect(world, color, path_component, 1)
 
         pygame.display.flip()
         clock.tick(FPS)

@@ -155,6 +155,10 @@ def shortest_path_xy(state_graph):
         for dest in goal_states:
             if nx.has_path(state_graph, src, dest):
                 shortest_path = nx.dijkstra_path(state_graph, src, dest, weight='weight')
-                return [get_node_xy(node) for node in shortest_path]
+                return {
+                    "path_coords": [get_node_xy(node) for node in shortest_path],
+                    "start_coord": get_node_xy(src),
+                    "goal_coord": get_node_xy(dest)
+                }
 
     error_exit("No solution path found in state graph")
