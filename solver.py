@@ -57,12 +57,17 @@ class Solver:
         self.answer_set_count += 1
 
     def get_cur_answer_set_filename(self, prolog_filename):
-        return "%s_w%d_h%d_pb_%s-%s_b_%d-%d_ls_%d_a%d" % (prolog_filename,
-                                                          self.level_w, self.level_h,
-                                                          str(self.min_perc_blocks), str(self.max_perc_blocks),
-                                                          self.min_bonus, self.max_bonus,
-                                                          self.level_sections,
-                                                          self.answer_set_count)
+        filename_components = [
+            prolog_filename,
+            "w%d" % self.level_w,
+            "h%d" % self.level_h,
+            "pb%s-%s" % (str(self.min_perc_blocks), str(self.max_perc_blocks)),
+            "b%d-%d" % (self.min_bonus, self.max_bonus),
+            "ls%d" % self.level_sections,
+            "no_pit" if self.no_pits else "pit",
+            "a%d" % self.answer_set_count
+        ]
+        return "_".join(filename_components)
 
     def init_tmp_prolog_statements(self):
         start_tile_id = self.tile_ids.get('start')
