@@ -15,8 +15,8 @@ def keyboard_interrupt_handler(signal, frame, solver):
     exit(0)
 
 
-def main(prolog_file, level_w, level_h, min_perc_blocks, min_bonus, max_bonus, level_sections, max_sol,
-         print_level_stats, save, validate):
+def main(prolog_file, level_w, level_h, min_perc_blocks, max_perc_blocks, min_bonus, max_bonus, no_pits, level_sections,
+         max_sol, print_level_stats, save, validate):
 
     player_img, prolog_filename = Solver.parse_prolog_filepath(prolog_file)
     level_saved_files_dir = "level_saved_files_%s/" % player_img
@@ -36,12 +36,13 @@ def main(prolog_file, level_w, level_h, min_perc_blocks, min_bonus, max_bonus, l
 
     if max_bonus is None:
         max_bonus = level_w * level_h
-        if min_perc_blocks is not None:
-            max_bonus = int(max_bonus * (min_perc_blocks / 100))
+        if max_perc_blocks is not None:
+            max_bonus = int(max_bonus * (max_perc_blocks / 100))
 
     # Create Solver object
     solver = Solver(prolog_file=prolog_file, level_w=level_w, level_h=level_h,
-                    min_perc_blocks=min_perc_blocks, min_bonus=min_bonus, max_bonus=max_bonus,
+                    min_perc_blocks=min_perc_blocks, max_perc_blocks=max_perc_blocks,
+                    min_bonus=min_bonus, max_bonus=max_bonus, no_pits=no_pits,
                     level_sections=level_sections, print_level_stats=print_level_stats, save=save, validate=validate,
                     start_tile_id=prolog_file_info.get('start_tile_id'),
                     block_tile_id=prolog_file_info.get('block_tile_id'),
@@ -65,8 +66,10 @@ if __name__ == "__main__":
     parser.add_argument('level_w', type=int, help="Number of tiles in a row")
     parser.add_argument('level_h', type=int, help="Number of tiles in a column")
     parser.add_argument('--min_perc_blocks', type=int, default=None, help='Minimum percentage of block tiles in a level')
+    parser.add_argument('--max_perc_blocks', type=int, default=None, help='Maximum percentage of block tiles in a level')
     parser.add_argument('--min_bonus', type=int, default=None, help='Minimum number of bonus tiles in a level')
     parser.add_argument('--max_bonus', type=int, default=None, help='Maximum number of bonus tiles in a level')
+    parser.add_argument('--no_pits', const=True, nargs='?', type=bool, default=False, help='Force all floor tiles to be blocks')
     parser.add_argument('--level_sections', type=int, default=1, help="Number of sections to split the gen level into. Start tile will be in first section, goal tile in last section.")
     parser.add_argument('--max_sol', type=int, default=0, help="Max number of answer sets to return. 0 = all solutions")
     parser.add_argument('--print_level_stats', const=True, nargs='?', type=bool, default=False)
@@ -74,5 +77,6 @@ if __name__ == "__main__":
     parser.add_argument('--validate', const=True, nargs='?', type=bool, default=False, help="Validate generated levels")
     args = parser.parse_args()
 
-    main(args.prolog_file, args.level_w, args.level_h, args.min_perc_blocks, args.min_bonus, args.max_bonus,
-         args.level_sections, args.max_sol, args.print_level_stats, args.save, args.validate)
+    main(args.prolog_file, args.level_w, args.level_h, args.min_perc_blocks, args.max_perc_blocks,
+         args.min_bonus, args.max_bonus, args.no_pits, args.level_sections, args.max_sol, args.print_level_stats,
+         args.save, args.validate)

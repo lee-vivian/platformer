@@ -3,7 +3,7 @@ Level Object
 """
 
 TILE_DIM = 40
-TILE_CHARS = ['#', 'B', 'T']
+TILE_CHARS = ['#', 'B', 'T', 'p', 'P']
 GOAL_CHAR = '!'
 START_CHAR = 'S'
 BLANK_CHAR = '-'

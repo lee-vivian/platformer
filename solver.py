@@ -5,6 +5,7 @@ Solver Object
 import clingo
 import re
 import networkx as nx
+from datetime import datetime
 
 from model.metatile import Metatile
 from model.level import TILE_DIM, TILE_CHARS, START_CHAR, GOAL_CHAR, BLANK_CHAR, BONUS_CHAR
@@ -14,15 +15,17 @@ from utils import get_directory, get_filepath, write_pickle, read_pickle, write_
 
 class Solver:
 
-    def __init__(self, prolog_file, level_w, level_h, min_perc_blocks, min_bonus, max_bonus,
+    def __init__(self, prolog_file, level_w, level_h, min_perc_blocks, max_perc_blocks, min_bonus, max_bonus, no_pits,
                  level_sections, print_level_stats, save, validate,
                  start_tile_id, block_tile_id, goal_tile_id, bonus_tile_id):
         self.prolog_file = prolog_file
         self.level_w = level_w
         self.level_h = level_h
         self.min_perc_blocks = min_perc_blocks
+        self.max_perc_blocks = max_perc_blocks
         self.min_bonus = min_bonus
         self.max_bonus = max_bonus
+        self.no_pits = no_pits
         self.level_sections = level_sections
         self.print_level_stats = print_level_stats
         self.save = save
@@ -46,15 +49,20 @@ class Solver:
 
     def get_command_str(self):
         player_img, prolog_filename = Solver.parse_prolog_filepath(self.prolog_file)
-        return "prolog: %s, width: %d, height: %d, min perc blocks: %s, bonus tiles: %d-%d, level sections: %d" % \
-               (prolog_filename, self.level_w, self.level_h, str(self.min_perc_blocks),
+        return "prolog: %s, width: %d, height: %d, perc blocks: %s-%s%%, bonus tiles: %d-%d, level sections: %d" % \
+               (prolog_filename, self.level_w, self.level_h, str(self.min_perc_blocks), str(self.max_perc_blocks),
                 self.min_bonus, self.max_bonus, self.level_sections)
 
     def increment_answer_set_count(self):
         self.answer_set_count += 1
 
     def get_cur_answer_set_filename(self, prolog_filename):
-        return "%s_w%d_h%d_a%d" % (prolog_filename, self.level_w, self.level_h, self.answer_set_count)
+        return "%s_w%d_h%d_pb_%s-%s_b_%d-%d_ls_%d_a%d" % (prolog_filename,
+                                                          self.level_w, self.level_h,
+                                                          str(self.min_perc_blocks), str(self.max_perc_blocks),
+                                                          self.min_bonus, self.max_bonus,
+                                                          self.level_sections,
+                                                          self.answer_set_count)
 
     def init_tmp_prolog_statements(self):
         start_tile_id = self.tile_ids.get('start')
@@ -70,10 +78,11 @@ class Solver:
         create_tiles_statement = "tile(TX,TY) :- dim_width(TX), dim_height(TY)."
         tmp_prolog_statements += create_tiles_statement + "\n"
 
-        # # Set floor tiles to be block tiles
-        # for x in range(self.level_w):
-        #     floor_tile_assignment = "assignment(%d, %d, %s)." % (x, self.level_h-1, block_tile_id)
-        #     tmp_prolog_statements += floor_tile_assignment + "\n"
+        # Set floor tiles to be block tiles
+        if self.no_pits:
+            for x in range(self.level_w):
+                floor_tile_assignment = "assignment(%d, %d, %s)." % (x, self.level_h-1, block_tile_id)
+                tmp_prolog_statements += floor_tile_assignment + "\n"
 
         # Fix start tile to be within first section of level and goal tile to be within last section of level
         tiles_per_section = int(self.level_w/self.level_sections)
@@ -85,12 +94,14 @@ class Solver:
         tmp_prolog_statements += start_tile_max_rule + "\n"
         tmp_prolog_statements += goal_tile_min_rule + "\n"
 
-        # Set minimum percentage of block tiles allowed in generated level
+        # Set range percentage of block tiles allowed in generated level
         num_total_tiles = int(self.level_w * self.level_h)
-        if self.min_perc_blocks is not None:
-            min_num_block_tiles = int(self.min_perc_blocks / 100 * num_total_tiles)
-            min_perc_blocks_statement = "limit(%s, %d, %d)." % (block_tile_id, min_num_block_tiles, num_total_tiles)
-            tmp_prolog_statements += min_perc_blocks_statement + "\n"
+        min_perc_blocks = 0 if self.min_perc_blocks is None else self.min_perc_blocks
+        max_perc_blocks = 100 if self.max_perc_blocks is None else self.max_perc_blocks
+        min_num_block_tiles = int(min_perc_blocks / 100 * num_total_tiles)
+        max_num_block_tiles = int(max_perc_blocks / 100 * num_total_tiles)
+        perc_blocks_statement = "limit(%s, %d, %d)." % (block_tile_id, min_num_block_tiles, max_num_block_tiles)
+        tmp_prolog_statements += perc_blocks_statement + "\n"
 
         # Set range num bonus tiles allowed in generated level
         if bonus_tile_id is not None and (self.min_bonus > 0 or self.max_bonus > 0):
@@ -120,10 +131,12 @@ class Solver:
         prg.add('base', [], "")
 
         print("Grounding...")
+        print("Start: %s" % str(datetime.now()))
         prg.ground([('base', [])])
         print(self.stopwatch.get_lap_time_str("Ground"))
 
         print("----- SOLVING -----")
+        print("Start: %s" % str(datetime.now()))
         prg.solve(on_model=lambda m: self.process_answer_set(repr(m)))
         print(self.stopwatch.get_lap_time_str("Solve"))
 
