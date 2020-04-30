@@ -15,7 +15,7 @@ from utils import get_directory, get_filepath, write_pickle, read_pickle, write_
 
 class Solver:
 
-    def __init__(self, prolog_file, level_w, level_h, min_perc_blocks, max_perc_blocks, min_bonus, max_bonus, no_pits,
+    def __init__(self, prolog_file, level_w, level_h, min_perc_blocks, max_perc_blocks, min_bonus, max_bonus, no_pit,
                  level_sections, print_level_stats, save, validate,
                  start_tile_id, block_tile_id, goal_tile_id, bonus_tile_id):
         self.prolog_file = prolog_file
@@ -25,7 +25,7 @@ class Solver:
         self.max_perc_blocks = max_perc_blocks
         self.min_bonus = min_bonus
         self.max_bonus = max_bonus
-        self.no_pits = no_pits
+        self.no_pit = no_pit
         self.level_sections = level_sections
         self.print_level_stats = print_level_stats
         self.save = save
@@ -64,7 +64,7 @@ class Solver:
             "pb%s-%s" % (str(self.min_perc_blocks), str(self.max_perc_blocks)),
             "b%d-%d" % (self.min_bonus, self.max_bonus),
             "ls%d" % self.level_sections,
-            "no_pit" if self.no_pits else "pit",
+            "no_pit" if self.no_pit else "pit",
             "a%d" % self.answer_set_count
         ]
         return "_".join(filename_components)
@@ -84,7 +84,7 @@ class Solver:
         tmp_prolog_statements += create_tiles_statement + "\n"
 
         # Set floor tiles to be block tiles
-        if self.no_pits:
+        if self.no_pit:
             for x in range(self.level_w):
                 floor_tile_assignment = "assignment(%d, %d, %s)." % (x, self.level_h-1, block_tile_id)
                 tmp_prolog_statements += floor_tile_assignment + "\n"
