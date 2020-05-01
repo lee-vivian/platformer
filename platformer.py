@@ -110,8 +110,8 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
     player_list.add(player_view)
 
     # Level
-    platform_sprites = get_sprites(level_obj.get_platform_coords(), 'gray_tile.png')
-    goal_sprites = get_sprites(level_obj.get_goal_coords(), 'pizza.png')
+    platform_sprites = get_sprites(level_obj.get_platform_coords(), 'block_tile.png')
+    goal_sprites = get_sprites(level_obj.get_goal_coords(), 'goal_tile.png')
     bonus_sprites = get_sprites(level_obj.get_bonus_coords(), 'bonus_tile.png')
     collected_bonus_tile_coords_dict = {}
 
@@ -164,7 +164,7 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
                 elif event.key == ord('r'):
                     player_model.reset()
                     collected_bonus_tile_coords_dict = {}
-                    platform_sprites = get_sprites(level_obj.get_platform_coords(), 'gray_tile.png')
+                    platform_sprites = get_sprites(level_obj.get_platform_coords(), 'block_tile.png')
 
             input_handler.onEvent(event)
 
@@ -184,7 +184,7 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
 
         if hit_bonus_coord is not None and collected_bonus_tile_coords_dict.get(hit_bonus_coord) is None:
             collected_bonus_tile_coords_dict[hit_bonus_coord] = 1
-            platform_sprites.add(Tile(hit_bonus_coord[0], hit_bonus_coord[1], 'gray_tile.png'))
+            platform_sprites.add(Tile(hit_bonus_coord[0], hit_bonus_coord[1], 'block_tile.png'))
 
         entities_to_draw = []
         entities_to_draw += list(bonus_sprites)  # draw bonus tiles

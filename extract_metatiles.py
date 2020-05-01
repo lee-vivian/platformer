@@ -59,7 +59,7 @@ def construct_metatile(metatile_coord, game, level_start_coord, level_goal_coord
     elif level_bonus_coords_dict.get(metatile_coord) is not None:
         metatile_type = 'bonus'
     else:
-        metatile_type = 'blank'
+        metatile_type = 'empty'
 
     # Construct metatile graph
     metatile_graph = nx.DiGraph()

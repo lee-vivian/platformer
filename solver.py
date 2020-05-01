@@ -186,7 +186,7 @@ class Solver:
         elif tile_id == self.tile_ids.get('goal'):
             return list(TILE_CHARS['goal'].keys())[0]
         else:
-            return list(TILE_CHARS['empty'].keys()[0])
+            return list(TILE_CHARS['empty'].keys())[0]
 
     def get_facts_as_list(self, model_str, fact_name):
         return re.findall(r'%s\([0-9t,]*\)' % fact_name, model_str)
