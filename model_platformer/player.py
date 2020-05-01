@@ -28,10 +28,16 @@ class PlayerPlatformer:
         start_x += self.half_player_w
         start_y += self.half_player_h
         return StatePlatformer(x=start_x, y=start_y, movex=0, movey=self.gravity, onground=True, is_start=True,
-                               goal_reached=False, hit_bonus_coord=None)
+                               goal_reached=False, hit_bonus_coord=None, is_dead=False)
 
     def reset(self):
         self.state = self.get_start_state()
+
+    def is_dead(self):
+        return self.state.is_dead
+
+    def goal_reached(self):
+        return self.state.goal_reached
 
     def get_hit_bonus_coord(self):
         return self.state.hit_bonus_coord
@@ -46,7 +52,7 @@ class PlayerPlatformer:
 
     def next_state(self, state, action):
         new_state = state.clone()
-        if new_state.goal_reached:
+        if new_state.goal_reached or new_state.is_dead:
             return new_state
 
         # Get level bounds
@@ -111,9 +117,10 @@ class PlayerPlatformer:
 
                 break
 
-            # Reset state if player falls off the screen (e.g. down a pit)
+            # Player is dead if it falls off the screen (e.g. down a pit)
             if new_state.y > max_y + TILE_DIM * 10:
-                return self.get_start_state()
+                new_state.is_dead = True
+                break
 
         new_state.is_start = False
 

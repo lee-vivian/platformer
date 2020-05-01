@@ -18,6 +18,14 @@ from model.level import TILE_DIM, MAX_WIDTH, MAX_HEIGHT
 from model.level import Level
 from utils import read_pickle, error_exit, shortest_path_xy
 
+COLORS = {
+    'YELLOW': (255, 255, 100),
+    'DARK_GRAY': (23, 23, 23),
+    'GREEN': (48, 179, 55),
+    'BLUE': (60, 145, 230),
+    'RED': (237, 33, 14)
+}
+
 # game specifics
 if os.getenv('MAZE'):
     print('***** USING MAZE RULES *****')
@@ -29,13 +37,21 @@ else:
     from model_platformer.inputs import InputsPlatformer as Inputs
 
 
-def get_score_label(score):
-    font_color = (255, 255, 100)
-    label_font = pygame.font.SysFont('Comic Sans MS', 50)
-    label_text = "Score: %d" % score
-    score_label = label_font.render(label_text, False, font_color)
+def get_text_label(text, font_size, font_color):
+    label_font = pygame.font.SysFont('Comic Sans MS', font_size)
+    score_label = label_font.render(text, False, font_color)
     return score_label
 
+
+def get_label_rect_pairs(center_x, labels):
+    label_rect_pairs = []
+    stacked_label_height = 0
+    for text, font_size, font_color in labels:
+        label = get_text_label(text, font_size, font_color)
+        label_rect = label.get_rect(center=(center_x, stacked_label_height + label.get_rect().height/2))
+        stacked_label_height += label_rect.height
+        label_rect_pairs.append((label, label_rect))
+    return label_rect_pairs
 
 def get_metatile_labels_at_coords(coords, tile_id, extra_info, label_font, font_color): #, graph_is_empty, font, color):
     new_labels = []
@@ -48,7 +64,7 @@ def get_metatile_labels_at_coords(coords, tile_id, extra_info, label_font, font_
 
 def setup_metatile_labels(game, level, player_img, draw_all_labels, draw_dup_labels):
     metatile_labels = []
-    font_color = (255, 255, 100)
+    font_color = COLORS.get('YELLOW')
     label_padding = (8, 12)
     label_font = pygame.font.SysFont('Comic Sans MS', 20)
 
@@ -101,7 +117,7 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
     clock = pygame.time.Clock()
     pygame.init()
     world = pygame.display.set_mode([WORLD_X, WORLD_Y])
-    BACKGROUND_COLOR = (23, 23, 23)
+    BACKGROUND_COLOR = COLORS.get('DARK_GRAY')
 
     # Player
     player_model = Player(player_img, level_obj)
@@ -125,9 +141,9 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
 
     # Setup drawing solution path
     if draw_path:
-        path_font_color = (48, 179, 55)  # green
-        start_font_color = (60, 145, 230)  # blue
-        goal_font_color = (237, 33, 14)  # red
+        path_font_color = COLORS.get('GREEN')
+        start_font_color = COLORS.get('BLUE')
+        goal_font_color = COLORS.get('RED')
         graph = None
         path_coords = None
         if os.path.exists(state_graph_file):
@@ -174,18 +190,23 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
         world.fill(BACKGROUND_COLOR)
         camera.update(player_view)  # set camera to track player
 
+        # Update Player model and view
         player_model.update(action=input_handler.getAction(),
                             precomputed_graph=state_graph, edge_actions_dict=edge_actions_dict)
 
         player_view.update(player_model.state.x, player_model.state.y,
                            player_model.half_player_w, player_model.half_player_h)
 
+        # Update the current score
         hit_bonus_coord = player_model.get_hit_bonus_coord()
 
         if hit_bonus_coord is not None and collected_bonus_tile_coords_dict.get(hit_bonus_coord) is None:
             collected_bonus_tile_coords_dict[hit_bonus_coord] = 1
             platform_sprites.add(Tile(hit_bonus_coord[0], hit_bonus_coord[1], 'block_tile.png'))
 
+        score = len(collected_bonus_tile_coords_dict) * 10
+
+        # Draw sprites
         entities_to_draw = []
         entities_to_draw += list(bonus_sprites)  # draw bonus tiles
         entities_to_draw += list(platform_sprites) # draw platforms tiles
@@ -195,12 +216,7 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
         for e in entities_to_draw:
             world.blit(e.image, camera.apply(e))
 
-        if show_score:
-            score = len(collected_bonus_tile_coords_dict) * 10
-            score_label = get_score_label(score)
-            score_label_x_padding = 65
-            world.blit(score_label, (WORLD_X/2 - score_label_x_padding, 0))
-
+        # Draw metatile labels
         if draw_all_labels or draw_dup_labels:
             for coord in level_obj.get_all_possible_coords():  # draw metatile border outlines
                 tile_rect = pygame.Rect(coord[0], coord[1], TILE_DIM, TILE_DIM)
@@ -212,6 +228,7 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
                 label_x, label_y = camera.apply_to_coord((label_x, label_y))
                 world.blit(surface, (label_x + label_padding[0], label_y + label_padding[1]))
 
+        # Draw level solution path
         if draw_path:
             for coord in path_coords:
                 if coord == start_coord:
@@ -223,6 +240,32 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
                 path_component = pygame.Rect(coord[0], coord[1], 2, 2)
                 path_component = camera.apply_to_rect(path_component)
                 pygame.draw.rect(world, color, path_component, 1)
+
+        # Draw text labels
+        label_rect_pairs = []
+        if player_model.goal_reached():
+            score += 50
+            labels = [
+                ("You Win!", 50, COLORS.get('GREEN')),
+                ("Score: %d" % score, 30, COLORS.get('YELLOW')),
+                ("Press 'R' to replay or 'Q' to quit", 30, COLORS.get('YELLOW'))
+            ]
+            label_rect_pairs = get_label_rect_pairs(center_x=WORLD_X/2, labels=labels)
+
+        elif player_model.is_dead():
+            labels = [
+                ("Game Over", 50, COLORS.get('RED')),
+                ("Score: %d" % score, 30, COLORS.get('YELLOW')),
+                ("Press 'R' to replay or 'Q' to quit", 30, COLORS.get('YELLOW'))
+            ]
+            label_rect_pairs = get_label_rect_pairs(center_x=WORLD_X / 2, labels=labels)
+
+        elif show_score:
+            labels = [("Score: %d" % score, 50, COLORS.get('YELLOW'))]
+            label_rect_pairs = get_label_rect_pairs(center_x=WORLD_X / 2, labels=labels)
+
+        for label, label_rect in label_rect_pairs:
+            world.blit(label, label_rect)
 
         pygame.display.flip()
         clock.tick(FPS)
