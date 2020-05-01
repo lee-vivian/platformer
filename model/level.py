@@ -3,11 +3,35 @@ Level Object
 """
 
 TILE_DIM = 40
-TILE_CHARS = ['#', 'B', 'T', 'p', 'P']
-GOAL_CHAR = '!'
-START_CHAR = 'S'
-BLANK_CHAR = '-'
-BONUS_CHAR = '?'
+
+TILE_CHARS = {
+    'block': {
+        'X': ['solid', 'ground'],
+        'S': ['solid', 'breakable'],
+        '<': ['solid', 'top-left pipe', 'pipe'],
+        '>': ['solid', 'top-right pipe', 'pipe'],
+        '[': ['solid', 'left pipe', 'pipe'],
+        ']': ['solid', 'right pipe', 'pipe'],
+        'B': ['cannon top', 'cannon', 'solid', 'hazard'],
+        'b': ['cannon bottom', 'cannon', 'solid']
+    },
+    'bonus': {
+        '?': ["solid","question block", "full question block"],
+        'Q': ["solid","question block", "empty question block"]
+    },
+    'start': {
+        '*': ['start']
+    },
+    'goal': {
+        '!': ['goal']
+    },
+    'empty': {
+        '-': ['passable', 'empty'],
+        'E': ['enemy', 'damaging', 'hazard', 'moving'],
+        'o': ['coin', 'collectable', 'passable']
+    }
+}
+
 
 MAX_WIDTH = 1200
 MAX_HEIGHT = 600
@@ -74,13 +98,13 @@ class Level:
         f = open(filepath, 'r')
         for line in f:
             for char in line.rstrip():  # for each char in the line
-                if char == START_CHAR:
+                if TILE_CHARS['start'].get(char) is not None:
                     num_start_tiles += 1
-                elif char == GOAL_CHAR:
+                elif TILE_CHARS['goal'].get(char) is not None:
                     num_goal_tiles += 1
-                elif char == BONUS_CHAR:
+                elif TILE_CHARS['bonus'].get(char) is not None:
                     num_bonus_tiles += 1
-                elif char in TILE_CHARS:
+                elif TILE_CHARS['block'].get(char) is not None:
                     num_block_tiles += 1
                 num_tiles += 1
         f.close()
@@ -122,14 +146,14 @@ class Level:
                 char_coord = (char_index * TILE_DIM, level_height * TILE_DIM)
                 char = line[char_index]
 
-                if start_coord is None and char == START_CHAR:  # start coord can only be defined once
-                    start_coord = char_coord
-                elif char == GOAL_CHAR:
-                    goal_coords.append(char_coord)
-                elif char == BONUS_CHAR:
-                    bonus_coords.append(char_coord)
-                elif char in TILE_CHARS:
+                if TILE_CHARS['block'].get(char) is not None:
                     platform_coords.append(char_coord)
+                elif TILE_CHARS['bonus'].get(char) is not None:
+                    bonus_coords.append(char_coord)
+                elif start_coord is None and TILE_CHARS['start'].get(char) is not None:   # define start coord once
+                    start_coord = char_coord
+                elif TILE_CHARS['goal'].get(char) is not None:
+                    goal_coords.append(char_coord)
 
             # Increment the level_height
             level_height += 1

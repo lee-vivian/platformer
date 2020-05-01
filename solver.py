@@ -8,7 +8,7 @@ import networkx as nx
 from datetime import datetime
 
 from model.metatile import Metatile
-from model.level import TILE_DIM, TILE_CHARS, START_CHAR, GOAL_CHAR, BLANK_CHAR, BONUS_CHAR
+from model.level import TILE_DIM, TILE_CHARS
 from stopwatch import Stopwatch
 from utils import get_directory, get_filepath, write_pickle, read_pickle, write_file, error_exit, get_node_at_coord
 
@@ -178,15 +178,15 @@ class Solver:
 
     def get_tile_char(self, tile_id):
         if tile_id == self.tile_ids.get('block'):
-            return TILE_CHARS[0]
+            return list(TILE_CHARS['block'].keys())[0]
         elif tile_id == self.tile_ids.get('bonus'):
-            return BONUS_CHAR
+            return list(TILE_CHARS['bonus'].keys())[0]
         elif tile_id == self.tile_ids.get('start'):
-            return START_CHAR
+            return list(TILE_CHARS['start'].keys())[0]
         elif tile_id == self.tile_ids.get('goal'):
-            return GOAL_CHAR
+            return list(TILE_CHARS['goal'].keys())[0]
         else:
-            return BLANK_CHAR
+            return list(TILE_CHARS['empty'].keys()[0])
 
     def get_facts_as_list(self, model_str, fact_name):
         return re.findall(r'%s\([0-9t,]*\)' % fact_name, model_str)
