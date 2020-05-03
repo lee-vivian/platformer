@@ -16,7 +16,7 @@ def keyboard_interrupt_handler(signal, frame, solver):
 
 
 def main(prolog_file, level_w, level_h, min_perc_blocks, max_perc_blocks, min_bonus, max_bonus, no_pit, level_sections,
-         max_sol, print_level_stats, save, validate, n):
+         max_sol, print_level_stats, print, save, validate, n):
 
     player_img, prolog_filename = Solver.parse_prolog_filepath(prolog_file)
     level_saved_files_dir = "level_saved_files_%s/" % player_img
@@ -47,7 +47,7 @@ def main(prolog_file, level_w, level_h, min_perc_blocks, max_perc_blocks, min_bo
                     min_perc_blocks=min_perc_blocks, max_perc_blocks=max_perc_blocks,
                     min_bonus=min_bonus, max_bonus=max_bonus, no_pit=no_pit,
                     level_sections=level_sections, print_level_stats=print_level_stats,
-                    save=save, validate=validate, n=n,
+                    print=print, save=save, validate=validate, n=n,
                     start_tile_id=prolog_file_info.get('start_tile_id'),
                     block_tile_id=prolog_file_info.get('block_tile_id'),
                     goal_tile_id=prolog_file_info.get('goal_tile_id'),
@@ -75,8 +75,9 @@ if __name__ == "__main__":
     parser.add_argument('--max_bonus', type=int, default=None, help='Maximum number of bonus tiles in a level')
     parser.add_argument('--no_pit', const=True, nargs='?', type=bool, default=False, help='Force all floor tiles to be blocks')
     parser.add_argument('--level_sections', type=int, default=1, help="Number of sections to split the gen level into. Start tile will be in first section, goal tile in last section.")
-    parser.add_argument('--max_sol', type=int, default=0, help="Max number of answer sets to return. 0 = all solutions")
+    parser.add_argument('--max_sol', type=int, default=1000000, help="Max number of answer sets to return. 0 = all solutions")
     parser.add_argument('--print_level_stats', const=True, nargs='?', type=bool, default=False)
+    parser.add_argument('--print', const=True, nargs='?', type=bool, default=False, help="Print structural txt layer of generated levels")
     parser.add_argument('--save', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--validate', const=True, nargs='?', type=bool, default=False, help="Validate generated levels")
     parser.add_argument('--n', type=int, help="Save and/or validate every nth answer set", default=1000)
@@ -84,4 +85,4 @@ if __name__ == "__main__":
 
     main(args.prolog_file, args.level_w, args.level_h, args.min_perc_blocks, args.max_perc_blocks,
          args.min_bonus, args.max_bonus, args.no_pit, args.level_sections, args.max_sol, args.print_level_stats,
-         args.save, args.validate, args.n)
+         args.print, args.save, args.validate, args.n)
