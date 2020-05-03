@@ -16,13 +16,16 @@ def keyboard_interrupt_handler(signal, frame, solver):
 
 
 def main(prolog_file, level_w, level_h, min_perc_blocks, max_perc_blocks, min_bonus, max_bonus, no_pit, level_sections,
-         max_sol, print_level_stats, save, validate):
+         max_sol, print_level_stats, save, validate, n):
 
     player_img, prolog_filename = Solver.parse_prolog_filepath(prolog_file)
     level_saved_files_dir = "level_saved_files_%s/" % player_img
     all_prolog_info_file = get_filepath(level_saved_files_dir + "prolog_files", "all_prolog_info.pickle")
     all_prolog_info_map = read_pickle(all_prolog_info_file)
     prolog_file_info = all_prolog_info_map[prolog_filename]
+
+    if n <= 0:
+        error_exit("--n must be an integer greater than 0")
 
     # Set up min and max num bonus tiles
     if min_bonus is not None and min_bonus > 0 and prolog_file_info.get('bonus_tile_id') is None:
@@ -43,7 +46,8 @@ def main(prolog_file, level_w, level_h, min_perc_blocks, max_perc_blocks, min_bo
     solver = Solver(prolog_file=prolog_file, level_w=level_w, level_h=level_h,
                     min_perc_blocks=min_perc_blocks, max_perc_blocks=max_perc_blocks,
                     min_bonus=min_bonus, max_bonus=max_bonus, no_pit=no_pit,
-                    level_sections=level_sections, print_level_stats=print_level_stats, save=save, validate=validate,
+                    level_sections=level_sections, print_level_stats=print_level_stats,
+                    save=save, validate=validate, n=n,
                     start_tile_id=prolog_file_info.get('start_tile_id'),
                     block_tile_id=prolog_file_info.get('block_tile_id'),
                     goal_tile_id=prolog_file_info.get('goal_tile_id'),
@@ -75,8 +79,9 @@ if __name__ == "__main__":
     parser.add_argument('--print_level_stats', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--save', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--validate', const=True, nargs='?', type=bool, default=False, help="Validate generated levels")
+    parser.add_argument('--n', type=int, help="Save and/or validate every nth answer set", default=1000)
     args = parser.parse_args()
 
     main(args.prolog_file, args.level_w, args.level_h, args.min_perc_blocks, args.max_perc_blocks,
          args.min_bonus, args.max_bonus, args.no_pit, args.level_sections, args.max_sol, args.print_level_stats,
-         args.save, args.validate)
+         args.save, args.validate, args.n)

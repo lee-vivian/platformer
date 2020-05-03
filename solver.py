@@ -16,7 +16,7 @@ from utils import get_directory, get_filepath, write_pickle, read_pickle, write_
 class Solver:
 
     def __init__(self, prolog_file, level_w, level_h, min_perc_blocks, max_perc_blocks, min_bonus, max_bonus, no_pit,
-                 level_sections, print_level_stats, save, validate,
+                 level_sections, print_level_stats, save, validate, n,
                  start_tile_id, block_tile_id, goal_tile_id, bonus_tile_id):
         self.prolog_file = prolog_file
         self.level_w = level_w
@@ -30,6 +30,7 @@ class Solver:
         self.print_level_stats = print_level_stats
         self.save = save
         self.validate = validate
+        self.n = n
 
         self.tile_ids = {"start": start_tile_id, "block": block_tile_id, "goal": goal_tile_id, "bonus": bonus_tile_id}
         self.tmp_prolog_statements = ""
@@ -55,6 +56,9 @@ class Solver:
 
     def increment_answer_set_count(self):
         self.answer_set_count += 1
+
+    def save_nth_answer_set(self):
+        return self.save and (self.answer_set_count % self.n == 0)
 
     def get_cur_answer_set_filename(self, prolog_filename):
         filename_components = [
@@ -169,7 +173,7 @@ class Solver:
             extra_info = "S" if len(coords) == 1 else ""
             tile_id_coords_map_with_extra_info[(tile_id, extra_info)] = coords
 
-        if self.save:
+        if self.save_nth_answer_set():
             tile_id_coords_map_dir = "level_saved_files_%s/tile_id_coords_maps/" % player_img
             tile_id_coords_map_file = get_filepath(tile_id_coords_map_dir, "%s.pickle" % answer_set_filename)
             write_pickle(tile_id_coords_map_file, tile_id_coords_map_with_extra_info)
@@ -248,12 +252,11 @@ class Solver:
                 level_structural_txt += tile_char
             level_structural_txt += "\n"
 
-        if self.save:
+        if self.save_nth_answer_set():
             generated_level_txt_dir = "level_structural_layers/generated/"
             level_structural_txt_file = get_filepath(generated_level_txt_dir, "%s.txt" % answer_set_filename)
             write_file(level_structural_txt_file, level_structural_txt)
-
-        print(level_structural_txt)
+            print(level_structural_txt)
 
         # Add to generated_levels_dict if validate is True
         if self.validate:
