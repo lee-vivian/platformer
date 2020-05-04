@@ -145,13 +145,8 @@ def main(tile_constraints_file, debug, print_pl):
     start_on_ground_rule = ":- assignment(X,Y,%s), not assignment(X,Y+1,%s)." % (start_tile_id, block_tile_id)
     prolog_statements += start_on_ground_rule + "\n"
 
-    # Goal on solid tile rule (goal tile must be on top of a block tile or a bonus tile)
-    if block_tile_id is None:
-        not_solid_tile_stmt = "not assignment(X,Y+1,%s)" % block_tile_id
-    else:
-        not_solid_tile_stmt = "(not assignment(X,Y+1,%s) ; not assignment(X,Y+1,%s))" % (block_tile_id, bonus_tile_id)
-
-    goal_on_ground_rule = ":- assignment(X,Y,%s), %s." % (goal_tile_id, not_solid_tile_stmt)
+    # Goal on ground rule (goal tile must be on top of a block tile)
+    goal_on_ground_rule = ":- assignment(X,Y,%s), not assignment(X,Y+1,%s)." % (goal_tile_id, block_tile_id)
     prolog_statements += goal_on_ground_rule + "\n"
 
     # Ensure that tiles above platforms are reachable if they are not block/bonus tiles
