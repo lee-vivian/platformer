@@ -1,4 +1,4 @@
-"""'
+"""
 Solver Object
 """
 
@@ -16,7 +16,7 @@ from utils import get_directory, get_filepath, write_pickle, read_pickle, write_
 class Solver:
 
     def __init__(self, prolog_file, level_w, level_h, min_perc_blocks, max_perc_blocks, min_bonus, max_bonus, no_pit,
-                 level_sections, print_level_stats, print, save, validate, n,
+                 start_min, start_max, goal_min, goal_max, print_level_stats, print, save, validate, n,
                  start_tile_id, block_tile_id, goal_tile_id, bonus_tile_id):
         self.prolog_file = prolog_file
         self.level_w = level_w
@@ -26,7 +26,10 @@ class Solver:
         self.min_bonus = min_bonus
         self.max_bonus = max_bonus
         self.no_pit = no_pit
-        self.level_sections = level_sections
+        self.start_min = start_min
+        self.start_max = start_max
+        self.goal_min = goal_min
+        self.goal_max = goal_max
         self.print_level_stats = print_level_stats
         self.print = print
         self.save = save
@@ -51,9 +54,16 @@ class Solver:
 
     def get_command_str(self):
         player_img, prolog_filename = Solver.parse_prolog_filepath(self.prolog_file)
-        return "prolog: %s, width: %d, height: %d, perc blocks: %s-%s%%, bonus tiles: %d-%d, level sections: %d" % \
-               (prolog_filename, self.level_w, self.level_h, str(self.min_perc_blocks), str(self.max_perc_blocks),
-                self.min_bonus, self.max_bonus, self.level_sections)
+        parts = [
+            "prolog: %s" % prolog_filename,
+            "width: %d", self.level_w,
+            "height: %d", self.level_h,
+            "perc blocks: %s-%s%%" % (str(self.min_perc_blocks), str(self.max_perc_blocks)),
+            "bonus tiles: %d-%d" % (self.min_bonus, self.max_bonus),
+            "start x-range: %d-%d" % (self.start_min, self.start_max),
+            "goal x-range: %d-%d" % (self.goal_min, self.goal_max)
+        ]
+        return ", ".join(parts)
 
     def increment_answer_set_count(self):
         self.answer_set_count += 1
@@ -68,7 +78,8 @@ class Solver:
             "h%d" % self.level_h,
             "pb%s-%s" % (str(self.min_perc_blocks), str(self.max_perc_blocks)),
             "b%d-%d" % (self.min_bonus, self.max_bonus),
-            "ls%d" % self.level_sections,
+            "s%d-%d" % (self.start_min, self.start_max),
+            "g%d-%d" % (self.goal_min, self.goal_max),
             "no_pit" if self.no_pit else "pit",
             "a%d" % self.answer_set_count
         ]
@@ -94,15 +105,13 @@ class Solver:
                 floor_tile_assignment = "assignment(%d, %d, %s)." % (x, self.level_h-1, block_tile_id)
                 tmp_prolog_statements += floor_tile_assignment + "\n"
 
-        # Fix start tile to be within first section of level and goal tile to be within last section of level
-        tiles_per_section = int(self.level_w/self.level_sections)
-        start_tile_max_x = tiles_per_section * (0 + 1)
-        goal_tile_min_x = tiles_per_section * (self.level_sections - 1)
-
-        start_tile_max_rule = ":- assignment(X, Y, %s), X > %d." % (start_tile_id, start_tile_max_x)
-        goal_tile_min_rule = ":- assignment(X, Y, %s), X < %d." % (goal_tile_id, goal_tile_min_x)
-        tmp_prolog_statements += start_tile_max_rule + "\n"
-        tmp_prolog_statements += goal_tile_min_rule + "\n"
+        # Set start tile and goal tile column ranges
+        start_tile_min_rule = ":- assignment(X,Y,%s), X < %d." % (start_tile_id, self.start_min)
+        start_tile_max_rule = ":- assignment(X,Y,%s), X > %d." % (start_tile_id, self.start_max)
+        goal_tile_min_rule = ":- assignment(X,Y,%s), X < %d." % (goal_tile_id, self.goal_min)
+        goal_tile_max_rule = ":- assignment(X,Y,%s), X > %d." % (goal_tile_id, self.goal_max)
+        tmp_prolog_statements += start_tile_min_rule + "\n" + start_tile_max_rule + "\n" + \
+                                 goal_tile_min_rule + "\n" + goal_tile_max_rule + "\n"
 
         # Set range percentage of block tiles allowed in generated level
         num_total_tiles = int(self.level_w * self.level_h)

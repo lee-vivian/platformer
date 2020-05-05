@@ -68,8 +68,10 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
             from model.level import Level
             import run_solver
             level_w, level_h = Level.get_level_dimensions_in_tiles(game, level)
-            run_solver.main(prolog_file=prolog_file, level_w =level_w, level_h=level_h, min_perc_blocks=None,
-                            level_sections=1, max_sol=0, print_level_stats=False, save=True, validate=True)
+            run_solver.main(prolog_file=prolog_file, level_w=level_w, level_h=level_h,
+                            min_perc_blocks=None, max_perc_blocks=None, min_bonus=None, max_bonus=None, no_pit=False,
+                            start_min=None, start_max=None, goal_min=None, goal_max=None, max_sol=1000000,
+                            print_level_stats=False, print=False, save=False, validate=False, n=1000)
 
     else:
         import platformer
