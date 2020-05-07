@@ -131,9 +131,10 @@ class Solver:
         self.tmp_prolog_statements = tmp_prolog_statements
         return True
 
-    def solve(self, max_sol):
+    def solve(self, max_sol, threads):
         prg = clingo.Control([])
         prg.configuration.solve.models = max_sol  # compute at most max_sol models (0 = all)
+        prg.configuration.solve.parallel_mode = threads  # number of threads to use for solving
 
         self.stopwatch.start()  # start the stopwatch
 
