@@ -114,5 +114,5 @@ if __name__ == "__main__":
          min_perc_blocks=args.min_perc_blocks, max_perc_blocks=args.max_perc_blocks,
          min_bonus=args.min_bonus, max_bonus=args.max_bonus, no_pit=args.no_pit,
          start_min=args.start_min, start_max=args.start_max, goal_min=args.goal_min, goal_max=args.goal_max,
-         max_sol=args.max_sol, threads=threads, print_level_stats=args.print_level_stats,
+         max_sol=args.max_sol, threads=args.threads, print_level_stats=args.print_level_stats,
          print=args.print, save=args.save, validate=args.validate, n=args.n)
