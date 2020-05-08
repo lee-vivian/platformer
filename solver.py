@@ -135,7 +135,8 @@ class Solver:
         prg = clingo.Control([])
         prg.configuration.solve.models = max_sol  # compute at most max_sol models (0 = all)
         prg.configuration.solve.parallel_mode = threads  # number of threads to use for solving
-        prg.configuration.solver.seed = seed  # seed to use for solving
+        prg.configuration.solver.sign_def = 'rnd'  # turn off default sign heuristic and switch to random signs
+        prg.configuration.solver.seed = str(seed)  # seed to use for solving
 
         self.stopwatch.start()  # start the stopwatch
 
