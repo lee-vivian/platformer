@@ -32,7 +32,7 @@ def setup_tile_col_range(min_col, max_col, level_w):
 
 
 def main(prolog_file, level_w, level_h, min_perc_blocks, max_perc_blocks, min_bonus, max_bonus, no_pit,
-         start_min, start_max, goal_min, goal_max, max_sol, threads, print_level_stats, print, save, validate, n):
+         start_min, start_max, goal_min, goal_max, max_sol, threads, seed, print_level_stats, print, save, validate, n):
 
     player_img, prolog_filename = Solver.parse_prolog_filepath(prolog_file)
     level_saved_files_dir = "level_saved_files_%s/" % player_img
@@ -81,7 +81,7 @@ def main(prolog_file, level_w, level_h, min_perc_blocks, max_perc_blocks, min_bo
     signal.signal(signal.SIGTSTP, handler=lambda s, f: keyboard_interrupt_handler(signal=s, frame=f, solver=solver))
 
     # Run clingo solver
-    solver.solve(max_sol=max_sol, threads=threads)
+    solver.solve(max_sol=max_sol, threads=threads, seed=seed)
 
     # Validate generated levels
     solver.end_and_validate()
@@ -103,6 +103,7 @@ if __name__ == "__main__":
     parser.add_argument('--goal_max', type=int, default=None, help="Max column index for the goal tile")
     parser.add_argument('--max_sol', type=int, default=1000000, help="Max number of answer sets to return. 0 = all solutions")
     parser.add_argument('--threads', type=int, default=1, help="Number of threads to run the solver on")
+    parser.add_argument('--seed', type=int, default=1, help="Seed for running the solver")
     parser.add_argument('--print_level_stats', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--print', const=True, nargs='?', type=bool, default=False, help="Print structural txt layer of generated levels")
     parser.add_argument('--save', const=True, nargs='?', type=bool, default=False)
@@ -114,5 +115,5 @@ if __name__ == "__main__":
          min_perc_blocks=args.min_perc_blocks, max_perc_blocks=args.max_perc_blocks,
          min_bonus=args.min_bonus, max_bonus=args.max_bonus, no_pit=args.no_pit,
          start_min=args.start_min, start_max=args.start_max, goal_min=args.goal_min, goal_max=args.goal_max,
-         max_sol=args.max_sol, threads=args.threads, print_level_stats=args.print_level_stats,
+         max_sol=args.max_sol, threads=args.threads, seed=seed, print_level_stats=args.print_level_stats,
          print=args.print, save=args.save, validate=args.validate, n=args.n)
