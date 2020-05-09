@@ -5,6 +5,7 @@ Solver Object
 import clingo
 import re
 import networkx as nx
+import random
 from datetime import datetime
 
 from model.metatile import Metatile
@@ -16,7 +17,7 @@ from utils import get_directory, get_filepath, write_pickle, read_pickle, write_
 class Solver:
 
     def __init__(self, prolog_file, level_w, level_h, min_perc_blocks, max_perc_blocks, min_bonus, max_bonus, no_pit,
-                 start_min, start_max, goal_min, goal_max, print_level_stats, print, save, validate, n,
+                 start_min, start_max, goal_min, goal_max, print_level_stats, print, save, validate,
                  start_tile_id, block_tile_id, goal_tile_id, bonus_tile_id):
         self.prolog_file = prolog_file
         self.level_w = level_w
@@ -34,7 +35,6 @@ class Solver:
         self.print = print
         self.save = save
         self.validate = validate
-        self.n = n
 
         self.tile_ids = {"start": start_tile_id, "block": block_tile_id, "goal": goal_tile_id, "bonus": bonus_tile_id}
         self.tmp_prolog_statements = ""
@@ -67,9 +67,6 @@ class Solver:
 
     def increment_answer_set_count(self):
         self.answer_set_count += 1
-
-    def save_nth_answer_set(self):
-        return self.save and (self.answer_set_count % self.n == 0)
 
     def get_cur_answer_set_filename(self, prolog_filename):
         filename_components = [
@@ -131,14 +128,10 @@ class Solver:
         self.tmp_prolog_statements = tmp_prolog_statements
         return True
 
-    def solve(self, max_sol, threads, seed):
-        prg = clingo.Control([])
-        prg.configuration.solve.models = max_sol  # compute at most max_sol models (0 = all)
-        prg.configuration.solve.parallel_mode = threads  # number of threads to use for solving
-        prg.configuration.solver.sign_def = 'rnd'  # turn off default sign heuristic and switch to random signs
-        prg.configuration.solver.seed = str(seed)  # seed to use for solving
+    def solve(self, max_sol, threads):
 
         self.stopwatch.start()  # start the stopwatch
+        prg = clingo.Control([])
 
         print("----- LOADING -----")
         print("Loading prolog file: %s..." % self.prolog_file)
@@ -152,14 +145,23 @@ class Solver:
 
         prg.add('base', [], "")
 
-        print("Grounding...")
+        print("----- GROUNDING -----")
         print("Start: %s" % str(datetime.now()))
         prg.ground([('base', [])])
         print(self.stopwatch.get_lap_time_str("Ground"))
 
         print("----- SOLVING -----")
         print("Start: %s" % str(datetime.now()))
-        prg.solve(on_model=lambda m: self.process_answer_set(repr(m)))
+        prg.configuration.solve.models = 1  # get one solution per seed
+        prg.configuration.solve.parallel_mode = threads  # number of threads to use for solving
+        prg.configuration.solver.sign_def = 'rnd'  # turn off default sign heuristic and switch to random signs
+
+        seeds = random.sample(range(1, 999999), max_sol)
+        print("Seeds: %s" % str(seeds))
+        for seed in seeds:
+            prg.configuration.solver.seed = seed  # seed to use for solving
+            prg.solve(on_model=lambda m: self.process_answer_set(repr(m)))
+
         print(self.stopwatch.get_lap_time_str("Solve"))
 
     def create_assignments_dict(self, model_str):
@@ -186,7 +188,7 @@ class Solver:
             extra_info = "S" if len(coords) == 1 else ""
             tile_id_coords_map_with_extra_info[(tile_id, extra_info)] = coords
 
-        if self.save_nth_answer_set():
+        if self.save:
             tile_id_coords_map_dir = "level_saved_files_%s/tile_id_coords_maps/" % player_img
             tile_id_coords_map_file = get_filepath(tile_id_coords_map_dir, "%s.pickle" % answer_set_filename)
             write_pickle(tile_id_coords_map_file, tile_id_coords_map_with_extra_info)
@@ -236,7 +238,6 @@ class Solver:
 
         # Print tiles per level
         if self.print_level_stats:
-
             num_tiles, num_block_tiles, num_bonus_tiles, num_start_tiles, num_goal_tiles = 0, 0, 0, 0, 0
             for (tile_id, extra_info), coords in tile_id_extra_info_coords_map.items():
                 len_coords = len(coords)
@@ -265,7 +266,7 @@ class Solver:
                 level_structural_txt += tile_char
             level_structural_txt += "\n"
 
-        if self.save_nth_answer_set():
+        if self.save:
             generated_level_txt_dir = "level_structural_layers/generated/"
             level_structural_txt_file = get_filepath(generated_level_txt_dir, "%s.txt" % answer_set_filename)
             write_file(level_structural_txt_file, level_structural_txt)

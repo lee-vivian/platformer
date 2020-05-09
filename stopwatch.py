@@ -23,6 +23,7 @@ class Stopwatch:
         if self.time is not None:
             lap_time_str = str(cur_time - self.time)  # get lap time str
             self.time = cur_time  # update time
+            print("Lap: %s" % str(datetime.now()))
             return "%s runtime: %s" % (process_str, lap_time_str)
         error_exit("Must start stopwatch before getting lap time")
 
