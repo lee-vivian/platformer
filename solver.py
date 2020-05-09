@@ -129,40 +129,40 @@ class Solver:
         return True
 
     def solve(self, max_sol, threads):
-
-        self.stopwatch.start()  # start the stopwatch
-        prg = clingo.Control([])
-
-        print("----- LOADING -----")
-        print("Loading prolog file: %s..." % self.prolog_file)
-        prg.load(self.prolog_file)
-        print(self.stopwatch.get_lap_time_str("Load prolog file"))
-
-        print("Adding %d tmp_prolog_statements..." % (len(self.tmp_prolog_statements.split("\n"))))
-        with prg.builder() as builder:
-            clingo.parse_program(self.tmp_prolog_statements, lambda stm: builder.add(stm))
-        print(self.stopwatch.get_lap_time_str("Parse tmp prolog statements"))
-
-        prg.add('base', [], "")
-
-        print("----- GROUNDING -----")
-        print("Start: %s" % str(datetime.now()))
-        prg.ground([('base', [])])
-        print(self.stopwatch.get_lap_time_str("Ground"))
-
-        print("----- SOLVING -----")
-        print("Start: %s" % str(datetime.now()))
-        prg.configuration.solve.models = 1  # get one solution per seed
-        prg.configuration.solve.parallel_mode = threads  # number of threads to use for solving
-        prg.configuration.solver.sign_def = 'rnd'  # turn off default sign heuristic and switch to random signs
-
+        self.stopwatch.start()
         seeds = random.sample(range(1, 999999), max_sol)
-        print("Seeds: %s" % str(seeds))
-        for seed in seeds:
-            prg.configuration.solver.seed = seed  # seed to use for solving
-            prg.solve(on_model=lambda m: self.process_answer_set(repr(m)))
+        print("SEEDS: %s" % str(seeds))
 
-        print(self.stopwatch.get_lap_time_str("Solve"))
+        for seed in seeds:
+            prg = clingo.Control([])
+            prg.configuration.solve.models = 1  # get one solution per seed
+            prg.configuration.solve.parallel_mode = threads  # number of threads to use for solving
+            prg.configuration.solver.sign_def = 'rnd'  # turn off default sign heuristic and switch to random signs
+            prg.configuration.solver.seed = seed  # seed to use for solving
+
+            print("----- LOADING -----")
+            print("Loading prolog file: %s..." % self.prolog_file)
+            prg.load(self.prolog_file)
+            print(self.stopwatch.get_lap_time_str("Load prolog file"))
+
+            print("Adding %d tmp_prolog_statements..." % (len(self.tmp_prolog_statements.split("\n"))))
+            with prg.builder() as builder:
+                clingo.parse_program(self.tmp_prolog_statements, lambda stm: builder.add(stm))
+            print(self.stopwatch.get_lap_time_str("Parse tmp prolog statements"))
+
+            prg.add('base', [], "")
+
+            print("----- GROUNDING -----")
+            print("Start: %s" % str(datetime.now()))
+            prg.ground([('base', [])])
+            print(self.stopwatch.get_lap_time_str("Ground"))
+
+            print("----- SOLVING -----")
+            print("Start: %s" % str(datetime.now()))
+            prg.solve(on_model=lambda m: self.process_answer_set(repr(m)))
+            print(self.stopwatch.get_lap_time_str("Solve"))
+
+        self.stopwatch.stop()
 
     def create_assignments_dict(self, model_str):
         assignments = re.findall(r'assignment\([0-9t,]*\)', model_str)

@@ -13,7 +13,8 @@ TILE_CHARS = {
         '[': ['solid', 'left pipe', 'pipe'],
         ']': ['solid', 'right pipe', 'pipe'],
         'B': ['cannon top', 'cannon', 'solid', 'hazard'],
-        'b': ['cannon bottom', 'cannon', 'solid']
+        'b': ['cannon bottom', 'cannon', 'solid'],
+        '#': ['solid', 'ground']
     },
     'bonus': {
         '?': ["solid","question block", "full question block"],
@@ -92,6 +93,19 @@ class Level:
         return coords
 
     @staticmethod
+    def print_start_goal_tile_locations(game, level):
+        level_obj = Level.generate_level_from_file(game, level)
+        start_x, start_y = level_obj.get_start_coord()
+        start_tile_x, start_tile_y = int(start_x / TILE_DIM), int(start_y / TILE_DIM)
+        print("Start Tile: %s" % str((start_tile_x, start_tile_y)))
+
+        goal_tile_coords = []
+        for goal_x, goal_y in level_obj.get_goal_coords():
+            goal_tile_x, goal_tile_y = int(goal_x / TILE_DIM), int(goal_y / TILE_DIM)
+            goal_tile_coords.append((goal_tile_x, goal_tile_y))
+        print("Goal Tile: %s" % str(goal_tile_coords))
+
+    @staticmethod
     def print_tile_summary(game, level):
         filepath = "level_structural_layers/%s/%s.txt" % (game, level)
         num_tiles, num_start_tiles, num_goal_tiles, num_bonus_tiles, num_block_tiles = 0, 0, 0, 0, 0
@@ -163,4 +177,3 @@ class Level:
         return Level(name=level, game=game, width=level_width * TILE_DIM, height=level_height * TILE_DIM,  # in px
                      platform_coords=platform_coords, goal_coords=goal_coords, start_coord=start_coord,
                      bonus_coords=bonus_coords)
-
