@@ -157,7 +157,7 @@ class Solver:
             prg.ground([('base', [])])
             print(self.stopwatch.get_lap_time_str("Ground"))
 
-            print("----- SOLVING -----")
+            print("----- SOLVING (%d/%d) -----" % (self.answer_set_count, max_sol))
             print("Start: %s" % str(datetime.now()))
             prg.solve(on_model=lambda m: self.process_answer_set(repr(m)))
             print(self.stopwatch.get_lap_time_str("Solve"))
