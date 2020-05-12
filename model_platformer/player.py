@@ -92,30 +92,30 @@ class PlayerPlatformer:
                                                 self.level.get_platform_coords() +
                                                 self.level.get_bonus_coords())
 
-            # some other special cases
-            if tile_collision_coord is None:
-                if use_kid_icarus_rules:
-                    # check if wrap would collide on other side
+            # kid icarus wrap
+            if use_kid_icarus_rules:
+                # check if wrap would collide on other side
+                if tile_collision_coord is None:
                     if new_state.x <= min_x:
                         tile_collision_coord = self.collide(new_state.x + self.level.get_width(), new_state.y, self.level.get_platform_coords() + self.level.get_bonus_coords())
                     if new_state.x >= min_x:
                         tile_collision_coord = self.collide(new_state.x - self.level.get_width(), new_state.y, self.level.get_platform_coords() + self.level.get_bonus_coords())
 
-                    # handle wrap
-                    if tile_collision_coord is None:
-                        if new_state.x < 0:
-                            new_state.x += self.level.get_width()
-                        if new_state.x >= self.level.get_width():
-                            new_state.x -= self.level.get_width();
+                # handle wrap
+                if tile_collision_coord is None:
+                    if new_state.x < 0:
+                        new_state.x += self.level.get_width()
+                    if new_state.x >= self.level.get_width():
+                        new_state.x -= self.level.get_width();
 
-                if not use_kid_icarus_rules:
-                    # Handle moving off the screen
-                    move_off_screen_left = new_state.x < min_x
-                    move_off_screen_right = new_state.x > max_x
-                    move_off_screen_x = move_off_screen_left or move_off_screen_right
+            if not use_kid_icarus_rules:
+                # Handle moving off the screen
+                move_off_screen_left = new_state.x < min_x
+                move_off_screen_right = new_state.x > max_x
+                move_off_screen_x = move_off_screen_left or move_off_screen_right
 
-                    if move_off_screen_x:
-                        tile_collision_coord = True # no tile, but act like a tile was collided with
+                if move_off_screen_x:
+                    tile_collision_coord = True # no tile, but act like a tile was collided with
                 
             if tile_collision_coord is not None:
                 new_state.x = old_x
@@ -138,7 +138,7 @@ class PlayerPlatformer:
             bonus_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_bonus_coords())
             one_way_block_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_one_way_platform_coords())
 
-            # some other special cases
+            # kid icarus wrap
             if use_kid_icarus_rules:
                 # check if wrap would collide on other side
                 if block_tile_collision_coord is None:
