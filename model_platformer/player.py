@@ -79,8 +79,7 @@ class PlayerPlatformer:
 
         use_kid_icarus_rules = self.level.get_game() == "kid_icarus"
         tile_coord_dict = list_to_dict(self.level.get_platform_coords() +
-                                       self.level.get_bonus_coords() +
-                                       self.level.get_one_way_platform_coords())
+                                       self.level.get_bonus_coords())
 
         # Move in x direction
         for ii in range(abs(new_state.movex)):
@@ -93,8 +92,7 @@ class PlayerPlatformer:
             # Handle block tile collisions
             tile_collision_coord = self.collide(new_state.x, new_state.y,
                                                 self.level.get_platform_coords() +
-                                                self.level.get_bonus_coords() +
-                                                self.level.get_one_way_platform_coords())
+                                                self.level.get_bonus_coords())
 
             # Handle moving off the screen
             move_off_screen_left = new_state.x < min_x
@@ -131,7 +129,7 @@ class PlayerPlatformer:
 
             # Collide with one-way block tile from above
             one_way_block_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_one_way_platform_coords())
-            hit_one_way_block_tile_from_above = one_way_block_tile_collision_coord is not None and new_state.movey > 0 and new_state.y < one_way_block_tile_collision_coord[1]
+            hit_one_way_block_tile_from_above = one_way_block_tile_collision_coord is not None and new_state.movey > 0 and old_y + self.half_player_h <= one_way_block_tile_collision_coord[1]
 
             block_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_platform_coords())
             bonus_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_bonus_coords())
