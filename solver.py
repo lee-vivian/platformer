@@ -16,9 +16,9 @@ from utils import get_directory, get_filepath, write_pickle, read_pickle, write_
 
 class Solver:
 
-    def __init__(self, prolog_file, level_w, level_h, min_perc_blocks, max_perc_blocks, min_bonus, max_bonus, no_pit,
-                 start_min, start_max, goal_min, goal_max, print_level_stats, print, save, validate,
-                 start_tile_id, block_tile_id, goal_tile_id, bonus_tile_id):
+    def __init__(self, prolog_file, level_w, level_h, min_perc_blocks, max_perc_blocks, min_bonus, max_bonus,
+                 min_one_way, max_one_way, no_pit, start_min, start_max, goal_min, goal_max, print_level_stats, print,
+                 save, validate, start_tile_id, block_tile_id, goal_tile_id, bonus_tile_id, one_way_tile_ids):
         self.prolog_file = prolog_file
         self.level_w = level_w
         self.level_h = level_h
@@ -26,6 +26,8 @@ class Solver:
         self.max_perc_blocks = max_perc_blocks
         self.min_bonus = min_bonus
         self.max_bonus = max_bonus
+        self.min_one_way = min_one_way
+        self.max_one_way = max_one_way
         self.no_pit = no_pit
         self.start_min = start_min
         self.start_max = start_max
@@ -36,7 +38,8 @@ class Solver:
         self.save = save
         self.validate = validate
 
-        self.tile_ids = {"start": start_tile_id, "block": block_tile_id, "goal": goal_tile_id, "bonus": bonus_tile_id}
+        self.tile_ids = {"start": start_tile_id, "block": block_tile_id, "goal": goal_tile_id, "bonus": bonus_tile_id,
+                         "one_way": one_way_tile_ids}
         self.tmp_prolog_statements = ""
         self.init_tmp_prolog_statements()  # create tmp prolog statements
         self.answer_set_count = 0
@@ -87,6 +90,7 @@ class Solver:
         block_tile_id = self.tile_ids.get('block')
         goal_tile_id = self.tile_ids.get('goal')
         bonus_tile_id = self.tile_ids.get('bonus')
+        one_way_tile_ids = self.tile_ids.get('one_way')
 
         tmp_prolog_statements = ""
         tmp_prolog_statements += "dim_width(0..%d).\n" % (self.level_w - 1)
@@ -120,9 +124,16 @@ class Solver:
         tmp_prolog_statements += perc_blocks_statement + "\n"
 
         # Set range num bonus tiles allowed in generated level
-        if bonus_tile_id is not None and (self.min_bonus > 0 or self.max_bonus > 0):
+        if bonus_tile_id is not None and (self.min_bonus > 0 or self.max_bonus < self.level_w * self.level_h):
             limit_bonus_tiles_statement = "limit(%s, %d, %d)." % (bonus_tile_id, self.min_bonus, self.max_bonus)
             tmp_prolog_statements += limit_bonus_tiles_statement + "\n"
+
+        # Set range num one-way tiles allowed in generated level
+        if one_way_tile_ids is not None and (self.min_one_way > 0 or self.max_one_way < self.level_w * self.level_h):
+            one_way_tile_assignment = "one_way_tile(X,Y) :- assignment(X,Y,T), T = (%s)." % (';'.join(one_way_tile_ids))
+            limit_one_way_tiles_statement = "%d { one_way_tile(X,Y) } %d." % (self.min_one_way, self.max_one_way)
+            tmp_prolog_statements += one_way_tile_assignment + "\n"
+            tmp_prolog_statements += limit_one_way_tiles_statement + "\n"
 
         # Set tmp_prolog_statements
         self.tmp_prolog_statements = tmp_prolog_statements

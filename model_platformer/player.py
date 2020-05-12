@@ -148,7 +148,7 @@ class PlayerPlatformer:
                     new_state.hit_bonus_coord = bonus_tile_collision_coord
 
             # Player is dead if it falls off the screen (e.g. down a pit)
-            if new_state.y > max_y + TILE_DIM * 10:
+            if new_state.y > max_y + TILE_DIM:
                 new_state.is_dead = True
                 break
 

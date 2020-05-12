@@ -154,6 +154,22 @@ def main(tile_constraints_file, debug, print_pl):
     platform_reachable_rule += "." if bonus_tile_id is None else ", not assignment(X,Y-1,%s)." % bonus_tile_id
     prolog_statements += platform_reachable_rule + "\n"
 
+    # Add one-way platform tile prolog rules
+    one_way_block_tile_ids = metatile_type_ids_map.get("one_way_block")
+    one_way_block_tile_ids = None if len(one_way_block_tile_ids) == 0 else one_way_block_tile_ids
+
+    if one_way_block_tile_ids is not None:
+
+        # Disallow vertically stacking one-way platform tiles
+        for tile_id_bottom in one_way_block_tile_ids:
+            for tile_id_top in one_way_block_tile_ids:
+                prolog_statements += ":- assignment(X,Y,%s), assignment(X,Y-1,%s).\n" % (tile_id_bottom, tile_id_top)
+
+        # Ensure that tiles above one-way platform tiles are reachable
+        for tile_id in one_way_block_tile_ids:
+            one_way_platform_reachable_rule = ":- assignment(X,Y,%s), not reachable_tile(X,Y-1)." % tile_id
+            prolog_statements += one_way_platform_reachable_rule + "\n"
+
     # Limit number of tiles of specified tile id
     limit_tile_type_rule = "MIN { assignment(X,Y,MT) : metatile(MT), tile(X,Y) } MAX :- limit(MT, MIN, MAX)."
     prolog_statements += limit_tile_type_rule + "\n"
@@ -190,7 +206,8 @@ def main(tile_constraints_file, debug, print_pl):
         "block_tile_id": block_tile_id,
         "start_tile_id": start_tile_id,
         "goal_tile_id": goal_tile_id,
-        "bonus_tile_id": bonus_tile_id
+        "bonus_tile_id": bonus_tile_id,
+        "one_way_tile_ids": one_way_block_tile_ids
     }
 
     utils.write_pickle(all_prolog_info_filepath, all_prolog_info_map)
@@ -202,11 +219,6 @@ def main(tile_constraints_file, debug, print_pl):
 
 
 if __name__ == "__main__":
-    # main("level_saved_files_block/metatile_constraints/sample_mini.pickle", debug=False, print_pl=False)
-    # main("level_saved_files_block/metatile_constraints/mario-icarus-1.pickle", debug=False, print_pl=False)
-    # main("level_saved_files_block/metatile_constraints/mario-all.pickle", debug=False, print_pl=False)
-    # exit(0)
-
     parser = argparse.ArgumentParser(description='Generate prolog file')
     parser.add_argument('tile_constraints_file', type=str, help="File path of the tile constraints dictionary to use")
     parser.add_argument('--debug', const=True, nargs='?', type=bool, default=False, help='Allow empty tiles if no suitable assignment can be found')

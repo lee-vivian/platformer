@@ -15,7 +15,6 @@ TILE_CHARS = {
         'B': ['cannon top', 'cannon', 'solid', 'hazard'],
         'b': ['cannon bottom', 'cannon', 'solid'],
         '#': ['solid', 'ground'],
-        'D': ['solid', 'openable', 'door'],
         'H': ['solid', 'damaging', 'hazard']
     },
     'bonus': {
@@ -31,7 +30,8 @@ TILE_CHARS = {
     'empty': {
         '-': ['passable', 'empty'],
         'E': ['enemy', 'damaging', 'hazard', 'moving'],
-        'o': ['coin', 'collectable', 'passable']
+        'o': ['coin', 'collectable', 'passable'],
+        'D': ['solid', 'openable', 'door']
     },
     'one_way_platform': {
         'M': ['solidtop', 'passable', 'moving', 'platform'],
