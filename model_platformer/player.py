@@ -78,8 +78,6 @@ class PlayerPlatformer:
             new_state.movey = -self.max_vel
 
         use_kid_icarus_rules = self.level.get_game() == "kid_icarus"
-        tile_coord_dict = list_to_dict(self.level.get_platform_coords() +
-                                       self.level.get_bonus_coords())
 
         # Move in x direction
         for ii in range(abs(new_state.movex)):
@@ -94,24 +92,32 @@ class PlayerPlatformer:
                                                 self.level.get_platform_coords() +
                                                 self.level.get_bonus_coords())
 
-            # Handle moving off the screen
-            move_off_screen_left = new_state.x < min_x
-            move_off_screen_right = new_state.x > max_x
-            move_off_screen_x = move_off_screen_left or move_off_screen_right
+            # some other special cases
+            if tile_collision_coord is None:
+                if use_kid_icarus_rules:
+                    # check if wrap would collide on other side
+                    if new_state.x <= min_x:
+                        tile_collision_coord = self.collide(new_state.x + self.level.get_width(), new_state.y, self.level.get_platform_coords() + self.level.get_bonus_coords())
+                    if new_state.x >= min_x:
+                        tile_collision_coord = self.collide(new_state.x - self.level.get_width(), new_state.y, self.level.get_platform_coords() + self.level.get_bonus_coords())
 
-            if use_kid_icarus_rules and move_off_screen_x:
+                    # handle wrap
+                    if tile_collision_coord is None:
+                        if new_state.x < 0:
+                            new_state.x += self.level.get_width()
+                        if new_state.x >= self.level.get_width():
+                            new_state.x -= self.level.get_width();
 
-                # Wrap around to other side
-                new_state.x = max_x if move_off_screen_left else min_x
-                current_occupied_tile_coord = Metatile.get_metatile_coord_from_state_coord((new_state.x, new_state.y), TILE_DIM)
+                if not use_kid_icarus_rules:
+                    # Handle moving off the screen
+                    move_off_screen_left = new_state.x < min_x
+                    move_off_screen_right = new_state.x > max_x
+                    move_off_screen_x = move_off_screen_left or move_off_screen_right
 
-                # Revert to old x position if tile blocks path to the other side
-                if tile_coord_dict.get(current_occupied_tile_coord) is not None:
-                    new_state.x = old_x
-                    new_state.movex = 0
-                    break
-
-            if (move_off_screen_x and not use_kid_icarus_rules) or tile_collision_coord is not None:
+                    if move_off_screen_x:
+                        tile_collision_coord = True # no tile, but act like a tile was collided with
+                
+            if tile_collision_coord is not None:
                 new_state.x = old_x
                 new_state.movex = 0
                 break
@@ -128,12 +134,32 @@ class PlayerPlatformer:
                 new_state.y += 1
 
             # Collide with one-way block tile from above
-            one_way_block_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_one_way_platform_coords())
-            hit_one_way_block_tile_from_above = one_way_block_tile_collision_coord is not None and new_state.movey > 0 and old_y + self.half_player_h <= one_way_block_tile_collision_coord[1]
-
             block_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_platform_coords())
             bonus_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_bonus_coords())
+            one_way_block_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_one_way_platform_coords())
+
+            # some other special cases
+            if use_kid_icarus_rules:
+                # check if wrap would collide on other side
+                if block_tile_collision_coord is None:
+                    if new_state.x <= min_x:
+                        block_tile_collision_coord = self.collide(new_state.x + self.level.get_width(), new_state.y, self.level.get_platform_coords())
+                    if new_state.x >= min_x:
+                        block_tile_collision_coord = self.collide(new_state.x - self.level.get_width(), new_state.y, self.level.get_platform_coords())
+                if bonus_tile_collision_coord is None:
+                    if new_state.x <= min_x:
+                        bonus_tile_collision_coord = self.collide(new_state.x + self.level.get_width(), new_state.y, self.level.get_bonus_coords())
+                    if new_state.x >= min_x:
+                        bonus_tile_collision_coord = self.collide(new_state.x - self.level.get_width(), new_state.y, self.level.get_bonus_coords())
+                if one_way_block_tile_collision_coord is None:
+                    if new_state.x <= min_x:
+                        one_way_block_tile_collision_coord = self.collide(new_state.x + self.level.get_width(), new_state.y, self.level.get_one_way_platform_coords())
+                    if new_state.x >= min_x:
+                        one_way_block_tile_collision_coord = self.collide(new_state.x - self.level.get_width(), new_state.y, self.level.get_one_way_platform_coords())
+
+            hit_one_way_block_tile_from_above = one_way_block_tile_collision_coord is not None and new_state.movey > 0 and old_y + self.half_player_h <= one_way_block_tile_collision_coord[1]
             collide = block_tile_collision_coord is not None or bonus_tile_collision_coord is not None or hit_one_way_block_tile_from_above
+
             move_off_screen_y = new_state.y < min_y
 
             if collide or move_off_screen_y:
