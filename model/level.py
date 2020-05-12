@@ -14,7 +14,9 @@ TILE_CHARS = {
         ']': ['solid', 'right pipe', 'pipe'],
         'B': ['cannon top', 'cannon', 'solid', 'hazard'],
         'b': ['cannon bottom', 'cannon', 'solid'],
-        '#': ['solid', 'ground']
+        '#': ['solid', 'ground'],
+        'D': ['solid', 'openable', 'door'],
+        'H': ['solid', 'damaging', 'hazard']
     },
     'bonus': {
         '?': ["solid","question block", "full question block"],
@@ -30,6 +32,10 @@ TILE_CHARS = {
         '-': ['passable', 'empty'],
         'E': ['enemy', 'damaging', 'hazard', 'moving'],
         'o': ['coin', 'collectable', 'passable']
+    },
+    'one_way_platform': {
+        'M': ['solidtop', 'passable', 'moving', 'platform'],
+        'T': ['solidtop', 'passable', 'platform']
     }
 }
 
@@ -40,7 +46,7 @@ MAX_HEIGHT = 600
 
 class Level:
 
-    def __init__(self, name, game, width, height, platform_coords, goal_coords, start_coord, bonus_coords):
+    def __init__(self, name, game, width, height, platform_coords, goal_coords, start_coord, bonus_coords, one_way_platform_coords):
         self.name = name
         self.game = game
         self.width = width  # in px
@@ -49,6 +55,7 @@ class Level:
         self.goal_coords = goal_coords
         self.start_coord = start_coord
         self.bonus_coords = bonus_coords
+        self.one_way_platform_coords = one_way_platform_coords
 
     def get_name(self):
         return self.name
@@ -73,6 +80,9 @@ class Level:
 
     def get_bonus_coords(self):
         return list(self.bonus_coords)
+
+    def get_one_way_platform_coords(self):
+        return list(self.one_way_platform_coords)
 
     def get_all_possible_coords(self):
         return Level.all_possible_coords(self.width, self.height)
@@ -108,27 +118,24 @@ class Level:
     @staticmethod
     def print_tile_summary(game, level):
         filepath = "level_structural_layers/%s/%s.txt" % (game, level)
-        num_tiles, num_start_tiles, num_goal_tiles, num_bonus_tiles, num_block_tiles = 0, 0, 0, 0, 0
+        num_tiles_total = 0
+        num_tiles_dict = {}
+        for tile_type in TILE_CHARS.keys():
+            num_tiles_dict[tile_type] = 0
+
         f = open(filepath, 'r')
         for line in f:
             for char in line.rstrip():  # for each char in the line
-                if TILE_CHARS['start'].get(char) is not None:
-                    num_start_tiles += 1
-                elif TILE_CHARS['goal'].get(char) is not None:
-                    num_goal_tiles += 1
-                elif TILE_CHARS['bonus'].get(char) is not None:
-                    num_bonus_tiles += 1
-                elif TILE_CHARS['block'].get(char) is not None:
-                    num_block_tiles += 1
-                num_tiles += 1
+                for tile_type in TILE_CHARS.keys():  # test each tile type for match
+                    if TILE_CHARS[tile_type].get(char) is not None:
+                        num_tiles_dict[tile_type] += 1
+                        num_tiles_total += 1
         f.close()
 
-        print("Level: %s/%s" % (game, level))
-        print("Total tiles: %d (%d%%)" % (num_tiles, num_tiles / num_tiles * 100))
-        print("Block tiles:  %d (%d%%)" % (num_block_tiles, num_block_tiles / num_tiles * 100))
-        print("Bonus tiles: %d (%d%%)" % (num_bonus_tiles, num_bonus_tiles / num_tiles * 100))
-        # print("Start tiles:  %d (%d%%)" % (num_start_tiles, num_start_tiles / num_tiles * 100))
-        # print("Goal tiles:  %d (%d%%)" % (num_goal_tiles, num_goal_tiles / num_tiles * 100))
+        print("----- Level: %s/%s -----" % (game, level))
+        print("Total tiles: %d (%d%%)" % (num_tiles_total, 100))
+        for tile_type, count in num_tiles_dict.items():
+            print("%s tiles: %d (%d%%)" % (tile_type, count, count / num_tiles_total * 100))
 
     @staticmethod
     def print_structural_txt(game, level):
@@ -143,6 +150,7 @@ class Level:
         level_width, level_height = 0, 0
         platform_coords = []
         bonus_coords = []
+        one_way_platform_coords = []
         goal_coords = []
         start_coord = None
 
@@ -164,6 +172,8 @@ class Level:
                     platform_coords.append(char_coord)
                 elif TILE_CHARS['bonus'].get(char) is not None:
                     bonus_coords.append(char_coord)
+                elif TILE_CHARS['one_way_platform'].get(char) is not None:
+                    one_way_platform_coords.append(char_coord)
                 elif start_coord is None and TILE_CHARS['start'].get(char) is not None:   # define start coord once
                     start_coord = char_coord
                 elif TILE_CHARS['goal'].get(char) is not None:
@@ -176,4 +186,4 @@ class Level:
 
         return Level(name=level, game=game, width=level_width * TILE_DIM, height=level_height * TILE_DIM,  # in px
                      platform_coords=platform_coords, goal_coords=goal_coords, start_coord=start_coord,
-                     bonus_coords=bonus_coords)
+                     bonus_coords=bonus_coords, one_way_platform_coords=one_way_platform_coords)
