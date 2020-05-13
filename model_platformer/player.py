@@ -98,7 +98,7 @@ class PlayerPlatformer:
                 if tile_collision_coord is None:
                     if new_state.x <= min_x:
                         tile_collision_coord = self.collide(new_state.x + self.level.get_width(), new_state.y, self.level.get_platform_coords() + self.level.get_bonus_coords())
-                    if new_state.x >= min_x:
+                    if new_state.x >= max_x:
                         tile_collision_coord = self.collide(new_state.x - self.level.get_width(), new_state.y, self.level.get_platform_coords() + self.level.get_bonus_coords())
 
                 # handle wrap
@@ -144,17 +144,17 @@ class PlayerPlatformer:
                 if block_tile_collision_coord is None:
                     if new_state.x <= min_x:
                         block_tile_collision_coord = self.collide(new_state.x + self.level.get_width(), new_state.y, self.level.get_platform_coords())
-                    if new_state.x >= min_x:
+                    if new_state.x >= max_x:
                         block_tile_collision_coord = self.collide(new_state.x - self.level.get_width(), new_state.y, self.level.get_platform_coords())
                 if bonus_tile_collision_coord is None:
                     if new_state.x <= min_x:
                         bonus_tile_collision_coord = self.collide(new_state.x + self.level.get_width(), new_state.y, self.level.get_bonus_coords())
-                    if new_state.x >= min_x:
+                    if new_state.x >= max_x:
                         bonus_tile_collision_coord = self.collide(new_state.x - self.level.get_width(), new_state.y, self.level.get_bonus_coords())
                 if one_way_block_tile_collision_coord is None:
                     if new_state.x <= min_x:
                         one_way_block_tile_collision_coord = self.collide(new_state.x + self.level.get_width(), new_state.y, self.level.get_one_way_platform_coords())
-                    if new_state.x >= min_x:
+                    if new_state.x >= max_x:
                         one_way_block_tile_collision_coord = self.collide(new_state.x - self.level.get_width(), new_state.y, self.level.get_one_way_platform_coords())
 
             hit_one_way_block_tile_from_above = one_way_block_tile_collision_coord is not None and new_state.movey > 0 and old_y + self.half_player_h <= one_way_block_tile_collision_coord[1]
