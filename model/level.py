@@ -33,8 +33,8 @@ TILE_CHARS = {
         'o': ['coin', 'collectable', 'passable']
     },
     'one_way_platform': {
-        'M': ['solidtop', 'passable', 'moving', 'platform'],
-        'T': ['solidtop', 'passable', 'platform']
+        'T': ['solidtop', 'passable', 'platform'],
+        'M': ['solidtop', 'passable', 'moving', 'platform']
     },
     'door': {
         'D': ['solid', 'openable', 'door']

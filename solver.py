@@ -38,8 +38,9 @@ class Solver:
         self.save = save
         self.validate = validate
 
-        self.tile_ids = {"start": start_tile_id, "block": block_tile_id, "goal": goal_tile_id, "bonus": bonus_tile_id,
-                         "one_way": one_way_tile_ids}
+        self.tile_ids = {"block": [block_tile_id], "bonus": [bonus_tile_id],
+                         "one_way": [] if one_way_tile_ids is None else one_way_tile_ids,
+                         "start": [start_tile_id], "goal": [goal_tile_id]}
         self.tmp_prolog_statements = ""
         self.init_tmp_prolog_statements()  # create tmp prolog statements
         self.answer_set_count = 0
@@ -86,10 +87,10 @@ class Solver:
         return "_".join(filename_components)
 
     def init_tmp_prolog_statements(self):
-        start_tile_id = self.tile_ids.get('start')
-        block_tile_id = self.tile_ids.get('block')
-        goal_tile_id = self.tile_ids.get('goal')
-        bonus_tile_id = self.tile_ids.get('bonus')
+        start_tile_id = self.tile_ids.get('start')[0]
+        block_tile_id = self.tile_ids.get('block')[0]
+        goal_tile_id = self.tile_ids.get('goal')[0]
+        bonus_tile_id = self.tile_ids.get('bonus')[0]
         one_way_tile_ids = self.tile_ids.get('one_way')
 
         tmp_prolog_statements = ""
@@ -207,16 +208,10 @@ class Solver:
         return tile_id_coords_map_with_extra_info
 
     def get_tile_char(self, tile_id):
-        if tile_id == self.tile_ids.get('block'):
-            return list(TILE_CHARS['block'].keys())[0]
-        elif tile_id == self.tile_ids.get('bonus'):
-            return list(TILE_CHARS['bonus'].keys())[0]
-        elif tile_id == self.tile_ids.get('start'):
-            return list(TILE_CHARS['start'].keys())[0]
-        elif tile_id == self.tile_ids.get('goal'):
-            return list(TILE_CHARS['goal'].keys())[0]
-        else:
-            return list(TILE_CHARS['empty'].keys())[0]
+        for tile_type, tile_ids in self.tile_ids.items():
+            if tile_id in tile_ids:
+                return list(TILE_CHARS[tile_type].keys())[0]  # start, goal, block, bonus, one-way
+        return list(TILE_CHARS['empty'].keys())[0]  # empty
 
     def get_facts_as_list(self, model_str, fact_name):
         return re.findall(r'%s\([0-9t,]*\)' % fact_name, model_str)
@@ -249,23 +244,23 @@ class Solver:
 
         # Print tiles per level
         if self.print_level_stats:
-            num_tiles, num_block_tiles, num_bonus_tiles, num_start_tiles, num_goal_tiles = 0, 0, 0, 0, 0
+
+            # Initialize num tiles dictionary
+            num_tiles_dict = {'total': 0}  # total
+            for tile_type in self.tile_ids.keys():  # start, goal, block, bonus, one-way
+                num_tiles_dict[tile_type] = 0
+
+            # Update num tiles dictionary values
             for (tile_id, extra_info), coords in tile_id_extra_info_coords_map.items():
                 len_coords = len(coords)
-                num_tiles += len_coords
-                if tile_id == self.tile_ids.get('block'):
-                    num_block_tiles += len_coords
-                elif tile_id == self.tile_ids.get('bonus'):
-                    num_bonus_tiles += len_coords
-                elif tile_id == self.tile_ids.get('start'):
-                    num_start_tiles += len_coords
-                elif tile_id == self.tile_ids.get('goal'):
-                    num_goal_tiles += len_coords
-            print("Total tiles: %d (%d%%)" % (num_tiles, num_tiles / num_tiles * 100))
-            print("Block tiles:  %d (%d%%)" % (num_block_tiles, num_block_tiles / num_tiles * 100))
-            print("Bonus tiles:  %d (%d%%)" % (num_bonus_tiles, num_bonus_tiles / num_tiles * 100))
-            print("Start tiles:  %d (%d%%)" % (num_start_tiles, num_start_tiles / num_tiles * 100))
-            print("Goal tiles:  %d (%d%%)" % (num_goal_tiles, num_goal_tiles / num_tiles * 100))
+                num_tiles_dict['total'] += len_coords  # update num total tiles
+
+                for tile_type, tile_ids in self.tile_ids.items():
+                    if tile_id in tile_ids:
+                        num_tiles_dict[tile_type] += len_coords  # update num <tile-type> tiles
+
+            for tile_type, count in num_tiles_dict.items():
+                print("%s tiles: %d (%d%%)" % (tile_type, count, count / num_tiles_dict['total'] * 100))
 
         # Create and save structural txt file for the generated level
         level_structural_txt = ""
