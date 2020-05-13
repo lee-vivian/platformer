@@ -30,12 +30,14 @@ TILE_CHARS = {
     'empty': {
         '-': ['passable', 'empty'],
         'E': ['enemy', 'damaging', 'hazard', 'moving'],
-        'o': ['coin', 'collectable', 'passable'],
-        'D': ['solid', 'openable', 'door']
+        'o': ['coin', 'collectable', 'passable']
     },
     'one_way_platform': {
         'M': ['solidtop', 'passable', 'moving', 'platform'],
         'T': ['solidtop', 'passable', 'platform']
+    },
+    'door': {
+        'D': ['solid', 'openable', 'door']
     }
 }
 
@@ -156,6 +158,8 @@ class Level:
 
         f = open(filepath, 'r')
 
+        prev_line_dict = {}
+
         for cur_line in f:
 
             line = cur_line.rstrip()
@@ -178,6 +182,17 @@ class Level:
                     start_coord = char_coord
                 elif TILE_CHARS['goal'].get(char) is not None:
                     goal_coords.append(char_coord)
+                elif TILE_CHARS['door'].get(char) is not None:
+                    char_above = prev_line_dict.get(char_index)
+                    if char_above is None:
+                        pass
+                    elif TILE_CHARS['door'].get(char_above):
+                        pass
+                    else:
+                        bonus_coords.append(char_coord)
+
+                # Update prev line dictionary
+                prev_line_dict[char_index] = char
 
             # Increment the level_height
             level_height += 1
