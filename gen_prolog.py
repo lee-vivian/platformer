@@ -157,18 +157,18 @@ def main(tile_constraints_file, debug, print_pl):
     prolog_statements += platform_reachable_rule + "\n"
 
     # Add one-way platform tile prolog rules
-    one_way_block_tile_ids = metatile_type_ids_map.get("one_way_block")
-    one_way_block_tile_ids = None if len(one_way_block_tile_ids) == 0 else one_way_block_tile_ids
+    one_way_platform_tile_ids = metatile_type_ids_map.get("one_way_platform")
+    one_way_platform_tile_ids = None if len(one_way_platform_tile_ids) == 0 else one_way_platform_tile_ids
 
-    if one_way_block_tile_ids is not None:
+    if one_way_platform_tile_ids is not None:
 
         # Disallow vertically stacking one-way platform tiles
-        for tile_id_bottom in one_way_block_tile_ids:
-            for tile_id_top in one_way_block_tile_ids:
+        for tile_id_bottom in one_way_platform_tile_ids:
+            for tile_id_top in one_way_platform_tile_ids:
                 prolog_statements += ":- assignment(X,Y,%s), assignment(X,Y-1,%s).\n" % (tile_id_bottom, tile_id_top)
 
         # Ensure that tiles above one-way platform tiles are reachable
-        for tile_id in one_way_block_tile_ids:
+        for tile_id in one_way_platform_tile_ids:
             one_way_platform_reachable_rule = ":- assignment(X,Y,%s), not reachable_tile(X,Y-1)." % tile_id
             prolog_statements += one_way_platform_reachable_rule + "\n"
 
@@ -209,7 +209,7 @@ def main(tile_constraints_file, debug, print_pl):
         "start_tile_id": start_tile_id,
         "goal_tile_id": goal_tile_id,
         "bonus_tile_id": bonus_tile_id,
-        "one_way_tile_ids": one_way_block_tile_ids
+        "one_way_tile_ids": one_way_platform_tile_ids
     }
 
     utils.write_pickle(all_prolog_info_filepath, all_prolog_info_map)

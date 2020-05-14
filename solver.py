@@ -39,7 +39,7 @@ class Solver:
         self.validate = validate
 
         self.tile_ids = {"block": [block_tile_id], "bonus": [bonus_tile_id],
-                         "one_way": [] if one_way_tile_ids is None else one_way_tile_ids,
+                         "one_way_platform": [] if one_way_tile_ids is None else one_way_tile_ids,
                          "start": [start_tile_id], "goal": [goal_tile_id]}
         self.tmp_prolog_statements = ""
         self.init_tmp_prolog_statements()  # create tmp prolog statements
@@ -91,7 +91,7 @@ class Solver:
         block_tile_id = self.tile_ids.get('block')[0]
         goal_tile_id = self.tile_ids.get('goal')[0]
         bonus_tile_id = self.tile_ids.get('bonus')[0]
-        one_way_tile_ids = self.tile_ids.get('one_way')
+        one_way_tile_ids = self.tile_ids.get('one_way_platform')
 
         tmp_prolog_statements = ""
         tmp_prolog_statements += "dim_width(0..%d).\n" % (self.level_w - 1)
@@ -130,7 +130,7 @@ class Solver:
             tmp_prolog_statements += limit_bonus_tiles_statement + "\n"
 
         # Set range num one-way tiles allowed in generated level
-        if one_way_tile_ids is not None and (self.min_one_way > 0 or self.max_one_way < self.level_w * self.level_h):
+        if len(one_way_tile_ids) > 0 and (self.min_one_way > 0 or self.max_one_way < self.level_w * self.level_h):
             one_way_tile_assignment = "one_way_tile(X,Y) :- assignment(X,Y,T), T = (%s)." % (';'.join(one_way_tile_ids))
             limit_one_way_tiles_statement = "%d { one_way_tile(X,Y) } %d." % (self.min_one_way, self.max_one_way)
             tmp_prolog_statements += one_way_tile_assignment + "\n"

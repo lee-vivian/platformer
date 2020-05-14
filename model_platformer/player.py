@@ -136,7 +136,7 @@ class PlayerPlatformer:
             # Collide with one-way block tile from above
             block_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_platform_coords())
             bonus_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_bonus_coords())
-            one_way_block_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_one_way_platform_coords())
+            one_way_platform_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_one_way_platform_coords())
 
             # kid icarus wrap
             if use_kid_icarus_rules:
@@ -151,14 +151,14 @@ class PlayerPlatformer:
                         bonus_tile_collision_coord = self.collide(new_state.x + self.level.get_width(), new_state.y, self.level.get_bonus_coords())
                     if new_state.x >= max_x:
                         bonus_tile_collision_coord = self.collide(new_state.x - self.level.get_width(), new_state.y, self.level.get_bonus_coords())
-                if one_way_block_tile_collision_coord is None:
+                if one_way_platform_tile_collision_coord is None:
                     if new_state.x <= min_x:
-                        one_way_block_tile_collision_coord = self.collide(new_state.x + self.level.get_width(), new_state.y, self.level.get_one_way_platform_coords())
+                        one_way_platform_tile_collision_coord = self.collide(new_state.x + self.level.get_width(), new_state.y, self.level.get_one_way_platform_coords())
                     if new_state.x >= max_x:
-                        one_way_block_tile_collision_coord = self.collide(new_state.x - self.level.get_width(), new_state.y, self.level.get_one_way_platform_coords())
+                        one_way_platform_tile_collision_coord = self.collide(new_state.x - self.level.get_width(), new_state.y, self.level.get_one_way_platform_coords())
 
-            hit_one_way_block_tile_from_above = one_way_block_tile_collision_coord is not None and new_state.movey > 0 and old_y + self.half_player_h <= one_way_block_tile_collision_coord[1]
-            collide = block_tile_collision_coord is not None or bonus_tile_collision_coord is not None or hit_one_way_block_tile_from_above
+            hit_one_way_platform_tile_from_above = one_way_platform_tile_collision_coord is not None and new_state.movey > 0 and old_y + self.half_player_h <= one_way_platform_tile_collision_coord[1]
+            collide = block_tile_collision_coord is not None or bonus_tile_collision_coord is not None or hit_one_way_platform_tile_from_above
 
             move_off_screen_y = new_state.y < min_y
 

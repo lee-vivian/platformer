@@ -59,7 +59,7 @@ def construct_metatile(metatile_coord, game, level_start_coord, level_goal_coord
     elif level_bonus_coords_dict.get(metatile_coord) is not None:
         metatile_type = 'bonus'
     elif level_one_way_platform_coords_dict.get(metatile_coord) is not None:
-        metatile_type = 'one_way_block'
+        metatile_type = 'one_way_platform'
     else:
         metatile_type = 'empty'
 
