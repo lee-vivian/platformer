@@ -307,8 +307,8 @@ class Solver:
             generated_level_txt_dir = "level_structural_layers/generated/"
             level_structural_txt_file = get_filepath(generated_level_txt_dir, "%s.txt" % answer_set_filename)
             write_file(level_structural_txt_file, level_structural_txt)
-            print(level_structural_txt)
-        elif self.print:
+
+        if self.print:
             print(level_structural_txt)
 
         # Add to generated_levels_dict if validate is True
