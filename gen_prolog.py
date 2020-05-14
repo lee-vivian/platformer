@@ -149,9 +149,11 @@ def main(tile_constraints_file, debug, print_pl):
     goal_on_ground_rule = ":- assignment(X,Y,%s), not assignment(X,Y+1,%s)." % (goal_tile_id, block_tile_id)
     prolog_statements += goal_on_ground_rule + "\n"
 
-    # Ensure that tiles above platforms are reachable if they are not block/bonus tiles
-    platform_reachable_rule = ":- assignment(X,Y,%s), not reachable_tile(X,Y-1), not assignment(X,Y-1,%s)" % (block_tile_id, block_tile_id)
-    platform_reachable_rule += "." if bonus_tile_id is None else ", not assignment(X,Y-1,%s)." % bonus_tile_id
+    # # Ensure that tiles above platforms are reachable if they are not block/bonus/goal tiles
+    exception_tile_ids = [block_tile_id, goal_tile_id]
+    exception_tile_ids += [] if bonus_tile_id is None else [bonus_tile_id]
+    exception_tile_assignments = ["not assignment(X,Y-1,%s)" % tile_id for tile_id in exception_tile_ids]
+    platform_reachable_rule = ":- assignment(X,Y,%s), not reachable_tile(X,Y-1), %s." % (block_tile_id, ', '.join(exception_tile_assignments))
     prolog_statements += platform_reachable_rule + "\n"
 
     # Add one-way platform tile prolog rules
