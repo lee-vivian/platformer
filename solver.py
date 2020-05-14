@@ -73,17 +73,48 @@ class Solver:
         self.answer_set_count += 1
 
     def get_cur_answer_set_filename(self, prolog_filename):
+
+        # Add prolog filename, width, height
         filename_components = [
             prolog_filename,
             "w%d" % self.level_w,
-            "h%d" % self.level_h,
-            "pb%s-%s" % (str(self.min_perc_blocks), str(self.max_perc_blocks)),
-            "b%d-%d" % (self.min_bonus, self.max_bonus),
-            "s%d-%d" % (self.start_min, self.start_max),
-            "g%d-%d" % (self.goal_min, self.goal_max),
-            "no_pit" if self.no_pit else "pit",
-            "a%d" % self.answer_set_count
+            "h%d" % self.level_h
         ]
+
+        # Add percent block tiles range if not default
+        if self.min_perc_blocks is not None or self.max_perc_blocks is not None:
+            min_perc_blocks = 0 if self.min_perc_blocks is None else self.min_perc_blocks
+            max_perc_blocks = 100 if self.max_perc_blocks is None else self.max_perc_blocks
+            filename_components.append('blocks%d-%d%%' % (min_perc_blocks, max_perc_blocks))
+
+        total_num_tiles = self.level_w * self.level_h
+
+        # Add specified bonus tiles range if not default
+        if self.min_bonus > 0 or self.max_bonus < total_num_tiles:
+            max_bonus = 'all' if self.max_bonus == total_num_tiles else self.max_bonus
+            filename_components.append('bonus%s-%s' % (str(self.min_bonus), str(max_bonus)))
+
+        # Add specified one-way tiles range if not default
+        if self.min_one_way > 0 or self.max_one_way < total_num_tiles:
+            max_one_way = 'all' if self.max_one_way == total_num_tiles else self.max_one_way
+            filename_components.append('oneway%s-%s' % (str(self.min_one_way), str(max_one_way)))
+
+        # Add start and goal ranges if not default
+        min_col = 0
+        max_col = self.level_w - 1
+        if self.start_min > min_col or self.start_max < max_col:
+            filename_components.append('start%d-%d' % (self.start_min, self.start_max))
+
+        if self.goal_min > min_col or self.goal_max < max_col:
+            filename_components.append('goal%d-%d' % (self.goal_min, self.goal_max))
+
+        # Add if pits are not allowed
+        if self.no_pit:
+            filename_components.append('no_pit')
+
+        # Add current answer set count
+        filename_components.append("a%d" % self.answer_set_count)
+
         return "_".join(filename_components)
 
     def init_tmp_prolog_statements(self):

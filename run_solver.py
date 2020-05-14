@@ -30,6 +30,7 @@ def setup_tile_col_range(min_col, max_col, level_w):
     
     return min_col, max_col
 
+
 def setup_min_max_num_tiles(prolog_tile_key, prolog_file_info, min_tiles, max_tiles, num_tiles):
     min_specified = min_tiles is not None and min_tiles > 0
     max_specified = max_tiles is not None and max_tiles < num_tiles
