@@ -13,22 +13,23 @@ def keyboard_interrupt_handler(signal, frame, solver):
     print("----- KEYBOARD INTERRUPT -----")
     solver.end_and_validate()
     exit(0)
-    
-    
-def setup_tile_col_range(min_col, max_col, level_w):
-    if min_col is not None and (min_col < 0 or min_col >= level_w):
-        error_exit("invalid min_col column index given, min_col must be in range [0,%d)" % level_w)
-    
-    if max_col is not None and (max_col < 0 or max_col >= level_w):
-        error_exit("invalid max_col column index given, max_col must be in range [0,%d)" % level_w)
-        
-    if min_col is not None and max_col is not None and min_col > max_col:
-        error_exit("min_col column index (%d) cannot exceed max_col column index (%d)" % (min_col, max_col))
-        
-    min_col = 0 if min_col is None else min_col
-    max_col = level_w - 1 if max_col is None else max_col
-    
-    return min_col, max_col
+
+
+def setup_tile_position_range(min_index, max_index, level_max):
+
+    if min_index is not None and (min_index < 0 or min_index >= level_max):
+        error_exit("invalid min index (%d) given, min index must be in range [0,%d)" % (min_index, level_max))
+
+    if max_index is not None and (max_index < 0 or max_index >= level_max):
+        error_exit("invalid max index (%d) given, max index must be in range [0,%d)" % (max_index, level_max))
+
+    if min_index is not None and max_index is not None and min_index > max_index:
+        error_exit("min index (%d) cannot exceed max index (%d)" % (min_index, max_index))
+
+    min_index = 0 if min_index is None else min_index
+    max_index = level_max - 1 if max_index is None else max_index
+
+    return min_index, max_index
 
 
 def setup_min_max_num_tiles(prolog_tile_key, prolog_file_info, min_tiles, max_tiles, num_tiles):
@@ -48,7 +49,8 @@ def setup_min_max_num_tiles(prolog_tile_key, prolog_file_info, min_tiles, max_ti
 
 
 def main(prolog_file, level_w, level_h, min_perc_blocks, max_perc_blocks, min_bonus, max_bonus, min_one_way, max_one_way,
-         no_pit, start_min, start_max, goal_min, goal_max, max_sol, threads, print_level_stats, print, save, validate):
+         no_pit, start_min_col, start_max_col, goal_min_col, goal_max_col, start_min_row, start_max_row, goal_min_row,
+         goal_max_row, max_sol, threads, print_level_stats, print, save, validate):
 
     player_img, prolog_filename = Solver.parse_prolog_filepath(prolog_file)
     level_saved_files_dir = "level_saved_files_%s/" % player_img
@@ -64,14 +66,19 @@ def main(prolog_file, level_w, level_h, min_perc_blocks, max_perc_blocks, min_bo
     min_one_way, max_one_way = setup_min_max_num_tiles('one_way_tile_ids', prolog_file_info, min_one_way, max_one_way, num_tiles=level_w * level_h)
 
     # Set up start and goal tile column ranges
-    start_min, start_max = setup_tile_col_range(start_min, start_max, level_w)
-    goal_min, goal_max = setup_tile_col_range(goal_min, goal_max, level_w)
+    start_min_col, start_max_col = setup_tile_position_range(start_min_col, start_max_col, level_w)
+    goal_min_col, goal_max_col = setup_tile_position_range(goal_min_col, goal_max_col, level_w)
+
+    # Set up start and goal tile row ranges
+    start_min_row, start_max_row = setup_tile_position_range(start_min_row, start_max_row, level_h)
+    goal_min_row, goal_max_row = setup_tile_position_range(goal_min_row, goal_max_row, level_h)
             
     # Create Solver object
     solver = Solver(prolog_file=prolog_file, level_w=level_w, level_h=level_h,
                     min_perc_blocks=min_perc_blocks, max_perc_blocks=max_perc_blocks,
-                    min_bonus=min_bonus, max_bonus=max_bonus, min_one_way=min_one_way, max_one_way=max_one_way,
-                    no_pit=no_pit, start_min=start_min, start_max=start_max, goal_min=goal_min, goal_max=goal_max,
+                    min_bonus=min_bonus, max_bonus=max_bonus, min_one_way=min_one_way, max_one_way=max_one_way, no_pit=no_pit,
+                    start_min_col=start_min_col, start_max_col=start_max_col, goal_min_col=goal_min_col, goal_max_col=goal_max_col,
+                    start_min_row=start_min_row, start_max_row=start_max_row, goal_min_row=goal_min_row, goal_max_row=goal_max_row,
                     print_level_stats=print_level_stats, print=print, save=save, validate=validate,
                     start_tile_id=prolog_file_info.get('start_tile_id'),
                     block_tile_id=prolog_file_info.get('block_tile_id'),
@@ -102,10 +109,14 @@ if __name__ == "__main__":
     parser.add_argument('--min_one_way', type=int, default=None, help='Minimum number of one-way platform tiles in a level')
     parser.add_argument('--max_one_way', type=int, default=None, help='Maximum number of one-way platform tiles in a level')
     parser.add_argument('--no_pit', const=True, nargs='?', type=bool, default=False, help='Force all floor tiles to be blocks')
-    parser.add_argument('--start_min', type=int, default=None, help="Min column index for the start tile")
-    parser.add_argument('--start_max', type=int, default=None, help="Max column index for the start tile")
-    parser.add_argument('--goal_min', type=int, default=None, help="Min column index for the goal tile")
-    parser.add_argument('--goal_max', type=int, default=None, help="Max column index for the goal tile")
+    parser.add_argument('--start_min_col', type=int, default=None, help="Min column index for the start tile")
+    parser.add_argument('--start_max_col', type=int, default=None, help="Max column index for the start tile")
+    parser.add_argument('--goal_min_col', type=int, default=None, help="Min column index for the goal tile")
+    parser.add_argument('--goal_max_col', type=int, default=None, help="Max column index for the goal tile")
+    parser.add_argument('--start_min_row', type=int, default=None, help="Min row index for the start tile")
+    parser.add_argument('--start_max_row', type=int, default=None, help="Max row index for the start tile")
+    parser.add_argument('--goal_min_row', type=int, default=None, help="Min row index for the goal tile")
+    parser.add_argument('--goal_max_row', type=int, default=None, help="Max row index for the goal tile")
     parser.add_argument('--max_sol', type=int, default=1, help="Max number of answer sets to return")
     parser.add_argument('--threads', type=int, default=1, help="Number of threads to run the solver on")
     parser.add_argument('--print_level_stats', const=True, nargs='?', type=bool, default=False)
@@ -117,6 +128,8 @@ if __name__ == "__main__":
     main(prolog_file=args.prolog_file, level_w=args.level_w, level_h=args.level_h,
          min_perc_blocks=args.min_perc_blocks, max_perc_blocks=args.max_perc_blocks,
          min_bonus=args.min_bonus, max_bonus=args.max_bonus, min_one_way=args.min_one_way, max_one_way=args.max_one_way,
-         no_pit=args.no_pit, start_min=args.start_min, start_max=args.start_max, goal_min=args.goal_min, goal_max=args.goal_max,
+         no_pit=args.no_pit,
+         start_min_col=args.start_min_col, start_max_col=args.start_max_col, goal_min_col=args.goal_min_col, goal_max_col=args.goal_max_col,
+         start_min_row=args.start_min_row, start_max_row=args.start_max_row, goal_min_row=args.goal_min_row, goal_max_row=args.goal_max_row,
          max_sol=args.max_sol, threads=args.threads,
          print_level_stats=args.print_level_stats, print=args.print, save=args.save, validate=args.validate)
