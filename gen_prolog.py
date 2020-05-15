@@ -120,6 +120,16 @@ def main(tile_constraints_file, debug, print_pl):
     bonus_tile_ids = metatile_type_ids_map.get("bonus")
     bonus_tile_id = None if len(bonus_tile_ids) == 0 else bonus_tile_ids[0]
 
+    # Limit number of tiles of specified tile id
+    limit_tile_type_rule = "MIN { assignment(X,Y,MT) : metatile(MT), tile(X,Y) } MAX :- limit(MT, MIN, MAX)."
+    prolog_statements += limit_tile_type_rule + "\n"
+
+    # Limit number of goal tiles
+    prolog_statements += "limit(%s, 1, 1).\n" % goal_tile_id
+
+    # Limit number of start tiles
+    prolog_statements += "limit(%s, 1, 1).\n" % start_tile_id
+
     # Start state is inherently reachable
     start_reachable_rule = "reachable(X,Y) :- start(X,Y)."
     prolog_statements += start_reachable_rule + "\n"
@@ -158,10 +168,8 @@ def main(tile_constraints_file, debug, print_pl):
 
     # Add one-way platform tile prolog rules
     one_way_platform_tile_ids = metatile_type_ids_map.get("one_way_platform")
-    one_way_platform_tile_ids = None if len(one_way_platform_tile_ids) == 0 else one_way_platform_tile_ids
 
-    if one_way_platform_tile_ids is not None:
-
+    if len(one_way_platform_tile_ids) > 0:
         # Disallow vertically stacking one-way platform tiles
         for tile_id_bottom in one_way_platform_tile_ids:
             for tile_id_top in one_way_platform_tile_ids:
@@ -171,16 +179,6 @@ def main(tile_constraints_file, debug, print_pl):
         for tile_id in one_way_platform_tile_ids:
             one_way_platform_reachable_rule = ":- assignment(X,Y,%s), not reachable_tile(X,Y-1)." % tile_id
             prolog_statements += one_way_platform_reachable_rule + "\n"
-
-    # Limit number of tiles of specified tile id
-    limit_tile_type_rule = "MIN { assignment(X,Y,MT) : metatile(MT), tile(X,Y) } MAX :- limit(MT, MIN, MAX)."
-    prolog_statements += limit_tile_type_rule + "\n"
-
-    # Limit number of goal tiles
-    prolog_statements += "limit(%s, 1, 1).\n" % goal_tile_id
-
-    # Limit number of start tiles
-    prolog_statements += "limit(%s, 1, 1).\n" % start_tile_id
 
     # ASP WFC algorithm rule
     wfc_rule = ":- adj(X1,Y1,X2,Y2,DX,DY), assignment(X1,Y1,MT1), not 1 { assignment(X2,Y2,MT2) : legal(DX,DY,MT1,MT2) }."
@@ -204,12 +202,11 @@ def main(tile_constraints_file, debug, print_pl):
         del all_prolog_info_map[prolog_filename]  # remove the old prolog info for the given tile constraints
 
     all_prolog_info_map[prolog_filename] = {
-        "filepath": prolog_filepath,
-        "block_tile_id": block_tile_id,
-        "start_tile_id": start_tile_id,
-        "goal_tile_id": goal_tile_id,
-        "bonus_tile_id": bonus_tile_id,
-        "one_way_tile_ids": one_way_platform_tile_ids
+        "block_tile_ids": [block_tile_id],
+        "start_tile_ids": [start_tile_id],
+        "goal_tile_ids": [goal_tile_id],
+        "bonus_tile_ids": [] if bonus_tile_id is None else [bonus_tile_id],
+        "one_way_platform_tile_ids": one_way_platform_tile_ids
     }
 
     utils.write_pickle(all_prolog_info_filepath, all_prolog_info_map)

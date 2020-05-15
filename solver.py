@@ -13,39 +13,36 @@ from model.level import TILE_DIM, TILE_CHARS
 from stopwatch import Stopwatch
 from utils import get_directory, get_filepath, write_pickle, read_pickle, write_file, error_exit, get_node_at_coord
 
+# return {
+#     'level_w': level_w,  # int
+#     'level_h': level_h,  # int
+#     'forced_tiles': forced_tiles,  # {type: list-of-tile-coords}
+#     'reachable_tiles': reachable_tiles,  # list-of-tile-coords
+#     'num_tile_ranges': num_tile_ranges,  # { type: {'min': min, 'max': max} }
+#     'perc_tile_ranges': perc_tile_ranges,  # { type: {'min': min, 'max': max} }
+#     'tile_position_ranges': tile_position_ranges,  # { position: {'min': min, 'max': max} }
+#     'allow_pits': allow_pits  # bool
+# }
+
 
 class Solver:
 
-    def __init__(self, prolog_file, level_w, level_h, min_perc_blocks, max_perc_blocks, min_bonus, max_bonus,
-                 min_one_way, max_one_way, no_pit, start_min_col, start_max_col, goal_min_col, goal_max_col,
-                 start_min_row, start_max_row, goal_min_row, goal_max_row, print_level_stats, print,
-                 save, validate, start_tile_id, block_tile_id, goal_tile_id, bonus_tile_id, one_way_tile_ids):
+    def __init__(self, prolog_file, config, tile_ids, print_level_stats, print_level, save, validate):
         self.prolog_file = prolog_file
-        self.level_w = level_w
-        self.level_h = level_h
-        self.min_perc_blocks = min_perc_blocks
-        self.max_perc_blocks = max_perc_blocks
-        self.min_bonus = min_bonus
-        self.max_bonus = max_bonus
-        self.min_one_way = min_one_way
-        self.max_one_way = max_one_way
-        self.no_pit = no_pit
-        self.start_min_col = start_min_col
-        self.start_max_col = start_max_col
-        self.goal_min_col = goal_min_col
-        self.goal_max_col = goal_max_col
-        self.start_min_row = start_min_row
-        self.start_max_row = start_max_row
-        self.goal_min_row = goal_min_row
-        self.goal_max_row = goal_max_row
+        self.level_w = config.get('level_w')
+        self.level_h = config.get('level_h')
+        self.forced_tiles = config.get('forced_tiles')
+        self.reachable_tiles = config.get('reachable_tiles')
+        self.num_tile_ranges = config.get('num_tile_ranges')
+        self.perc_tile_ranges = config.get('perc_tile_ranges')
+        self.tile_position_ranges = config.get('tile_position_ranges')
+        self.allow_pits = config.get('allow_pits')
+        self.tile_ids = tile_ids
         self.print_level_stats = print_level_stats
-        self.print = print
+        self.print_level = print_level
         self.save = save
         self.validate = validate
 
-        self.tile_ids = {"block": [block_tile_id], "bonus": [bonus_tile_id],
-                         "one_way_platform": [] if one_way_tile_ids is None else one_way_tile_ids,
-                         "start": [start_tile_id], "goal": [goal_tile_id]}
         self.tmp_prolog_statements = ""
         self.init_tmp_prolog_statements()  # create tmp prolog statements
         self.answer_set_count = 0
