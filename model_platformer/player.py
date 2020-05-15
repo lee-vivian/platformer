@@ -15,9 +15,10 @@ HALF_TILE_WIDTH = int(TILE_DIM / 2)
 class PlayerPlatformer:
 
     def __init__(self, img, level):
-        self.gravity = 4 if level.get_game() == 'sample' else 5
-        self.steps = 8 if level.get_game() == 'sample' else 10
-        self.max_vel = 7 * self.gravity if level.get_game() == 'kid_icarus' else 8 * self.gravity
+        self.gravity = 5
+        self.accel_x = 4
+        self.max_vel_x = 3 * self.accel_x
+        self.max_vel_y = 8 * self.gravity
 
         self.half_player_h = HALF_TILE_WIDTH
         self.half_player_w = HALF_TURTLE_WIDTH if img == 'turtle' else HALF_TILE_WIDTH
@@ -64,21 +65,41 @@ class PlayerPlatformer:
 
         # Account for gravity
         new_state.movey += self.gravity
-        if new_state.movey > self.max_vel:
-            new_state.movey = self.max_vel
 
+
+        # movement
         if action.left and not action.right:
-            new_state.movex = -self.steps
+            new_state.movex -= self.accel_x
         elif action.right and not action.left:
-            new_state.movex = self.steps
+            new_state.movex += self.accel_x
         else:
-            new_state.movex = 0
+            if new_state.movex > self.accel_x:
+                new_state.movex -= self.accel_x
+            elif new_state.movex < -self.accel_x:
+                new_state.movex += self.accel_x
+            else:
+                new_state.movex = 0
 
         if action.jump and new_state.onground:
-            new_state.movey = -self.max_vel
+            new_state.movey = -self.max_vel_y
 
+
+        # maximum velocity check
+        if new_state.movex < -self.max_vel_x:
+            new_state.movex = -self.max_vel_x
+        if new_state.movex > self.max_vel_x:
+            new_state.movex = self.max_vel_x
+
+        if new_state.movey < -self.max_vel_y:
+            new_state.movey = -self.max_vel_y
+        if new_state.movey > self.max_vel_y:
+            new_state.movey = self.max_vel_y
+
+            
+        # rules
         use_kid_icarus_rules = self.level.get_game() == "kid_icarus"
 
+        
         # Move in x direction
         for ii in range(abs(new_state.movex)):
             old_x = new_state.x
