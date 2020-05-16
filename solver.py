@@ -81,6 +81,10 @@ class Solver:
         for tile_type, tile_ids in self.tile_ids.items():
             non_empty_tile_ids += tile_ids
 
+        # Create non_empty_tile and empty_tile facts
+        tmp_prolog_statements += "non_empty_tile(X,Y) :- assignment(X,Y,%s).\n " % ';'.join(non_empty_tile_ids)
+        tmp_prolog_statements += "empty_tile(X,Y) :- tile(X,Y), not non_empty_tile(X,Y).\n"
+
         # Force specified tile coords to be certain tile types
         for tile_type, tile_coords in self.forced_tiles.items():
 
@@ -125,7 +129,7 @@ class Solver:
         # Set num tile ranges
         for tile_type, tile_range in self.num_tile_ranges.items():
             if tile_type == 'empty':
-                pass  # TODO
+                tmp_prolog_statements += "%d { empty_tile(X,Y) } %d.\n" % (tile_range[0], tile_range[1])
 
             elif tile_type == 'one_way':
                 tmp_prolog_statements += "%d { one_way_tile(X,Y) } %d.\n" % (tile_range[0], tile_range[1])
@@ -136,7 +140,9 @@ class Solver:
         # Set perc tile ranges
         for tile_type, tile_perc_range in self.perc_tile_ranges.items():
             if tile_type == 'empty':
-                pass  # TODO
+                tmp_prolog_statements += "%d { empty_tile(X,Y) } %d.\n" % (int(tile_perc_range[0] / 100 * num_total_tiles),
+                                                                           int(tile_perc_range[1] / 100 * num_total_tiles))
+
             elif tile_type == 'one_way':
                 tmp_prolog_statements += "%d { one_way_tile(X,Y) } %d.\n" % (int(tile_perc_range[0] / 100 * num_total_tiles),
                                                                              int(tile_perc_range[1] / 100 * num_total_tiles))
