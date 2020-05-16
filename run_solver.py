@@ -184,6 +184,7 @@ def main(prolog_file, config_file, max_sol, threads, print_level_stats, print_le
     # Create Solver object
     solver = Solver(prolog_file=prolog_file,
                     config=config,
+                    config_filename=os.path.basename(config_file),
                     tile_ids=tile_ids,
                     print_level_stats=print_level_stats,
                     print_level=print_level,

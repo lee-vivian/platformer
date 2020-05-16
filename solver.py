@@ -13,31 +13,21 @@ from model.level import TILE_DIM, TILE_CHARS
 from stopwatch import Stopwatch
 from utils import get_directory, get_filepath, write_pickle, read_pickle, write_file, error_exit, get_node_at_coord
 
-# return {
-#     'level_w': level_w,  # int
-#     'level_h': level_h,  # int
-#     'forced_tiles': forced_tiles,  # {type: list-of-tile-coords}
-#     'reachable_tiles': reachable_tiles,  # list-of-tile-coords
-#     'num_tile_ranges': num_tile_ranges,  # { type: {'min': min, 'max': max} }
-#     'perc_tile_ranges': perc_tile_ranges,  # { type: {'min': min, 'max': max} }
-#     'tile_position_ranges': tile_position_ranges,  # { position: {'min': min, 'max': max} }
-#     'allow_pits': allow_pits  # bool
-# }
-
 
 class Solver:
 
-    def __init__(self, prolog_file, config, tile_ids, print_level_stats, print_level, save, validate):
+    def __init__(self, prolog_file, config, config_filename, tile_ids, print_level_stats, print_level, save, validate):
         self.prolog_file = prolog_file
+        self.config_filename = config_filename
         self.level_w = config.get('level_w')
         self.level_h = config.get('level_h')
-        self.forced_tiles = config.get('forced_tiles')
-        self.reachable_tiles = config.get('reachable_tiles')
-        self.num_tile_ranges = config.get('num_tile_ranges')
-        self.perc_tile_ranges = config.get('perc_tile_ranges')
-        self.tile_position_ranges = config.get('tile_position_ranges')
-        self.allow_pits = config.get('allow_pits')
-        self.tile_ids = tile_ids
+        self.forced_tiles = config.get('forced_tiles')                  # {type: list-of-tile-coords}
+        self.reachable_tiles = config.get('reachable_tiles')            # list-of-tile-coords
+        self.num_tile_ranges = config.get('num_tile_ranges')            # { type: {'min': min, 'max': max} }
+        self.perc_tile_ranges = config.get('perc_tile_ranges')          # { type: {'min': min, 'max': max} }
+        self.tile_position_ranges = config.get('tile_position_ranges')  # { position: {'min': min, 'max': max} }
+        self.allow_pits = config.get('allow_pits')                      # bool
+        self.tile_ids = tile_ids                                        # { tile_type: list-of-tile-ids }
         self.print_level_stats = print_level_stats
         self.print_level = print_level
         self.save = save
@@ -58,85 +48,31 @@ class Solver:
         prolog_filename = match.group(2)
         return player_img, prolog_filename
 
-    def get_command_str(self):
-        player_img, prolog_filename = Solver.parse_prolog_filepath(self.prolog_file)
-        parts = [
-            "prolog: %s" % prolog_filename,
-            "width: %d", self.level_w,
-            "height: %d", self.level_h,
-            "perc blocks: %s-%s%%" % (str(self.min_perc_blocks), str(self.max_perc_blocks)),
-            "bonus tiles: %d-%d" % (self.min_bonus, self.max_bonus),
-            "start x-range: %d-%d" % (self.start_min_col, self.start_max_col),
-            "goal x-range: %d-%d" % (self.goal_min_col, self.goal_max_col),
-            "start y-range: %d-%d" % (self.start_min_row, self.start_max_row),
-            "goal y-range: %d-%d" % (self.goal_min_row, self.goal_max_row)
-        ]
-        return ", ".join(parts)
+    # def get_command_str(self):
+    #     player_img, prolog_filename = Solver.parse_prolog_filepath(self.prolog_file)
+    #     parts = [
+    #         "prolog: %s" % prolog_filename,
+    #         "width: %d", self.level_w,
+    #         "height: %d", self.level_h,
+    #         "perc blocks: %s-%s%%" % (str(self.min_perc_blocks), str(self.max_perc_blocks)),
+    #         "bonus tiles: %d-%d" % (self.min_bonus, self.max_bonus),
+    #         "start x-range: %d-%d" % (self.start_min_col, self.start_max_col),
+    #         "goal x-range: %d-%d" % (self.goal_min_col, self.goal_max_col),
+    #         "start y-range: %d-%d" % (self.start_min_row, self.start_max_row),
+    #         "goal y-range: %d-%d" % (self.goal_min_row, self.goal_max_row)
+    #     ]
+    #     return ", ".join(parts)
 
     def increment_answer_set_count(self):
         self.answer_set_count += 1
 
     def get_cur_answer_set_filename(self, prolog_filename):
-
-        # Add prolog filename, width, height
-        filename_components = [
-            prolog_filename,
-            "w%d" % self.level_w,
-            "h%d" % self.level_h
-        ]
-
-        # Add percent block tiles range if not default
-        if self.min_perc_blocks is not None or self.max_perc_blocks is not None:
-            min_perc_blocks = 0 if self.min_perc_blocks is None else self.min_perc_blocks
-            max_perc_blocks = 100 if self.max_perc_blocks is None else self.max_perc_blocks
-            filename_components.append('blocks%d-%d%%' % (min_perc_blocks, max_perc_blocks))
-
-        total_num_tiles = self.level_w * self.level_h
-
-        # Add specified bonus tiles range if not default
-        if self.min_bonus > 0 or self.max_bonus < total_num_tiles:
-            max_bonus = 'all' if self.max_bonus == total_num_tiles else self.max_bonus
-            filename_components.append('bonus%s-%s' % (str(self.min_bonus), str(max_bonus)))
-
-        # Add specified one-way tiles range if not default
-        if self.min_one_way > 0 or self.max_one_way < total_num_tiles:
-            max_one_way = 'all' if self.max_one_way == total_num_tiles else self.max_one_way
-            filename_components.append('oneway%s-%s' % (str(self.min_one_way), str(max_one_way)))
-
-        # Add start and goal column index ranges if not default
-        min_col = 0
-        max_col = self.level_w - 1
-        if self.start_min_col > min_col or self.start_max_col < max_col:
-            filename_components.append('start%d-%dc' % (self.start_min_col, self.start_max_col))
-
-        if self.goal_min_col > min_col or self.goal_max_col < max_col:
-            filename_components.append('goal%d-%dc' % (self.goal_min_col, self.goal_max_col))
-
-        # Add start and goal row index ranges if not default
-        min_row = 0
-        max_row = self.level_h - 1
-        if self.start_min_row > min_row or self.start_max_row < max_row:
-            filename_components.append('start%d-%dr' % (self.start_min_row, self.start_max_row))
-
-        if self.goal_min_row > min_row or self.goal_max_row < max_row:
-            filename_components.append('goal%d-%dr' % (self.goal_min_row, self.goal_max_row))
-
-        # Add if pits are not allowed
-        if self.no_pit:
-            filename_components.append('no_pit')
-
-        # Add current answer set count
-        filename_components.append("a%d" % self.answer_set_count)
+        filename_components = [prolog_filename, self.config_filename, "a%d" % self.answer_set_count,
+                               "a%d" % self.answer_set_count]
 
         return "_".join(filename_components)
 
     def init_tmp_prolog_statements(self):
-        start_tile_id = self.tile_ids.get('start')[0]
-        block_tile_id = self.tile_ids.get('block')[0]
-        goal_tile_id = self.tile_ids.get('goal')[0]
-        bonus_tile_id = self.tile_ids.get('bonus')[0]
-        one_way_tile_ids = self.tile_ids.get('one_way_platform')
-
         tmp_prolog_statements = ""
         tmp_prolog_statements += "dim_width(0..%d).\n" % (self.level_w - 1)
         tmp_prolog_statements += "dim_height(0..%d).\n" % (self.level_h - 1)
@@ -145,27 +81,86 @@ class Solver:
         create_tiles_statement = "tile(TX,TY) :- dim_width(TX), dim_height(TY)."
         tmp_prolog_statements += create_tiles_statement + "\n"
 
-        # Set floor tiles to be block tiles
-        if self.no_pit:
+        # Get tile ids for different tile types
+        start_tile_id = self.tile_ids.get('start')[0]
+        block_tile_id = self.tile_ids.get('block')[0]
+        goal_tile_id = self.tile_ids.get('goal')[0]
+        bonus_tile_id = self.tile_ids.get('bonus')[0]
+        one_way_tile_ids = self.tile_ids.get('one_way_platform')
+
+        # Get non-empty tile ids
+        non_empty_tile_ids = []
+        for tile_type, tile_ids in self.tile_ids.items():
+            non_empty_tile_ids += tile_ids
+
+        # Force specified tile coords to be certain tile types
+        for tile_type, tile_coords in self.forced_tiles.items():
+
+            if tile_type == 'empty':
+                for x, y in tile_coords:
+                    tmp_prolog_statements += ":- assignment(%d,%d,%s).\n" % (x, y, ';'.join(non_empty_tile_ids))
+
+            elif tile_type == 'one_way_platform':
+                for x, y in tile_coords:
+                    tmp_prolog_statements += ":- not assignment(%d,%d,%s).\n" % (x, y, ';'.join(one_way_tile_ids))
+
+            else:
+                for x, y in tile_coords:
+                    tmp_prolog_statements += "assignment(%d,%d,%s).\n" % (x, y, self.tile_ids.get(tile_type)[0])
+
+        # Set floor tiles to be block tiles if pits are not allowed
+        if not self.allow_pits:
             for x in range(self.level_w):
                 floor_tile_assignment = "assignment(%d, %d, %s)." % (x, self.level_h-1, block_tile_id)
                 tmp_prolog_statements += floor_tile_assignment + "\n"
 
-        # Set start tile and goal tile column ranges
-        start_tile_min_x_rule = ":- assignment(X,Y,%s), X < %d." % (start_tile_id, self.start_min_col)
-        start_tile_max_x_rule = ":- assignment(X,Y,%s), X > %d." % (start_tile_id, self.start_max_col)
-        goal_tile_min_x_rule = ":- assignment(X,Y,%s), X < %d." % (goal_tile_id, self.goal_min_col)
-        goal_tile_max_x_rule = ":- assignment(X,Y,%s), X > %d." % (goal_tile_id, self.goal_max_col)
-        tmp_prolog_statements += start_tile_min_x_rule + "\n" + start_tile_max_x_rule + "\n" + \
-                                 goal_tile_min_x_rule + "\n" + goal_tile_max_x_rule + "\n"
+        # Set start and goal tile index ranges (tile position ranges)
+        start_tile_min_x, start_tile_max_x = self.tile_position_ranges.get('start_column')
+        start_tile_min_y, start_tile_max_y = self.tile_position_ranges.get('start_row')
+        goal_tile_min_x, goal_tile_max_x = self.tile_position_ranges.get('goal_column')
+        goal_tile_min_y, goal_tile_max_y = self.tile_position_ranges.get('goal_row')
 
-        # Set start tile and goal tile row ranges
-        start_tile_min_y_rule = ":- assignment(X,Y,%s), Y < %d." % (start_tile_id, self.start_min_row)
-        start_tile_max_y_rule = ":- assignment(X,Y,%s), Y > %d." % (start_tile_id, self.start_max_row)
-        goal_tile_min_y_rule = ":- assignment(X,Y,%s), Y < %d." % (goal_tile_id, self.goal_min_row)
-        goal_tile_max_y_rule = ":- assignment(X,Y,%s), Y > %d." % (goal_tile_id, self.goal_max_row)
-        tmp_prolog_statements += start_tile_min_y_rule + "\n" + start_tile_max_y_rule + "\n" + \
-                                 goal_tile_min_y_rule + "\n" + goal_tile_max_y_rule + "\n"
+        tmp_prolog_statements += ":- assignment(X,Y,%s), X < %d.\n" % (start_tile_id, start_tile_min_x)
+        tmp_prolog_statements += ":- assignment(X,Y,%s), X > %d.\n" % (start_tile_id, start_tile_max_x)
+        tmp_prolog_statements += ":- assignment(X,Y,%s), Y < %d.\n" % (start_tile_id, start_tile_min_y)
+        tmp_prolog_statements += ":- assignment(X,Y,%s), Y > %d.\n" % (start_tile_id, start_tile_max_y)
+
+        tmp_prolog_statements += ":- assignment(X,Y,%s), X < %d.\n" % (goal_tile_id, goal_tile_min_x)
+        tmp_prolog_statements += ":- assignment(X,Y,%s), X > %d.\n" % (goal_tile_id, goal_tile_max_x)
+        tmp_prolog_statements += ":- assignment(X,Y,%s), Y < %d.\n" % (goal_tile_id, goal_tile_min_y)
+        tmp_prolog_statements += ":- assignment(X,Y,%s), Y > %d.\n" % (goal_tile_id, goal_tile_max_y)
+
+        # Force specified tiles to be reachable
+        for x, y in self.reachable_tiles:
+            tmp_prolog_statements += ":- not reachable_tile(%d,%d).\n" % (x, y)
+
+        # Set num tile ranges
+        for tile_type, tile_range in self.num_tile_ranges.items():
+            if tile_type == 'empty':
+                pass # TODO
+            elif tile_type == 'one_way':
+                pass # TODO
+            else:
+                tmp_prolog_statements += "limit(%s,%d,%d).\n" % (self.tile_ids.get(tile_type)[0], tile_range[0], tile_range[1])
+
+
+        # Set perc tile ranges
+        for tile_type, tile_perc_range in self.perc_tile_ranges.items():
+            if tile_type == 'empty':
+                pass # TODO
+            elif tile_type == 'one_way':
+                pass # TODO
+            else:
+                tmp_prolog_statements += "limit(%s,%d,%d).\n" % (self.tile_ids.get(tile_type)[0],
+                                                                 int(tile_perc_range[0] / 100 * (self.level_w * self.level_h)),
+                                                                 int(tile_perc_range[1] / 100 * (self.level_w * self.level_h)))
+
+
+        # return {
+        #     'num_tile_ranges': num_tile_ranges,  # { type: {'min': min, 'max': max} }
+        #     'perc_tile_ranges': perc_tile_ranges,  # { type: {'min': min, 'max': max} }
+        # }
+
 
         # Set range percentage of block tiles allowed in generated level
         num_total_tiles = int(self.level_w * self.level_h)
@@ -398,7 +393,7 @@ class Solver:
             self.stopwatch.stop()
 
             print("----- SUMMARY -----")
-            print("Command: [%s]" % self.get_command_str())
+            print("Config: %s" % self.config_filename)
             print("Levels generated: %d" % self.answer_set_count)
             print("Valid levels : %d" % valid_level_count)
             print("Invalid levels: %d" % invalid_level_count)

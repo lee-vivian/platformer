@@ -31,13 +31,13 @@
     },
 
     "tile_position_ranges": {
-      "start_column_range": "()",
-      "start_row_range": "()",
-      "goal_column_range": "()",
-      "goal_row_range": "()"
+      "start_column": "()",
+      "start_row": "()",
+      "goal_column": "()",
+      "goal_row": "()"
     },
 
-    "no_pits_allowed": "False"
+    "allow_pits": "False"
 
   }
 }
