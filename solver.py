@@ -11,7 +11,7 @@ from datetime import datetime
 from model.metatile import Metatile
 from model.level import TILE_DIM, TILE_CHARS
 from stopwatch import Stopwatch
-from utils import get_directory, get_filepath, write_pickle, read_pickle, write_file, error_exit, get_node_at_coord
+from utils import get_directory, get_filepath, write_pickle, read_pickle, write_file, error_exit, get_node_at_coord, get_unique_lines
 
 
 class Solver:
@@ -48,34 +48,19 @@ class Solver:
         prolog_filename = match.group(2)
         return player_img, prolog_filename
 
-    # def get_command_str(self):
-    #     player_img, prolog_filename = Solver.parse_prolog_filepath(self.prolog_file)
-    #     parts = [
-    #         "prolog: %s" % prolog_filename,
-    #         "width: %d", self.level_w,
-    #         "height: %d", self.level_h,
-    #         "perc blocks: %s-%s%%" % (str(self.min_perc_blocks), str(self.max_perc_blocks)),
-    #         "bonus tiles: %d-%d" % (self.min_bonus, self.max_bonus),
-    #         "start x-range: %d-%d" % (self.start_min_col, self.start_max_col),
-    #         "goal x-range: %d-%d" % (self.goal_min_col, self.goal_max_col),
-    #         "start y-range: %d-%d" % (self.start_min_row, self.start_max_row),
-    #         "goal y-range: %d-%d" % (self.goal_min_row, self.goal_max_row)
-    #     ]
-    #     return ", ".join(parts)
-
     def increment_answer_set_count(self):
         self.answer_set_count += 1
 
     def get_cur_answer_set_filename(self, prolog_filename):
         filename_components = [prolog_filename, self.config_filename, "a%d" % self.answer_set_count,
                                "a%d" % self.answer_set_count]
-
         return "_".join(filename_components)
 
     def init_tmp_prolog_statements(self):
         tmp_prolog_statements = ""
         tmp_prolog_statements += "dim_width(0..%d).\n" % (self.level_w - 1)
         tmp_prolog_statements += "dim_height(0..%d).\n" % (self.level_h - 1)
+        num_total_tiles = int(self.level_w * self.level_h)
 
         # Create tile facts
         create_tiles_statement = "tile(TX,TY) :- dim_width(TX), dim_height(TY)."
@@ -85,8 +70,11 @@ class Solver:
         start_tile_id = self.tile_ids.get('start')[0]
         block_tile_id = self.tile_ids.get('block')[0]
         goal_tile_id = self.tile_ids.get('goal')[0]
-        bonus_tile_id = self.tile_ids.get('bonus')[0]
         one_way_tile_ids = self.tile_ids.get('one_way_platform')
+
+        # Create one_way facts for one_way_platform tile assignments
+        if len(one_way_tile_ids) > 0:
+            tmp_prolog_statements += "one_way_tile(X,Y) :- assignment(X,Y,%s).\n" % ';'.join(one_way_tile_ids)
 
         # Get non-empty tile ids
         non_empty_tile_ids = []
@@ -137,54 +125,28 @@ class Solver:
         # Set num tile ranges
         for tile_type, tile_range in self.num_tile_ranges.items():
             if tile_type == 'empty':
-                pass # TODO
+                pass  # TODO
+
             elif tile_type == 'one_way':
-                pass # TODO
+                tmp_prolog_statements += "%d { one_way_tile(X,Y) } %d.\n" % (tile_range[0], tile_range[1])
+
             else:
                 tmp_prolog_statements += "limit(%s,%d,%d).\n" % (self.tile_ids.get(tile_type)[0], tile_range[0], tile_range[1])
-
 
         # Set perc tile ranges
         for tile_type, tile_perc_range in self.perc_tile_ranges.items():
             if tile_type == 'empty':
-                pass # TODO
+                pass  # TODO
             elif tile_type == 'one_way':
-                pass # TODO
+                tmp_prolog_statements += "%d { one_way_tile(X,Y) } %d.\n" % (int(tile_perc_range[0] / 100 * num_total_tiles),
+                                                                             int(tile_perc_range[1] / 100 * num_total_tiles))
             else:
                 tmp_prolog_statements += "limit(%s,%d,%d).\n" % (self.tile_ids.get(tile_type)[0],
-                                                                 int(tile_perc_range[0] / 100 * (self.level_w * self.level_h)),
-                                                                 int(tile_perc_range[1] / 100 * (self.level_w * self.level_h)))
+                                                                 int(tile_perc_range[0] / 100 * num_total_tiles),
+                                                                 int(tile_perc_range[1] / 100 * num_total_tiles))
 
-
-        # return {
-        #     'num_tile_ranges': num_tile_ranges,  # { type: {'min': min, 'max': max} }
-        #     'perc_tile_ranges': perc_tile_ranges,  # { type: {'min': min, 'max': max} }
-        # }
-
-
-        # Set range percentage of block tiles allowed in generated level
-        num_total_tiles = int(self.level_w * self.level_h)
-        min_perc_blocks = 0 if self.min_perc_blocks is None else self.min_perc_blocks
-        max_perc_blocks = 100 if self.max_perc_blocks is None else self.max_perc_blocks
-        min_num_block_tiles = int(min_perc_blocks / 100 * num_total_tiles)
-        max_num_block_tiles = int(max_perc_blocks / 100 * num_total_tiles)
-        perc_blocks_statement = "limit(%s, %d, %d)." % (block_tile_id, min_num_block_tiles, max_num_block_tiles)
-        tmp_prolog_statements += perc_blocks_statement + "\n"
-
-        # Set range num bonus tiles allowed in generated level
-        if bonus_tile_id is not None and (self.min_bonus > 0 or self.max_bonus < self.level_w * self.level_h):
-            limit_bonus_tiles_statement = "limit(%s, %d, %d)." % (bonus_tile_id, self.min_bonus, self.max_bonus)
-            tmp_prolog_statements += limit_bonus_tiles_statement + "\n"
-
-        # Set range num one-way tiles allowed in generated level
-        if len(one_way_tile_ids) > 0 and (self.min_one_way > 0 or self.max_one_way < self.level_w * self.level_h):
-            one_way_tile_assignment = "one_way_tile(X,Y) :- assignment(X,Y,T), T = (%s)." % (';'.join(one_way_tile_ids))
-            limit_one_way_tiles_statement = "%d { one_way_tile(X,Y) } %d." % (self.min_one_way, self.max_one_way)
-            tmp_prolog_statements += one_way_tile_assignment + "\n"
-            tmp_prolog_statements += limit_one_way_tiles_statement + "\n"
-
-        # Set tmp_prolog_statements
-        self.tmp_prolog_statements = tmp_prolog_statements
+        # Remove duplicate lines
+        self.tmp_prolog_statements = get_unique_lines(tmp_prolog_statements)
         return True
 
     def solve(self, max_sol, threads):
