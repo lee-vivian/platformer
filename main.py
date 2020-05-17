@@ -180,7 +180,7 @@ if __name__ == "__main__":
     parser.add_argument('--show_score', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--process', const=True, nargs='?', type=bool, help="Run process scripts", default=False)
     parser.add_argument('--solve', const=True, nargs='?', type=bool, help="Run solver", default=False)
-    parser.add_argument('--dimensions',const=True, nargs='?', type=bool, help="Get level dimensions in tiles (width, height)", default=False)
+    parser.add_argument('--dimensions', const=True, nargs='?', type=bool, help="Get level dimensions in tiles (width, height)", default=False)
     parser.add_argument('--structure', const=True, nargs='?', type=bool, help="Print level txt structural layer", default=False)
     parser.add_argument('--summary', const=True, nargs='?', type=bool, help="Print level tile summmary stats", default=False)
 
