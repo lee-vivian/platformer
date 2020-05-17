@@ -16,8 +16,8 @@ class PlayerPlatformer:
 
     def __init__(self, img, level):
         self.gravity = 5
-        self.accel_x = 4
-        self.max_vel_x = 3 * self.accel_x
+        self.accel_x = 2
+        self.max_vel_x = 4 * self.accel_x
         self.max_vel_y = 8 * self.gravity
 
         self.half_player_h = HALF_TILE_WIDTH
