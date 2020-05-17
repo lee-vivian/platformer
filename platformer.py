@@ -31,6 +31,10 @@ if os.getenv('MAZE'):
     print('***** USING MAZE RULES *****')
     from model_maze.player import PlayerMaze as Player
     from model_maze.inputs import InputsMaze as Inputs
+elif os.getenv('EXAMPLE'):
+    print('***** USING EXAMPLE RULES *****')
+    from model_example.player import PlayerExample as Player
+    from model_example.inputs import InputsExample as Inputs
 else:
     print('***** USING PLATFORMER RULES *****')
     from model_platformer.player import PlayerPlatformer as Player

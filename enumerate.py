@@ -19,6 +19,11 @@ if os.getenv('MAZE'):
     from model_maze.player import PlayerMaze as Player
     from model_maze.state import StateMaze as State
     from model_maze.action import ActionMaze as Action
+elif os.getenv('EXAMPLE'):
+    print('***** USING EXAMPLE RULES *****')
+    from model_example.player import PlayerExample as Player
+    from model_example.state import StateExample as State
+    from model_example.action import ActionExample as Action
 else:
     print('***** USING PLATFORMER RULES *****')
     from model_platformer.player import PlayerPlatformer as Player

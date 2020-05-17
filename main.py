@@ -8,7 +8,7 @@ import argparse
 
 import utils
 
-ENVIRONMENTS = ['maze', 'platformer']
+ENVIRONMENTS = ['maze', 'example', 'platformer']
 
 
 def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score,
@@ -19,6 +19,8 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
         utils.error_exit("invalid environment - environment must be one of %s" % str(ENVIRONMENTS))
     if environment == 'maze':
         os.environ['MAZE'] = "1"
+    elif environment == 'example':
+        os.environ['EXAMPLE'] = "1"
 
     if dimensions or structure or summary:
         from model.level import Level

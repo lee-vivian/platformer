@@ -30,6 +30,12 @@ class Metatile:
             return self.type == other.type and self.graph_as_dict == other.graph_as_dict
         return False
 
+    def __str__(self):
+        return self.to_str()
+    
+    def __repr__(self):
+        return self.to_str()
+    
     def get_games(self):
         return self.games.copy()
 
