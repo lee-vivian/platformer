@@ -46,7 +46,7 @@ def get_metatile_coord_states_map(state_graph, all_possible_coords):
     return metatile_coord_states_map
 
 
-def construct_metatile(metatile_coord, game, level_start_coord, level_goal_coords_dict, level_platform_coords_dict,
+def construct_metatile(metatile_coord, game, level, level_start_coord, level_goal_coords_dict, level_platform_coords_dict,
                        level_bonus_coords_dict, level_one_way_platform_coords_dict, state_graph, metatile_coord_states_map):
 
     # Determine metatile type
@@ -77,7 +77,7 @@ def construct_metatile(metatile_coord, game, level_start_coord, level_goal_coord
 
     # Construct new Metatile obj
     metatile_graph_as_dict = nx.to_dict_of_dicts(metatile_graph)
-    return Metatile(metatile_type, metatile_graph_as_dict, games=[game])
+    return Metatile(metatile_type, metatile_graph_as_dict, games=[game], levels=[level])
 
 
 def extract_metatiles(state_graph_files, unique_metatiles_file, metatile_coords_dict_file):
@@ -111,7 +111,7 @@ def extract_metatiles(state_graph_files, unique_metatiles_file, metatile_coords_
         for metatile_coord in all_possible_coords:
 
             new_metatile = construct_metatile(metatile_coord,
-                                              game=game,
+                                              game=game, level=level,
                                               level_start_coord=level_obj.get_start_coord(),
                                               level_goal_coords_dict=goal_coords_dict,
                                               level_platform_coords_dict=platform_coords_dict,
@@ -129,7 +129,7 @@ def extract_metatiles(state_graph_files, unique_metatiles_file, metatile_coords_
             else:
                 metatile_idx = unique_metatiles.index(new_metatile)
                 existing_metatile = unique_metatiles.pop(metatile_idx)  # remove old metatile
-                new_metatile = existing_metatile.merge_games(new_metatile)  # merge metatile games
+                new_metatile = existing_metatile.merge_games_and_levels(new_metatile)  # merge metatile games and levels
                 unique_metatiles.append(new_metatile)  # add new (merged) metatile
 
             # Create {metatile: coords} dictionary
