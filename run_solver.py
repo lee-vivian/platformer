@@ -1,6 +1,7 @@
 import signal
 import argparse
 import os
+import re
 
 from model.metatile import METATILE_TYPES
 from solver import Solver
@@ -181,10 +182,15 @@ def main(prolog_file, config_file, max_sol, threads, print_level_stats, print_le
     for tile_type in tile_types:
         tile_ids[tile_type] = prolog_file_info.get('%s_tile_ids' % tile_type)
 
+    # Get config filename
+    config_filename = os.path.basename(config_file)
+    config_match = re.match(r'([a-zA-Z0-9_-]+).json', config_filename)
+    config_filename = config_match.group(1)
+
     # Create Solver object
     solver = Solver(prolog_file=prolog_file,
                     config=config,
-                    config_filename=os.path.basename(config_file),
+                    config_filename=config_filename,
                     tile_ids=tile_ids,
                     print_level_stats=print_level_stats,
                     print_level=print_level,
