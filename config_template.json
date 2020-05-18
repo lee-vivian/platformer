@@ -37,6 +37,8 @@
       "goal_row": "(None, None)"
     },
 
+    "require_start_on_ground": "False",
+    "require_goal_on_ground": "False",
     "allow_pits": "True"
 
   }

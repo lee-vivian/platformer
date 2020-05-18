@@ -21,12 +21,14 @@ class Solver:
         self.config_filename = config_filename
         self.level_w = config.get('level_w')
         self.level_h = config.get('level_h')
-        self.forced_tiles = config.get('forced_tiles')                  # {type: list-of-tile-coords}
-        self.reachable_tiles = config.get('reachable_tiles')            # list-of-tile-coords
-        self.num_tile_ranges = config.get('num_tile_ranges')            # { type: {'min': min, 'max': max} }
-        self.perc_tile_ranges = config.get('perc_tile_ranges')          # { type: {'min': min, 'max': max} }
-        self.tile_position_ranges = config.get('tile_position_ranges')  # { position: (min, max) }
-        self.allow_pits = config.get('allow_pits')                      # bool
+        self.forced_tiles = config.get('forced_tiles')                          # {type: list-of-tile-coords}
+        self.reachable_tiles = config.get('reachable_tiles')                    # list-of-tile-coords
+        self.num_tile_ranges = config.get('num_tile_ranges')                    # { type: {'min': min, 'max': max} }
+        self.perc_tile_ranges = config.get('perc_tile_ranges')                  # { type: {'min': min, 'max': max} }
+        self.tile_position_ranges = config.get('tile_position_ranges')          # { position: (min, max) }
+        self.require_start_on_ground = config.get('require_start_on_ground')    # bool
+        self.require_goal_on_ground = config.get('require_goal_on_ground')      # bool
+        self.allow_pits = config.get('allow_pits')                              # bool
         self.tile_ids = tile_ids                                        # { tile_type: list-of-tile-ids }
         self.print_level_stats = print_level_stats
         self.print_level = print_level
@@ -97,6 +99,16 @@ class Solver:
             else:
                 for x, y in tile_coords:
                     tmp_prolog_statements += "assignment(%d,%d,%s).\n" % (x, y, self.tile_ids.get(tile_type)[0])
+
+        # Require start tile to be on ground (start tile must be on top of a block tile)
+        if self.require_start_on_ground:
+            start_on_ground_rule = ":- assignment(X,Y,%s), not assignment(X,Y+1,%s)." % (start_tile_id, block_tile_id)
+            tmp_prolog_statements += start_on_ground_rule + "\n"
+
+        # Require goal tile to be on ground (goal tile must be on top of a block tile)
+        if self.require_goal_on_ground:
+            goal_on_ground_rule = ":- assignment(X,Y,%s), not assignment(X,Y+1,%s)." % (goal_tile_id, block_tile_id)
+            tmp_prolog_statements += goal_on_ground_rule + "\n"
 
         # Set floor tiles to be block tiles if pits are not allowed
         if not self.allow_pits:
