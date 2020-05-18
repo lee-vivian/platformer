@@ -137,20 +137,32 @@ def get_solver_config(config, prolog_file_info):
             min_index, max_index = setup_tile_position_range(min_index, max_index, level_max)
             tile_position_ranges[position] = (min_index, max_index)
 
+    # ----- SPECIFY IF START AND/OR GOAL TILE MUST BE ON GROUND -----
+    require_start_on_ground = False
+    require_goal_on_ground = False
+
+    if config.get('require_start_on_ground') is not None:
+        require_start_on_ground = eval(config['require_start_on_ground'])
+
+    if config.get('require_goal_on_ground') is not None:
+        require_goal_on_ground = eval(config['require_goal_on_ground'])
+
     # ----- SPECIFY IF PITS ARE ALLOWED -----
     allow_pits = True
     if config.get('allow_pits') is not None:
         allow_pits = eval(config['allow_pits'])
 
     return {
-        'level_w': level_w,                             # int
-        'level_h': level_h,                             # int
-        'forced_tiles': forced_tiles,                   # {type: list-of-tile-coords}
-        'reachable_tiles': reachable_tiles,             # list-of-tile-coords
-        'num_tile_ranges': num_tile_ranges,             # { type: {'min': min, 'max': max} }
-        'perc_tile_ranges': perc_tile_ranges,           # { type: {'min': min, 'max': max} }
-        'tile_position_ranges': tile_position_ranges,   # { position: {'min': min, 'max': max} }
-        'allow_pits': allow_pits                        # bool
+        'level_w': level_w,                                     # int
+        'level_h': level_h,                                     # int
+        'forced_tiles': forced_tiles,                           # {type: list-of-tile-coords}
+        'reachable_tiles': reachable_tiles,                     # list-of-tile-coords
+        'num_tile_ranges': num_tile_ranges,                     # { type: {'min': min, 'max': max} }
+        'perc_tile_ranges': perc_tile_ranges,                   # { type: {'min': min, 'max': max} }
+        'tile_position_ranges': tile_position_ranges,           # { position: {'min': min, 'max': max} }
+        'require_start_on_ground': require_start_on_ground,     # bool
+        'require_goal_on_ground': require_goal_on_ground,       # bool
+        'allow_pits': allow_pits                                # bool
     }
 
 
