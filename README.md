@@ -54,21 +54,20 @@ Run "python3 main.py --help" for a full list of options available (includes draw
   - Add "--save" to save generated levels and/or "--print" to print the txt structure of generated levels to console
   - Run "python run_solver.py --help" for a full list of options available
 
-### V. Putting It All Together with an Example
+### V. Putting It All Together with an Example  
 
 Steps to generate 5 NxM sized levels from the level "example_level" in a platformer game "example_game"  
 
 1. Run the commands in Step I (setting up the repository)  
 2. Save the level structural layer in the path: "level_structural_layers/example_game/example_level.txt"  
 3. Run "python main.py platformer example_game example_level --process"  
-4. Make a copy of the *config_template.json* file and save it as *config_example_level.json*
-5. Open config_example_level.json and set width and height to N and M, respectively. Save and close the file.
+4. Make a copy of *config_basic_template.json* and save it as *config_example_level.json*
+5. Open *config_example_level.json* and set width and height to N and M, respectively. Save and close the file.
 6. Run "python run_solver.py level_saved_files_block/prolog_files/example_level.pl config_example_level.json --max_sol 5 --print_level --save"
 
 Generated levels are stored in the directory: "level_structural_layers/generated".  
 
-To play a generated level run "python main.py platformer generated **generated_level_name**"
-
+To play the first generated level run "python main.py platformer generated example_level_config_example_level_a0"
 
 ### Saved filepaths
 - metatile constraints files: "level_saved_files_block/metatile_constraints/"
