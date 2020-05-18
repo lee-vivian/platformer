@@ -52,8 +52,7 @@ class Solver:
         self.answer_set_count += 1
 
     def get_cur_answer_set_filename(self, prolog_filename):
-        filename_components = [prolog_filename, self.config_filename, "a%d" % self.answer_set_count,
-                               "a%d" % self.answer_set_count]
+        filename_components = [prolog_filename, self.config_filename, "a%d" % self.answer_set_count]
         return "_".join(filename_components)
 
     def init_tmp_prolog_statements(self):
