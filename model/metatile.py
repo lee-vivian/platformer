@@ -18,12 +18,13 @@ TYPE_IMG_MAP = {
 
 
 class Metatile:
-    def __init__(self, type, graph_as_dict, games=None):
+    def __init__(self, type, graph_as_dict, games=None, levels=None):
         if type not in METATILE_TYPES:
             error_exit("Given metatile type [%s] must be one of %s" % (type, str(METATILE_TYPES)))
         self.type = type
         self.graph_as_dict = graph_as_dict
         self.games = [] if games is None else games
+        self.levels = [] if levels is None else levels
 
     def __eq__(self, other):
         if isinstance(other, Metatile):
@@ -39,21 +40,24 @@ class Metatile:
     def get_games(self):
         return self.games.copy()
 
-    def merge_games(self, other):
+    def get_levels(self):
+        return self.levels.copy()
+
+    def merge_games_and_levels(self, other):
         if not self == other:
             error_exit("Cannot merge metatiles that have different types or graphs")
-
         combined_games = list(set(self.get_games() + other.get_games()))
-        return Metatile(self.type, self.graph_as_dict, games=combined_games)
+        combined_levels = list(set(self.get_levels() + other.get_levels()))
+        return Metatile(self.type, self.graph_as_dict, games=combined_games, levels=combined_levels)
 
     def to_str(self):
         graph = str(self.graph_as_dict)
-        return "{'type': '%s', 'graph': %s, 'games': %s}" % (self.type, graph, str(self.games))
+        return "{'type': '%s', 'graph': %s, 'games': %s, 'levels': %s}" % (self.type, graph, str(self.games), str(self.levels))
 
     @staticmethod
     def from_str(string):
         metatile_dict = eval(string)
-        return Metatile(metatile_dict['type'], metatile_dict['graph'], metatile_dict['games'])
+        return Metatile(metatile_dict['type'], metatile_dict['graph'], metatile_dict['games'], metatile_dict['levels'])
 
     @staticmethod
     def get_metatile_coord_from_state_coord(state_coord, tile_dim):

@@ -25,7 +25,7 @@ class Solver:
         self.reachable_tiles = config.get('reachable_tiles')            # list-of-tile-coords
         self.num_tile_ranges = config.get('num_tile_ranges')            # { type: {'min': min, 'max': max} }
         self.perc_tile_ranges = config.get('perc_tile_ranges')          # { type: {'min': min, 'max': max} }
-        self.tile_position_ranges = config.get('tile_position_ranges')  # { position: {'min': min, 'max': max} }
+        self.tile_position_ranges = config.get('tile_position_ranges')  # { position: (min, max) }
         self.allow_pits = config.get('allow_pits')                      # bool
         self.tile_ids = tile_ids                                        # { tile_type: list-of-tile-ids }
         self.print_level_stats = print_level_stats
@@ -74,7 +74,7 @@ class Solver:
 
         # Create one_way facts for one_way_platform tile assignments
         if len(one_way_tile_ids) > 0:
-            tmp_prolog_statements += "one_way_tile(X,Y) :- assignment(X,Y,%s).\n" % ';'.join(one_way_tile_ids)
+            tmp_prolog_statements += "one_way_tile(X,Y,ID) :- tile(X,Y), assignment(X,Y,ID), ID=(%s).\n" % (';'.join(one_way_tile_ids))
 
         # Get non-empty tile ids
         non_empty_tile_ids = []
@@ -82,8 +82,7 @@ class Solver:
             non_empty_tile_ids += tile_ids
 
         # Create non_empty_tile and empty_tile facts
-        tmp_prolog_statements += "non_empty_tile(X,Y) :- assignment(X,Y,%s).\n " % ';'.join(non_empty_tile_ids)
-        tmp_prolog_statements += "empty_tile(X,Y) :- tile(X,Y), not non_empty_tile(X,Y).\n"
+        tmp_prolog_statements += "non_empty_tile(X,Y) :- tile(X,Y), assignment(X,Y,ID), ID=(%s).\n " % (';'.join(non_empty_tile_ids))
 
         # Force specified tile coords to be certain tile types
         for tile_type, tile_coords in self.forced_tiles.items():
@@ -128,28 +127,41 @@ class Solver:
 
         # Set num tile ranges
         for tile_type, tile_range in self.num_tile_ranges.items():
-            if tile_type == 'empty':
-                tmp_prolog_statements += "%d { empty_tile(X,Y) } %d.\n" % (tile_range[0], tile_range[1])
 
-            elif tile_type == 'one_way':
-                tmp_prolog_statements += "%d { one_way_tile(X,Y) } %d.\n" % (tile_range[0], tile_range[1])
+            if tile_type == 'empty':
+                min_empty, max_empty = tile_range
+                min_non_empty = num_total_tiles - max_empty
+                max_non_empty = num_total_tiles - min_empty
+                tmp_prolog_statements += "%d { non_empty_tile(X,Y) : tile(X,Y) } %d.\n" % (min_non_empty, max_non_empty)
+
+            elif tile_type == 'one_way_platform':
+                tmp_prolog_statements += "%d { one_way_tile(X,Y) : tile(X,Y) } %d.\n" % (tile_range[0], tile_range[1])
 
             else:
-                tmp_prolog_statements += "limit(%s,%d,%d).\n" % (self.tile_ids.get(tile_type)[0], tile_range[0], tile_range[1])
+                tile_ids = self.tile_ids.get(tile_type)
+                if len(tile_ids) > 0:
+                    tmp_prolog_statements += "limit(%s,%d,%d).\n" % (self.tile_ids.get(tile_type)[0], tile_range[0], tile_range[1])
 
         # Set perc tile ranges
         for tile_type, tile_perc_range in self.perc_tile_ranges.items():
-            if tile_type == 'empty':
-                tmp_prolog_statements += "%d { empty_tile(X,Y) } %d.\n" % (int(tile_perc_range[0] / 100 * num_total_tiles),
-                                                                           int(tile_perc_range[1] / 100 * num_total_tiles))
 
-            elif tile_type == 'one_way':
-                tmp_prolog_statements += "%d { one_way_tile(X,Y) } %d.\n" % (int(tile_perc_range[0] / 100 * num_total_tiles),
-                                                                             int(tile_perc_range[1] / 100 * num_total_tiles))
+            if tile_type == 'empty':
+                min_perc_empty, max_perc_empty = tile_perc_range
+                min_perc_non_empty = 100 - max_perc_empty
+                max_perc_non_empty = 100 - min_perc_empty
+                tmp_prolog_statements += "%d { non_empty_tile(X,Y) : tile(X,Y) } %d.\n" % (min_perc_non_empty / 100 * num_total_tiles,
+                                                                                           max_perc_non_empty / 100 * num_total_tiles)
+
+            elif tile_type == 'one_way_platform':
+                tmp_prolog_statements += "%d { one_way_tile(X,Y) : tile(X,Y) } %d.\n" % (int(tile_perc_range[0] / 100 * num_total_tiles),
+                                                                                         int(tile_perc_range[1] / 100 * num_total_tiles))
+
             else:
-                tmp_prolog_statements += "limit(%s,%d,%d).\n" % (self.tile_ids.get(tile_type)[0],
-                                                                 int(tile_perc_range[0] / 100 * num_total_tiles),
-                                                                 int(tile_perc_range[1] / 100 * num_total_tiles))
+                tile_ids = self.tile_ids.get(tile_type)
+                if len(tile_ids) > 0:
+                    tmp_prolog_statements += "limit(%s,%d,%d).\n" % (self.tile_ids.get(tile_type)[0],
+                                                                     int(tile_perc_range[0] / 100 * num_total_tiles),
+                                                                     int(tile_perc_range[1] / 100 * num_total_tiles))
 
         # Remove duplicate lines
         self.tmp_prolog_statements = get_unique_lines(tmp_prolog_statements)
@@ -292,7 +304,7 @@ class Solver:
             level_structural_txt_file = get_filepath(generated_level_txt_dir, "%s.txt" % answer_set_filename)
             write_file(level_structural_txt_file, level_structural_txt)
 
-        if self.print:
+        if self.print_level:
             print(level_structural_txt)
 
         # Add to generated_levels_dict if validate is True

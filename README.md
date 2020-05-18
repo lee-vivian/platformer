@@ -44,17 +44,15 @@ Run "python3 main.py --help" for a full list of options available (includes draw
   
 - Run "python combine_constraints.py **save_filename** --games **game1 game2 ...** --levels **level1 level2 ...**"  
 
-### IV: Generating new levels from a metatile constraints file
-- Create prolog file from the specified metatile_constraints file
-  - Run "python gen_prolog.py **metatile_constraints_filepath**"
+### IV: Running the solver to generate new levels
 
-- Run clingo solver  
-  - Run "python run_solver.py **prolog_filepath** **level_width** **level_height** --max_sol **num_levels_to_generate**"  
-    - Level width and height are measured in tile units  
-    - Max sol = 0 generates all solutions
-    - Keyboard Interrupt (Ctrl+C or Ctrl+Z) forces solver to stop and validate generated levels if --validate=True
-    
-  - Run "python run_solver.py --help" for a full list of options available (includes saving and validating generated levels)
+- Create a config JSON file to specify design decisions (e.g. level_w, level_h, etc). See config_template.json for example.
+
+- Run clingo solver
+  - Run "python run_solver.py **prolog_filepath** **config_filepath** --max_sol **num_levels_to_generate** 
+  --threads **num_threads_to_use**"
+  - Add "--save" to save generated levels and/or "--print" to print the txt structure of generated levels to console
+  - Run "python run_solver.py --help" for a full list of options available
 
 
 ### Saved filepaths
