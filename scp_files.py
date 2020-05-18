@@ -48,7 +48,7 @@ def main(push, pull):
 
     for filepath in filepaths:
         local_path = "%s" % filepath
-        instance_path = "ec2-user@ec2-34-207-114-180.compute-1.amazonaws.com:/home/ec2-user/platformer/%s" % filepath
+        instance_path = "ec2-user@ec2-34-229-80-241.compute-1.amazonaws.com:/home/ec2-user/platformer/%s" % filepath
 
         if push:
             transfer_str = "scp -i platformer.pem %s %s\n" % (local_path, instance_path)
