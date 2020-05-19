@@ -29,7 +29,7 @@
     "perc_level_ranges": {
       "level_1": "(None, None)",
       "level_2": "(None, None)"
-    }
+    },
 
     "tile_position_ranges": {
       "start_column": "(None, None)",
