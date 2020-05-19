@@ -58,6 +58,9 @@ def main(tile_constraints_file, debug, print_pl):
     metatile_type_ids_map = {}
     for type in METATILE_TYPES:
         metatile_type_ids_map[type] = []  # {metatile_type: list-metatile-ids}
+
+    metatile_level_ids_map = {}
+
     start_state = None
     goal_state = None
 
@@ -70,6 +73,13 @@ def main(tile_constraints_file, debug, print_pl):
 
         metatile_type = tile_constraints.get('type')
         metatile_type_ids_map[metatile_type].append(tile_id)
+
+        metatile_levels = tile_constraints.get('levels')
+        for level in metatile_levels:
+            if metatile_level_ids_map.get(level) is None:
+                metatile_level_ids_map[level] = [tile_id]
+            else:
+                metatile_level_ids_map[level].append(tile_id)
 
         metatile_graph = nx.DiGraph(tile_constraints.get('graph'))
 
@@ -198,7 +208,8 @@ def main(tile_constraints_file, debug, print_pl):
         "start_tile_ids": [start_tile_id],
         "goal_tile_ids": [goal_tile_id],
         "bonus_tile_ids": [] if bonus_tile_id is None else [bonus_tile_id],
-        "one_way_platform_tile_ids": one_way_platform_tile_ids
+        "one_way_platform_tile_ids": one_way_platform_tile_ids,
+        "level_ids_map": metatile_level_ids_map
     }
 
     utils.write_pickle(all_prolog_info_filepath, all_prolog_info_map)
