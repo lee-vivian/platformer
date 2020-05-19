@@ -81,7 +81,8 @@ class Solver:
 
         # Create level_assignment facts
         for level, tile_ids in self.level_ids_map.items():
-            tmp_prolog_statements += "level_assignment(%s,X,Y) :- tile(X,Y), assignment(X,Y,ID), ID=(%s).\n" % (level, ';'.join(tile_ids))
+            level_assignment_fact = "level_assignment(\"%s\",X,Y) :- tile(X,Y), assignment(X,Y,ID), ID=(%s)." % (level, ';'.join(tile_ids))
+            tmp_prolog_statements += level_assignment_fact + "\n"
 
         # Get non-empty tile ids
         non_empty_tile_ids = []
@@ -142,7 +143,8 @@ class Solver:
         for level, tile_perc_range in self.perc_level_ranges.items():
             min_tiles = int(tile_perc_range[0] / 100 * num_total_tiles)
             max_tiles = int(tile_perc_range[1] / 100 * num_total_tiles)
-            tmp_prolog_statements += "%d { level_assignment(L,X,Y) : tile(X,Y), L=%s } %d.\n" % (min_tiles, level, max_tiles)
+            level_perc_range_rule = "%d { level_assignment(L,X,Y) : tile(X,Y), L=\"%s\" } %d.\n" % (min_tiles, level, max_tiles)
+            tmp_prolog_statements += level_perc_range_rule
 
         # Force specified tiles to be reachable
         for x, y in self.reachable_tiles:
