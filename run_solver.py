@@ -169,10 +169,15 @@ def get_solver_config(config, prolog_file_info):
     if config.get('require_goal_on_ground') is not None:
         require_goal_on_ground = eval(config['require_goal_on_ground'])
 
-    # ----- SPECIFY IF PITS ARE ALLOWED -----
-    allow_pits = True
-    if config.get('allow_pits') is not None:
-        allow_pits = eval(config['allow_pits'])
+    # ----- SPECIFY RANGE NUMBER OF GAPS (PITS) ALLOWED -----
+    num_gaps_min = 0
+    num_gaps_max = level_w
+    num_gaps_range = (num_gaps_min, num_gaps_max)
+
+    if config.get('num_gaps_range') is not None:
+        min_gaps, max_gaps = eval(config['num_gaps_range'])
+        min_gaps, max_gaps = setup_tile_freq_range('gap', min_gaps, max_gaps, num_gaps_min, num_gaps_max)
+        num_gaps_range = (min_gaps, max_gaps)
 
     return {
         'level_w': level_w,                                     # int
@@ -185,7 +190,7 @@ def get_solver_config(config, prolog_file_info):
         'tile_position_ranges': tile_position_ranges,           # { position: (min, max) }
         'require_start_on_ground': require_start_on_ground,     # bool
         'require_goal_on_ground': require_goal_on_ground,       # bool
-        'allow_pits': allow_pits                                # bool
+        'num_gaps_range': num_gaps_range                        # (min, max)
     }
 
 

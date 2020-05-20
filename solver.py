@@ -29,7 +29,7 @@ class Solver:
         self.tile_position_ranges = config.get('tile_position_ranges')          # { position: (min, max) }
         self.require_start_on_ground = config.get('require_start_on_ground')    # bool
         self.require_goal_on_ground = config.get('require_goal_on_ground')      # bool
-        self.allow_pits = config.get('allow_pits')                              # bool
+        self.num_gaps_range = config.get('num_gaps_range')                      # (min, max)
         self.tile_ids = tile_ids                                                # { tile_type: list-of-tile-ids }
         self.level_ids_map = level_ids_map                                      # { level: list-of-tile-ids }
         self.print_level_stats = print_level_stats
@@ -92,6 +92,9 @@ class Solver:
         # Create non_empty_tile facts
         tmp_prolog_statements += "non_empty_tile(X,Y) :- tile(X,Y), assignment(X,Y,ID), ID=(%s).\n " % (';'.join(non_empty_tile_ids))
 
+        # Create gap_tile facts (if floor tile has type = empty)
+        tmp_prolog_statements += "gap_tile(X,Y) :- tile(X,Y), Y=%d, assignment(X,Y,ID), ID!=(%s).\n" % (self.level_h-1, ';'.join(non_empty_tile_ids))
+
         # Force specified tile coords to be certain tile types
         for tile_type, tile_coords in self.forced_tiles.items():
 
@@ -117,11 +120,9 @@ class Solver:
             goal_on_ground_rule = ":- assignment(X,Y,%s), not assignment(X,Y+1,%s)." % (goal_tile_id, block_tile_id)
             tmp_prolog_statements += goal_on_ground_rule + "\n"
 
-        # Set floor tiles to be block tiles if pits are not allowed
-        if not self.allow_pits:
-            for x in range(self.level_w):
-                floor_tile_assignment = "assignment(%d, %d, %s)." % (x, self.level_h-1, block_tile_id)
-                tmp_prolog_statements += floor_tile_assignment + "\n"
+        # Set range number of gaps allowed in a valid level
+        min_num_gaps, max_num_gaps = self.num_gaps_range
+        tmp_prolog_statements += "%d { gap_tile(X,Y) : tile(X,Y) } %d.\n" % (min_num_gaps, max_num_gaps)
 
         # Set start and goal tile index ranges (tile position ranges)
         start_tile_min_x, start_tile_max_x = self.tile_position_ranges.get('start_column')
