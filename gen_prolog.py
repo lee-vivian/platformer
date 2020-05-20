@@ -117,10 +117,6 @@ def main(tile_constraints_file, debug, print_pl):
                                   "MT1 == %s, MT2 == %s." % (dx, dy, tile_id, adjacent_id)
                 prolog_statements += legal_statement + "\n"
 
-    # Link can only exist if the src and dest states exist, otherwise solution is not valid
-    link_exists_rule = ":- link(X1,Y1,X2,Y2), state(X1,Y1), not state(X2,Y2)."
-    prolog_statements += link_exists_rule
-
     # Get block, start, and goal tile_ids
     block_tile_id = metatile_type_ids_map.get("block")[0]
     start_tile_id = metatile_type_ids_map.get("start")[0]
@@ -149,7 +145,8 @@ def main(tile_constraints_file, debug, print_pl):
     prolog_statements += goal_reachable_rule + "\n"
 
     # State reachable rule
-    state_reachable_rule = "reachable(X2,Y2) :- link(X1,Y1,X2,Y2), state(X1,Y2), state(X2,Y2), reachable(X1,Y1)."
+    state_reachable_rule = "reachable(X2,Y2) :- link(X1,Y1,X2,Y2), state(X1,Y2), state(X2,Y2), " \
+                           "tile(X1/T,Y1/T), tile(X2/T,Y2/T), reachable(X1,Y1), T=%d." % TILE_DIM
     prolog_statements += state_reachable_rule + "\n"
 
     # Tile reachable rule (only if state in top half of the tile is reachable)
