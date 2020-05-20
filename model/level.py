@@ -109,13 +109,31 @@ class Level:
         level_obj = Level.generate_level_from_file(game, level)
         start_x, start_y = level_obj.get_start_coord()
         start_tile_x, start_tile_y = int(start_x / TILE_DIM), int(start_y / TILE_DIM)
-        print("Start Tile: %s" % str((start_tile_x, start_tile_y)))
 
         goal_tile_coords = []
         for goal_x, goal_y in level_obj.get_goal_coords():
             goal_tile_x, goal_tile_y = int(goal_x / TILE_DIM), int(goal_y / TILE_DIM)
             goal_tile_coords.append((goal_tile_x, goal_tile_y))
-        print("Goal Tile: %s" % str(goal_tile_coords))
+
+        print("Tile coords:")
+        print("  - start: %s" % str((start_tile_x, start_tile_y)))
+        print("  - goals: %s" % str(goal_tile_coords))
+
+    @staticmethod
+    def get_num_gaps(game, level):
+        filepath = "level_structural_layers/%s/%s.txt" % (game, level)
+        last_line = None
+        num_gaps = 0
+
+        f = open(filepath, 'r')
+        for line in f:
+            last_line = line.rstrip()
+
+        for char in last_line:
+            if TILE_CHARS['empty'].get(char) is not None:
+                num_gaps += 1
+        return num_gaps
+
 
     @staticmethod
     def print_tile_summary(game, level):
@@ -137,7 +155,7 @@ class Level:
         print("----- Level: %s/%s -----" % (game, level))
         print("Total tiles: %d (%d%%)" % (num_tiles_total, 100))
         for tile_type, count in num_tiles_dict.items():
-            print("%s tiles: %d (%d%%)" % (tile_type, count, count / num_tiles_total * 100))
+            print("  - %s tiles: %d (%d%%)" % (tile_type, count, count / num_tiles_total * 100))
 
     @staticmethod
     def print_structural_txt(game, level):
@@ -149,56 +167,46 @@ class Level:
     @staticmethod
     def generate_level_from_file(game, level):
         filepath = "level_structural_layers/%s/%s.txt" % (game, level)
-        level_width, level_height = 0, 0
-        platform_coords = []
-        bonus_coords = []
-        one_way_platform_coords = []
-        goal_coords = []
-        start_coord = None
+        level_w, level_h = 0, 0
+        prev_line_dict = {}
+        tile_coords_dict = {}
+        for tile_type in TILE_CHARS.keys():
+            tile_coords_dict[tile_type] = []
 
         f = open(filepath, 'r')
 
-        prev_line_dict = {}
-
+        # Read in each line in file
         for cur_line in f:
-
             line = cur_line.rstrip()
+            level_w = len(line) if level_w == 0 else level_w
 
-            # Set the level_width
-            level_width = len(line) if level_width == 0 else level_width
+            # Parse chars in each line
+            for char_idx in range(level_w):
+                char = line[char_idx]
+                char_coord = (char_idx * TILE_DIM, level_h * TILE_DIM)
 
-            # Parse each char in the line
-            for char_index in range(level_width):
-                char_coord = (char_index * TILE_DIM, level_height * TILE_DIM)
-                char = line[char_index]
-
-                if TILE_CHARS['block'].get(char) is not None:
-                    platform_coords.append(char_coord)
-                elif TILE_CHARS['bonus'].get(char) is not None:
-                    bonus_coords.append(char_coord)
-                elif TILE_CHARS['one_way_platform'].get(char) is not None:
-                    one_way_platform_coords.append(char_coord)
-                elif start_coord is None and TILE_CHARS['start'].get(char) is not None:   # define start coord once
-                    start_coord = char_coord
-                elif TILE_CHARS['goal'].get(char) is not None:
-                    goal_coords.append(char_coord)
-                elif TILE_CHARS['door'].get(char) is not None:
-                    char_above = prev_line_dict.get(char_index)
-                    if char_above is None:
+                # Test each tile type for a char match
+                for tile_type in TILE_CHARS.keys():
+                    match = TILE_CHARS[tile_type].get(char) is not None
+                    if not match:
                         pass
-                    elif TILE_CHARS['door'].get(char_above):
-                        pass
+                    elif tile_type == 'door':
+                        char_above = prev_line_dict.get(char_idx)
+                        char_above_is_door = TILE_CHARS['door'].get(char_above) is not None
+                        if not char_above_is_door:
+                            tile_coords_dict['bonus'].append(char_coord)  # read as bonus char if char above != door
                     else:
-                        bonus_coords.append(char_coord)
+                        tile_coords_dict[tile_type].append(char_coord)
 
-                # Update prev line dictionary
-                prev_line_dict[char_index] = char
+                # Update prev_line_dict
+                prev_line_dict[char_idx] = char
 
-            # Increment the level_height
-            level_height += 1
+            # Increment level_h
+            level_h += 1
 
         f.close()
 
-        return Level(name=level, game=game, width=level_width * TILE_DIM, height=level_height * TILE_DIM,  # in px
-                     platform_coords=platform_coords, goal_coords=goal_coords, start_coord=start_coord,
-                     bonus_coords=bonus_coords, one_way_platform_coords=one_way_platform_coords)
+        return Level(name=level, game=game, width=level_w * TILE_DIM, height=level_h * TILE_DIM,  # in px
+                     platform_coords=tile_coords_dict['block'], goal_coords=tile_coords_dict['goal'],
+                     start_coord=tile_coords_dict['start'][0],
+                     bonus_coords=tile_coords_dict['bonus'], one_way_platform_coords=tile_coords_dict['one_way_platform'])
