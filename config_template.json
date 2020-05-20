@@ -23,11 +23,12 @@
     },
 
     "perc_tile_ranges": {
-      "block": "(None, None)",
-      "levels": {
-        "level_1": "()",
-        "level_2": "()"
-      }
+      "block": "(None, None)"
+    },
+
+    "perc_level_ranges": {
+      "level_1": "(None, None)",
+      "level_2": "(None, None)"
     },
 
     "tile_position_ranges": {

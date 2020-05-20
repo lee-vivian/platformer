@@ -38,12 +38,16 @@ Run "python3 main.py --help" for a full list of options available (includes draw
   
 - Run "python main.py **environment** **game** **level** --process"
 
-### IIIb: Creating combined metatile constraints file from multiple levels
-- Enumerate state graphs for each level individually  
-  This step is already done if you've already run main.py on the level) else run "python enumerate.py **game** **level**"  
-  
-- Run "python combine_constraints.py **save_filename** --games **game1 game2 ...** --levels **level1 level2 ...**"  
+### IIIb: Creating combined metatile constraints file from multiple levels  
 
+- For each level you want to include do *one* of the following:  
+    - Run "python main.py **environment** **game** **level** --process"
+    - Run "python enumerate.py **game** **level** --player_img **player_img**"  
+  Run "python extract_metatiles.py **level** --player_img **player_img** --state_graph_files level_saved_files_**player_img**/enumerated_state_graphs/**game**/**level**.gpickle"  
+ 
+ 
+- Run "python combine_constraints.py game1/level1 game2/level2 etc. --save_filename **optional** --player_img **player_img**" 
+ 
 ### IV: Running the solver to generate new levels
 
 - Create a config JSON file to specify design decisions (e.g. level_w, level_h, etc). See config_template.json for example.
@@ -54,7 +58,7 @@ Run "python3 main.py --help" for a full list of options available (includes draw
   - Add "--save" to save generated levels and/or "--print" to print the txt structure of generated levels to console
   - Run "python run_solver.py --help" for a full list of options available
 
-### V. Putting It All Together with an Example  
+### V. Putting It All Together with an Example (single training level)
 
 Steps to generate 5 NxM sized levels from the level "example_level" in a platformer game "example_game"  
 
@@ -68,6 +72,19 @@ Steps to generate 5 NxM sized levels from the level "example_level" in a platfor
 Generated levels are stored in the directory: "level_structural_layers/generated".  
 
 To play the first generated level run "python main.py platformer generated example_level_config_example_level_a0"
+
+
+### VI. Putting It All Together with an Example (multiple training levels)
+
+Steps to generate 5 levels from 2 sample levels: super_mario_bros/mario-sample-left and super_mario_bros/mario-sample-right
+
+1. Run the commands in Step I (setting up the repository)
+2. Run "python main.py platformer super_mario_bros mario-sample-left --process"
+3. Run "python main.py platformer super_mario_bros mario-sample-right --process"
+4. Run "python combine_constraints.py super_mario_bros/mario-sample-left super_mario_bros/mario-sample-right --save_filename mario-sample"
+5. Run "python run_solver.py level_saved_files_block/prolog_files/mario-sample.pl config_mario-sample.json --max_sol 5 --print_level --save"
+
+Try adjusting the config specifications in config_mario-sample.json (e.g. change the range of block tiles or the % range of tiles from each level)
 
 ### Saved filepaths
 - metatile constraints files: "level_saved_files_block/metatile_constraints/"

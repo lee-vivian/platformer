@@ -33,11 +33,11 @@ def check_tile_type_exists_in_prolog(tile_type, prolog_file_info, error_msg):
 
 def setup_tile_freq_range(tile_type, min_tiles, max_tiles, lowest, highest):
     if min_tiles is not None and not (lowest <= min_tiles <= highest):
-        error_exit("Specified min (%d) for type '%s' must be in range [%d,%d]" % (min_tiles, tile_type, lowest, highest))
+        error_exit("Specified min freq (%d) for '%s' tiles must be in range [%d,%d]" % (min_tiles, tile_type, lowest, highest))
     if max_tiles is not None and not (lowest <= max_tiles <= highest):
-        error_exit("Specified max (%d) for type '%s' must be in range [%d,%d]" % (max_tiles, tile_type, lowest, highest))
+        error_exit("Specified max freq (%d) for '%s' tiles be in range [%d,%d]" % (max_tiles, tile_type, lowest, highest))
     if min_tiles is not None and max_tiles is not None and min_tiles > max_tiles:
-        error_exit("Specified min (%d) for type '%s' must be <= max (%d)" % (min_tiles, tile_type, max_tiles))
+        error_exit("Specified min freq (%d) for '%s' tiles must be <= max freq (%d)" % (min_tiles, tile_type, max_tiles))
 
     min_tiles = lowest if min_tiles is None else min_tiles
     max_tiles = highest if max_tiles is None else max_tiles
@@ -118,7 +118,29 @@ def get_solver_config(config, prolog_file_info):
         if min_perc_total > 100:
             error_exit("Sum of min perc tiles (%d) in specified perc_tile_ranges cannot exceed 100%%" % min_perc_total)
 
-    # TODO add range % of tiles from specified levels
+    # ----- SPECIFY PERCENT TILE RANGES (from a certain level) -----
+    level_ids_map = prolog_file_info.get('level_ids_map')
+    perc_level_ranges = {}
+    perc_level_lowest = 0
+    perc_level_highest = 100
+    for level, ids in level_ids_map.items():
+        perc_level_ranges[level] = (perc_level_lowest, perc_level_highest)
+
+    if config.get('perc_level_ranges') is not None:
+        for level, range_str in config['perc_level_ranges'].items():
+            if level_ids_map.get(level) is None:
+                error_exit("The tileset does not contain tiles from level (%s) (specified in perc_level_"
+                           "ranges). Valid levels are: %s" % (level, str(list(level_ids_map.keys()))))
+            min_perc_level, max_perc_level = eval(range_str)
+            min_perc_level, max_perc_level = setup_tile_freq_range(level, min_perc_level, max_perc_level, perc_level_lowest, perc_level_highest)
+            perc_level_ranges[level] = (min_perc_level, max_perc_level)
+
+        # Check if total min perc levels > 100%
+        min_perc_level_total = 0
+        for level, tile_range in perc_level_ranges.items():
+            min_perc_level_total += tile_range[0]
+        if min_perc_level_total > 100:
+            error_exit("Sum of min perc tiles (%d) from each level specified in perc_level_ranges cannot exceed 100%%" % min_perc_level_total)
 
     # ----- SPECIFY START/GOAL POSITION RANGES -----
     tile_position_ranges = {
@@ -157,9 +179,10 @@ def get_solver_config(config, prolog_file_info):
         'level_h': level_h,                                     # int
         'forced_tiles': forced_tiles,                           # {type: list-of-tile-coords}
         'reachable_tiles': reachable_tiles,                     # list-of-tile-coords
-        'num_tile_ranges': num_tile_ranges,                     # { type: {'min': min, 'max': max} }
-        'perc_tile_ranges': perc_tile_ranges,                   # { type: {'min': min, 'max': max} }
-        'tile_position_ranges': tile_position_ranges,           # { position: {'min': min, 'max': max} }
+        'num_tile_ranges': num_tile_ranges,                     # { type: (min, max) }
+        'perc_tile_ranges': perc_tile_ranges,                   # { type: (min, max) }
+        'perc_level_ranges': perc_level_ranges,                 # { level: (min, max) }
+        'tile_position_ranges': tile_position_ranges,           # { position: (min, max) }
         'require_start_on_ground': require_start_on_ground,     # bool
         'require_goal_on_ground': require_goal_on_ground,       # bool
         'allow_pits': allow_pits                                # bool
@@ -204,6 +227,7 @@ def main(prolog_file, config_file, max_sol, threads, print_level_stats, print_le
                     config=config,
                     config_filename=config_filename,
                     tile_ids=tile_ids,
+                    level_ids_map=prolog_file_info.get('level_ids_map'),
                     print_level_stats=print_level_stats,
                     print_level=print_level,
                     save=save,

@@ -111,6 +111,8 @@ def main(save_filename, metatile_id_map_file, id_metatile_map_file, metatile_coo
         tile_id_constraints_dict[tile_id] = {
             "type": metatile.type,
             "graph": metatile.graph_as_dict,
+            "games": metatile.games,
+            "levels": metatile.levels,
             "adjacent": {
                 TOP: [], BOTTOM: [], LEFT: [], RIGHT: [], TOP_LEFT: [], BOTTOM_LEFT: [], TOP_RIGHT: [], BOTTOM_RIGHT: []
             }

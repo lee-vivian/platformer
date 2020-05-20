@@ -16,20 +16,22 @@ from utils import get_directory, get_filepath, write_pickle, read_pickle, write_
 
 class Solver:
 
-    def __init__(self, prolog_file, config, config_filename, tile_ids, print_level_stats, print_level, save, validate):
+    def __init__(self, prolog_file, config, config_filename, tile_ids, level_ids_map, print_level_stats, print_level, save, validate):
         self.prolog_file = prolog_file
         self.config_filename = config_filename
         self.level_w = config.get('level_w')
         self.level_h = config.get('level_h')
         self.forced_tiles = config.get('forced_tiles')                          # {type: list-of-tile-coords}
         self.reachable_tiles = config.get('reachable_tiles')                    # list-of-tile-coords
-        self.num_tile_ranges = config.get('num_tile_ranges')                    # { type: {'min': min, 'max': max} }
-        self.perc_tile_ranges = config.get('perc_tile_ranges')                  # { type: {'min': min, 'max': max} }
+        self.num_tile_ranges = config.get('num_tile_ranges')                    # { type: (min, max) }
+        self.perc_tile_ranges = config.get('perc_tile_ranges')                  # { type: (min, max) }
+        self.perc_level_ranges = config.get('perc_level_ranges')                # { level: (min, max) }
         self.tile_position_ranges = config.get('tile_position_ranges')          # { position: (min, max) }
         self.require_start_on_ground = config.get('require_start_on_ground')    # bool
         self.require_goal_on_ground = config.get('require_goal_on_ground')      # bool
         self.allow_pits = config.get('allow_pits')                              # bool
-        self.tile_ids = tile_ids                                        # { tile_type: list-of-tile-ids }
+        self.tile_ids = tile_ids                                                # { tile_type: list-of-tile-ids }
+        self.level_ids_map = level_ids_map                                      # { level: list-of-tile-ids }
         self.print_level_stats = print_level_stats
         self.print_level = print_level
         self.save = save
@@ -75,14 +77,19 @@ class Solver:
 
         # Create one_way facts for one_way_platform tile assignments
         if len(one_way_tile_ids) > 0:
-            tmp_prolog_statements += "one_way_tile(X,Y,ID) :- tile(X,Y), assignment(X,Y,ID), ID=(%s).\n" % (';'.join(one_way_tile_ids))
+            tmp_prolog_statements += "one_way_tile(X,Y) :- tile(X,Y), assignment(X,Y,ID), ID=(%s).\n" % (';'.join(one_way_tile_ids))
+
+        # Create level_assignment facts
+        for level, tile_ids in self.level_ids_map.items():
+            level_assignment_fact = "level_assignment(\"%s\",X,Y) :- tile(X,Y), assignment(X,Y,ID), ID=(%s)." % (level, ';'.join(tile_ids))
+            tmp_prolog_statements += level_assignment_fact + "\n"
 
         # Get non-empty tile ids
         non_empty_tile_ids = []
         for tile_type, tile_ids in self.tile_ids.items():
             non_empty_tile_ids += tile_ids
 
-        # Create non_empty_tile and empty_tile facts
+        # Create non_empty_tile facts
         tmp_prolog_statements += "non_empty_tile(X,Y) :- tile(X,Y), assignment(X,Y,ID), ID=(%s).\n " % (';'.join(non_empty_tile_ids))
 
         # Force specified tile coords to be certain tile types
@@ -131,6 +138,13 @@ class Solver:
         tmp_prolog_statements += ":- assignment(X,Y,%s), X > %d.\n" % (goal_tile_id, goal_tile_max_x)
         tmp_prolog_statements += ":- assignment(X,Y,%s), Y < %d.\n" % (goal_tile_id, goal_tile_min_y)
         tmp_prolog_statements += ":- assignment(X,Y,%s), Y > %d.\n" % (goal_tile_id, goal_tile_max_y)
+
+        # Set perc level ranges (e.g. 50-100% tiles must come from level 1)
+        for level, tile_perc_range in self.perc_level_ranges.items():
+            min_tiles = int(tile_perc_range[0] / 100 * num_total_tiles)
+            max_tiles = int(tile_perc_range[1] / 100 * num_total_tiles)
+            level_perc_range_rule = "%d { level_assignment(L,X,Y) : tile(X,Y), L=\"%s\" } %d.\n" % (min_tiles, level, max_tiles)
+            tmp_prolog_statements += level_perc_range_rule
 
         # Force specified tiles to be reachable
         for x, y in self.reachable_tiles:
