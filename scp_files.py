@@ -2,16 +2,16 @@
 Transfer files to or from the ec2 instance
 """
 
+import os
+import re
 import argparse
 from utils import error_exit
 
-GAME_LEVEL_PAIRS = [
-    ('super_mario_bros', 'mario-1-1'),
-    ('super_mario_bros', 'mario-1-2'),
-    ('kid_icarus', 'kidicarus_1')
-]
-
 FILES = []
+DIRECTORIES = ['', 'model', 'model_maze', 'model_platformer', 'images']
+FILE_TYPES = ['py', 'png']
+
+INSTANCE_URL = "ec2-user@ec2-34-229-80-241.compute-1.amazonaws.com"
 
 
 def main(push, pull):
@@ -22,45 +22,29 @@ def main(push, pull):
     if not push and not pull:
         error_exit('Must specify --push or --pull')
 
-    # ----- Add Processed Level Files -----
+    files_transferred_count = 0
+    files_to_transfer = []
 
-    filepaths = []
+    # ----- Add all files (of the specified file types) from the specified directories -----
+    for directory in DIRECTORIES:
+        directory_path = os.path.join(os.getcwd(), directory)
+        files = os.listdir(directory_path)
 
-    for game, level in GAME_LEVEL_PAIRS:
-        filepaths.append('level_saved_files_block/enumerated_state_graphs/%s/%s.gpickle' % (game, level))
-        filepaths.append('level_saved_files_block/unique_metatiles/%s.pickle' % level)
-        filepaths.append('level_saved_files_block/metatile_coords_dicts/%s/%s.pickle' % (game, level))
-        filepaths.append('level_saved_files_block/id_metatile_maps/%s.pickle' % level)
-        filepaths.append('level_saved_files_block/metatile_id_maps/%s.pickle' % level)
-        filepaths.append('level_saved_files_block/tile_id_coords_maps/%s/%s.pickle' % (game, level))
-        filepaths.append('level_saved_files_block/metatile_num_states_dicts/%s.pickle' % level)
-        filepaths.append('level_saved_files_block/metatile_constraints/%s.pickle' % level)
-        filepaths.append('level_saved_files_block/prolog_files/%s.pl' % level)
-        filepaths.append('level_saved_files_block/prolog_files/all_prolog_info.pickle')
-
-    # ----- Add Other Specified Files -----
-
-    filepaths += FILES
-    filepaths = list(set(filepaths))
-    count = 0
+        for file in files:
+            for file_type in FILE_TYPES:
+                if re.match(r'[a-zA-z0-9_-]+\.%s' % file_type, file) is not None:
+                    files_to_transfer.append(os.path.join(directory, file))
 
     # ----- Transfer Files -----
+    for file in files_to_transfer:
+        local_path = "%s" % file
+        instance_path = "%s:/home/ec2-user/platformer/%s" % (INSTANCE_URL, file)
+        src = local_path if push else instance_path
+        dest = instance_path if push else local_path
+        os.system("scp -i platformer.pem %s %s\n" % (src, dest))
+        files_transferred_count += 1
 
-    for filepath in filepaths:
-        local_path = "%s" % filepath
-        instance_path = "ec2-user@ec2-34-229-80-241.compute-1.amazonaws.com:/home/ec2-user/platformer/%s" % filepath
-
-        if push:
-            transfer_str = "scp -i platformer.pem %s %s\n" % (local_path, instance_path)
-        elif pull:
-            transfer_str = "scp -i platformer.pem %s %s\n" % (instance_path, local_path)
-        else:
-            transfer_str = ""
-
-        print(transfer_str)
-        count += 1
-
-    print("total files: %d" % count)
+    print("Transfered Files: %d" % files_transferred_count)
 
 
 if __name__ == "__main__":
