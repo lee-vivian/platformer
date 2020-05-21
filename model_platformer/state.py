@@ -1,6 +1,7 @@
 """
 Player State Object
 """
+from model.level import TILE_DIM
 
 
 class StatePlatformer:
@@ -40,3 +41,25 @@ class StatePlatformer:
                                state_dict['onground'], state_dict['is_start'], state_dict['goal_reached'],
                                state_dict['hit_bonus_coord'], state_dict['is_dead'])
 
+    def to_prolog_contents(self):
+        prolog_contents = [
+            "%d+TX*%d" % (self.x, TILE_DIM),
+            "%d+TY*%d" % (self.y, TILE_DIM),
+            "%d" % self.movex,
+            "%d" % self.movey,
+            "%d" % self.onground,
+            "%d" % self.is_start,
+            "%d" % self.goal_reached,
+            "\"%s\"" % str(self.hit_bonus_coord),
+            "%d" % self.is_dead
+        ]
+        return ','.join(prolog_contents)
+
+    @staticmethod
+    def generic_prolog_contents(index=None):
+        generic_prolog_contents = [
+            "X", "Y", "MX", "MY", "OG", "IS", "GR", "HBC", "ID"
+        ]
+        index_str = "" if index is None else str(index)
+        generic_prolog_contents = [item + index_str for item in generic_prolog_contents]
+        return ','.join(generic_prolog_contents)
