@@ -8,10 +8,13 @@ import argparse
 from utils import error_exit
 
 FILES = []
-DIRECTORIES = ['', 'model', 'model_maze', 'model_platformer', 'images']
-FILE_TYPES = ['py', 'png']
+DIRECTORIES = []
+FILE_TYPES = []
 
-INSTANCE_URL = "ec2-user@ec2-34-229-80-241.compute-1.amazonaws.com"
+DIRECTORIES += ['', 'model', 'model_maze', 'model_platformer', 'images']
+FILE_TYPES += ['py', 'png']
+
+INSTANCE_URL = "ec2-user@ec2-100-24-26-91.compute-1.amazonaws.com"
 
 
 def main(push, pull):
@@ -24,6 +27,9 @@ def main(push, pull):
 
     files_transferred_count = 0
     files_to_transfer = []
+
+    # ----- Add all specified files -----
+    files_to_transfer += FILES
 
     # ----- Add all files (of the specified file types) from the specified directories -----
     for directory in DIRECTORIES:

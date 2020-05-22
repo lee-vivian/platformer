@@ -65,10 +65,6 @@ def main(tile_constraints_file, debug, print_pl):
     prolog_statements += vertical_adj_rule + "\n"
     prolog_statements += diagonal_adj_rule + "\n"
 
-    # Enforce symmetric legal adjacencies
-    symmetric_legal_adjacencies_rule = "legal(DX, DY, P1, P2) :- legal(IDX, IDY, P2, P1), IDX == -DX, IDY == -DY."
-    prolog_statements += symmetric_legal_adjacencies_rule + "\n"
-
     metatile_type_ids_map = {}
     for type in METATILE_TYPES:
         metatile_type_ids_map[type] = []  # {metatile_type: list-metatile-ids}
