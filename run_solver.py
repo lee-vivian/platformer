@@ -224,7 +224,7 @@ def main(prolog_file, config_file, max_sol, threads, print_level_stats, print_le
 
     # Get config filename
     config_filename = os.path.basename(config_file)
-    config_match = re.match(r'([a-zA-Z0-9_-]+).json', config_filename)
+    config_match = re.match(r'([.a-zA-Z0-9_-]+).json', config_filename)
     config_filename = config_match.group(1)
 
     # Create Solver object
