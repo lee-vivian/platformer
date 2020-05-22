@@ -14,6 +14,15 @@ import utils
 #   in the wild. Proceedings of the 12th International Conference on the Foundations of Digital Games, 68. ACM.
 
 
+if os.getenv('MAZE'):
+    print('***** USING MAZE RULES *****')
+    from model_maze.state import StateMaze as State
+
+else:
+    print('***** USING PLATFORMER RULES *****')
+    from model_platformer.state import StatePlatformer as State
+
+
 def parse_constraints_filepath(constraints_filename):
     match = re.match(r'([^/]+)/metatile_constraints/([a-zA-Z0-9_-]+).pickle', constraints_filename)
     level_saved_files_dir = match.group(1)
@@ -58,6 +67,9 @@ def main(tile_constraints_file, debug, print_pl):
     metatile_type_ids_map = {}
     for type in METATILE_TYPES:
         metatile_type_ids_map[type] = []  # {metatile_type: list-metatile-ids}
+
+    metatile_level_ids_map = {}
+
     start_state = None
     goal_state = None
 
@@ -71,30 +83,37 @@ def main(tile_constraints_file, debug, print_pl):
         metatile_type = tile_constraints.get('type')
         metatile_type_ids_map[metatile_type].append(tile_id)
 
+        metatile_levels = tile_constraints.get('levels')
+        for level in metatile_levels:
+            if metatile_level_ids_map.get(level) is None:
+                metatile_level_ids_map[level] = [tile_id]
+            else:
+                metatile_level_ids_map[level].append(tile_id)
+
         metatile_graph = nx.DiGraph(tile_constraints.get('graph'))
 
         # Create state and link rules based on metatile graph
 
         for edge in metatile_graph.edges():
-            src_state = eval(edge[0])
-            dest_state = eval(edge[1])
-            src_x, src_y, dest_x, dest_y = src_state['x'], src_state['y'], dest_state['x'], dest_state['y']
+            src_state = State.from_str(edge[0])
+            dest_state = State.from_str(edge[1])
+            src_state_contents = src_state.to_prolog_contents()
+            dest_state_contents = dest_state.to_prolog_contents()
 
-            state_rule = "state(%d+TX*%d, %d+TY*%d) :- assignment(TX,TY,%s)." % (src_x, TILE_DIM, src_y, TILE_DIM, tile_id)
-            link_rule = "link(%d+TX*%d, %d+TY*%d, %d+TX*%d, %d+TY*%d) :- assignment(TX,TY,%s)." % \
-                        (src_x, TILE_DIM, src_y, TILE_DIM, dest_x, TILE_DIM, dest_y, TILE_DIM, tile_id)
+            state_rule = "state(%s) :- assignment(TX,TY,%s)." % (src_state_contents, tile_id)
+            link_rule = "link(%s,%s) :- assignment(TX,TY,%s)." % (src_state_contents, dest_state_contents, tile_id)
             prolog_statements += state_rule + "\n"
             prolog_statements += link_rule + "\n"
 
             # Define start fact in prolog
-            if start_state is None and src_state['is_start']:
-                start_rule = "start(%d+TX*%d, %d+TY*%d) :- assignment(TX,TY,%s)." % (src_x, TILE_DIM, src_y, TILE_DIM, tile_id)
+            if start_state is None and src_state.is_start:
+                start_rule = "start(%s) :- assignment(TX,TY,%s)." % (src_state_contents, tile_id)
                 prolog_statements += start_rule + "\n"
                 start_state = src_state
 
             # Define goal fact in prolog
-            if goal_state is None and src_state['goal_reached']:
-                goal_rule = "goal(%d+TX*%d, %d+TY*%d) :- assignment(TX,TY,%s)." % (src_x, TILE_DIM, src_y, TILE_DIM, tile_id)
+            if goal_state is None and src_state.goal_reached:
+                goal_rule = "goal(%s) :- assignment(TX,TY,%s)." % (dest_state_contents, tile_id)
                 prolog_statements += goal_rule + "\n"
                 goal_state = src_state
 
@@ -107,8 +126,12 @@ def main(tile_constraints_file, debug, print_pl):
                                   "MT1 == %s, MT2 == %s." % (dx, dy, tile_id, adjacent_id)
                 prolog_statements += legal_statement + "\n"
 
-    # Link can only exist if the src and dest states exist, otherwise solution is not valid
-    link_exists_rule = ":- link(X1,Y1,X2,Y2), state(X1,Y1), not state(X2,Y2)."
+    generic_state = State.generic_prolog_contents()
+    generic_src_state = State.generic_prolog_contents(index=1)
+    generic_dest_state = State.generic_prolog_contents(index=2)
+
+    link_exists_rule = ":- link(%s,%s), state(%s), not state(%s)." % (generic_src_state, generic_dest_state,
+                                                                      generic_src_state, generic_dest_state)
     prolog_statements += link_exists_rule
 
     # Get block, start, and goal tile_ids
@@ -131,19 +154,22 @@ def main(tile_constraints_file, debug, print_pl):
     prolog_statements += "limit(%s, 1, 1).\n" % start_tile_id
 
     # Start state is inherently reachable
-    start_reachable_rule = "reachable(X,Y) :- start(X,Y)."
+    start_reachable_rule = "reachable(%s) :- start(%s)." % (generic_state, generic_state)
     prolog_statements += start_reachable_rule + "\n"
 
     # Goal state must be reachable
-    goal_reachable_rule = ":- goal(X,Y), not reachable(X,Y)."
+    goal_reachable_rule = ":- goal(%s), not reachable(%s)." % (generic_state, generic_state)
     prolog_statements += goal_reachable_rule + "\n"
 
     # State reachable rule
-    state_reachable_rule = "reachable(X2,Y2) :- link(X1,Y1,X2,Y2), state(X1,Y2), state(X2,Y2), reachable(X1,Y1)."
+    state_reachable_rule = "reachable(%s) :- link(%s,%s), state(%s), state(%s), reachable(%s)." % (generic_dest_state,
+                                                                                                   generic_src_state, generic_dest_state,
+                                                                                                   generic_src_state, generic_dest_state,
+                                                                                                   generic_src_state)
     prolog_statements += state_reachable_rule + "\n"
 
     # Tile reachable rule (only if state in top half of the tile is reachable)
-    reachable_tile_rule = "reachable_tile(X/%d,Y/%d) :- reachable(X,Y), Y\\%d <= %d/2." % (TILE_DIM, TILE_DIM, TILE_DIM, TILE_DIM)
+    reachable_tile_rule = "reachable_tile(X/T,Y/T) :- reachable(%s), Y\\T <= T/2, T=%d." % (generic_state, TILE_DIM)
     prolog_statements += reachable_tile_rule + "\n"
 
     # Ensure that bonus tiles can be collected
@@ -198,7 +224,8 @@ def main(tile_constraints_file, debug, print_pl):
         "start_tile_ids": [start_tile_id],
         "goal_tile_ids": [goal_tile_id],
         "bonus_tile_ids": [] if bonus_tile_id is None else [bonus_tile_id],
-        "one_way_platform_tile_ids": one_way_platform_tile_ids
+        "one_way_platform_tile_ids": one_way_platform_tile_ids,
+        "level_ids_map": metatile_level_ids_map
     }
 
     utils.write_pickle(all_prolog_info_filepath, all_prolog_info_map)

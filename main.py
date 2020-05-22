@@ -30,6 +30,8 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
             Level.print_structural_txt(game, level)
         if summary:
             Level.print_tile_summary(game, level)
+            Level.print_start_goal_tile_locations(game, level)
+            print("Num gaps: %d" % Level.get_num_gaps(game, level))
         exit(0)
 
     if process:

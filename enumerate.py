@@ -56,28 +56,29 @@ def enumerate_states(player_model, start_state, graph, action_set):
     start_state_str = start_state.to_str()
     graph.add_node(start_state_str)
 
-    unexplored_states = [start_state_str]
-    explored_states = []
+    unexplored_states = set([start_state_str])
+    explored_states = set()
 
     while len(unexplored_states) > 0:
-        cur_state_str = unexplored_states.pop(0)
-        explored_states.append(cur_state_str)
+        cur_state_str = unexplored_states.pop()
+        explored_states.add(cur_state_str)
+
+        cur_state = State.from_str(cur_state_str)
 
         for action in action_set:
-            cur_state = State.from_str(cur_state_str)
             next_state = player_model.next_state(state=cur_state, action=action)
             next_state_str = next_state.to_str()
             if next_state_str not in explored_states and next_state_str not in unexplored_states:
                 graph.add_node(next_state_str)
-                unexplored_states.append(next_state_str)
+                unexplored_states.add(next_state_str)
+
             if not graph.has_edge(cur_state_str, next_state_str):
-                cur_state_dict, next_state_dict = eval(cur_state_str), eval(next_state_str)
-                distance = euclidean_distance((cur_state_dict['x'], cur_state_dict['y']),
-                                              (next_state_dict['x'], next_state_dict['y']))
+                distance = euclidean_distance((cur_state.x, cur_state.y), (next_state.x, next_state.y))
                 graph.add_edge(cur_state_str, next_state_str, weight=distance, action=[action.to_str()])
             else:
                 graph.get_edge_data(cur_state_str, next_state_str)["action"].append(action.to_str())
 
+    print('graph size:', len(graph.nodes), len(graph.edges))
     return graph
 
 
