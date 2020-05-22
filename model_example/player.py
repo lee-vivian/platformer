@@ -92,7 +92,7 @@ class PlayerExample:
                     new_state.y += dy
 
         new_state.is_start = False
-        new_state.goal_reached = self.collide(new_state.x, new_state.y, self.level.get_goal_coords())
+        new_state.goal_reached = False if self.collide(new_state.x, new_state.y, self.level.get_goal_coords()) == None else True
 
         return new_state
 

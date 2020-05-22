@@ -1,6 +1,7 @@
 """
 Player State Object
 """
+from model.level import TILE_DIM
 
 
 class StateExample:
@@ -26,3 +27,21 @@ class StateExample:
     def from_str(string):
         state_dict = eval(string)
         return StateExample(state_dict['x'], state_dict['y'], state_dict['is_start'], state_dict['goal_reached'])
+
+    def to_prolog_contents(self):
+        prolog_contents = [
+            "%d+TX*%d" % (self.x, TILE_DIM),
+            "%d+TY*%d" % (self.y, TILE_DIM),
+            "%d" % self.is_start,
+            "%d" % self.goal_reached
+        ]
+        return ','.join(prolog_contents)
+
+    @staticmethod
+    def generic_prolog_contents(index=None):
+        generic_prolog_contents = [
+            "X", "Y", "IS", "GR"
+        ]
+        index_str = "" if index is None else str(index)
+        generic_prolog_contents = [item + index_str for item in generic_prolog_contents]
+        return ','.join(generic_prolog_contents)

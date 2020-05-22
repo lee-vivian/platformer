@@ -27,16 +27,16 @@ COLORS = {
 }
 
 # game specifics
-if os.getenv('MAZE'):
-    print('***** USING MAZE RULES *****')
+if os.getenv('MODEL') == 'MAZE':
+    print('***** USING MAZE MODEL *****')
     from model_maze.player import PlayerMaze as Player
     from model_maze.inputs import InputsMaze as Inputs
-elif os.getenv('EXAMPLE'):
-    print('***** USING EXAMPLE RULES *****')
+elif os.getenv('MODEL') == 'EXAMPLE':
+    print('***** USING EXAMPLE MODEL *****')
     from model_example.player import PlayerExample as Player
     from model_example.inputs import InputsExample as Inputs
 else:
-    print('***** USING PLATFORMER RULES *****')
+    print('***** USING PLATFORMER MODEL *****')
     from model_platformer.player import PlayerPlatformer as Player
     from model_platformer.inputs import InputsPlatformer as Inputs
 

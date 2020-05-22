@@ -14,13 +14,18 @@ import utils
 #   in the wild. Proceedings of the 12th International Conference on the Foundations of Digital Games, 68. ACM.
 
 
-if os.getenv('MAZE'):
-    print('***** USING MAZE RULES *****')
-    from model_maze.state import StateMaze as State
 
+# game specifics
+if os.getenv('MODEL') == 'MAZE':
+    print('***** USING MAZE MODEL *****')
+    from model_maze.state import StateMaze as State
+elif os.getenv('MODEL') == 'EXAMPLE':
+    print('***** USING EXAMPLE MODEL *****')
+    from model_example.state import StateExample as State
 else:
-    print('***** USING PLATFORMER RULES *****')
+    print('***** USING PLATFORMER MODEL *****')
     from model_platformer.state import StatePlatformer as State
+
 
 
 def parse_constraints_filepath(constraints_filename):

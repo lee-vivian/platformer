@@ -14,21 +14,22 @@ from model.level import Level
 from utils import get_filepath, euclidean_distance
 
 # game specifics
-if os.getenv('MAZE'):
-    print('***** USING MAZE RULES *****')
+if os.getenv('MODEL') == 'MAZE':
+    print('***** USING MAZE MODEL *****')
     from model_maze.player import PlayerMaze as Player
     from model_maze.state import StateMaze as State
     from model_maze.action import ActionMaze as Action
-elif os.getenv('EXAMPLE'):
-    print('***** USING EXAMPLE RULES *****')
+elif os.getenv('MODEL') == 'EXAMPLE':
+    print('***** USING EXAMPLE MODEL *****')
     from model_example.player import PlayerExample as Player
     from model_example.state import StateExample as State
     from model_example.action import ActionExample as Action
 else:
-    print('***** USING PLATFORMER RULES *****')
+    print('***** USING PLATFORMER MODEL *****')
     from model_platformer.player import PlayerPlatformer as Player
     from model_platformer.state import StatePlatformer as State
     from model_platformer.action import ActionPlatformer as Action
+
 
 
 def get_state_graph_file(game_name, level_name, player_img):

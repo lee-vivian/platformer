@@ -8,19 +8,19 @@ import argparse
 
 import utils
 
-ENVIRONMENTS = ['maze', 'example', 'platformer']
+MODELS = ['maze', 'example', 'platformer']
 
 
-def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score,
+def main(model, game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score,
          process, dimensions, structure, summary):
 
-    # Set environment variable
-    if environment not in ENVIRONMENTS:
-        utils.error_exit("invalid environment - environment must be one of %s" % str(ENVIRONMENTS))
-    if environment == 'maze':
-        os.environ['MAZE'] = "1"
-    elif environment == 'example':
-        os.environ['EXAMPLE'] = "1"
+    # Set model variable
+    if model not in MODELS:
+        utils.error_exit("invalid model - model must be one of %s" % str(MODELS))
+    if model == 'maze':
+        os.environ['MODEL'] = "MAZE"
+    elif model == 'example':
+        os.environ['MODEL'] = "EXAMPLE"
 
     if dimensions or structure or summary:
         from model.level import Level
@@ -73,7 +73,7 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process or play a level')
-    parser.add_argument('environment', type=str, help='platformer or maze')
+    parser.add_argument('model', type=str, help='Model: ' + ', '.join(MODELS))
     parser.add_argument('game', type=str, help='Name of the game')
     parser.add_argument('level', type=str, help='Name of the level')
     parser.add_argument('--player_img', type=str, help='Player image', default='block')
@@ -89,6 +89,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(args.environment, args.game, args.level, args.player_img,
+    main(args.model, args.game, args.level, args.player_img,
          args.use_graph, args.draw_all_labels, args.draw_dup_labels, args.draw_path, args.show_score,
          args.process, args.dimensions, args.structure, args.summary)
