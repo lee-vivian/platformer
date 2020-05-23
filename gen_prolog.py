@@ -134,6 +134,7 @@ def main(tile_constraints_file, debug, print_pl):
     block_tile_id = metatile_type_ids_map.get("block")[0]
     start_tile_id = metatile_type_ids_map.get("start")[0]
     goal_tile_id = metatile_type_ids_map.get("goal")[0]
+    hazard_tile_ids = metatile_type_ids_map.get("hazard")
 
     # Get bonus tile id if exists
     bonus_tile_ids = metatile_type_ids_map.get("bonus")
@@ -221,6 +222,7 @@ def main(tile_constraints_file, debug, print_pl):
         "goal_tile_ids": [goal_tile_id],
         "bonus_tile_ids": [] if bonus_tile_id is None else [bonus_tile_id],
         "one_way_platform_tile_ids": one_way_platform_tile_ids,
+        "hazard_tile_ids": hazard_tile_ids,
         "level_ids_map": metatile_level_ids_map
     }
 

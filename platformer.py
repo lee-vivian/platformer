@@ -95,10 +95,10 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
     # Level saved files
     state_graph_file = "level_saved_files_%s/enumerated_state_graphs/%s/%s.gpickle" % (player_img, game, level)
 
-    if game == "generated":
-        generated_state_graph_file = "level_saved_files_%s/generated_state_graphs/%s.gpickle" % (player_img, level)
+    if game == "generated" and os.path.exists("level_saved_files_%s/generated_level_paths/%s.pickle" % (player_img, level)):
+        generated_level_path_coords = read_pickle("level_saved_files_%s/generated_level_paths/%s.pickle" % (player_img, level))
     else:
-        generated_state_graph_file = None
+        generated_level_path_coords = None
 
     if use_graph and os.path.exists(state_graph_file):
         print("***** USING ENUMERATED STATE GRAPH *****")
@@ -130,6 +130,7 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
     goal_sprites = get_sprites(level_obj.get_goal_coords(), 'goal_tile.png')
     bonus_sprites = get_sprites(level_obj.get_bonus_coords(), 'bonus_tile.png')
     one_way_platform_sprites = get_sprites(level_obj.get_one_way_platform_coords(), 'one_way_block_tile.png')
+    hazard_sprites = get_sprites(level_obj.get_hazard_coords(), 'hazard_tile.png')
     collected_bonus_tile_coords_dict = {}
 
     # Camera
@@ -145,19 +146,21 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
         path_font_color = COLORS.get('GREEN')
         start_font_color = COLORS.get('BLUE')
         goal_font_color = COLORS.get('RED')
-        graph = None
-        path_coords = None
-        if os.path.exists(state_graph_file):
+
+        if generated_level_path_coords is not None:
+            path_coords = generated_level_path_coords
+            start_coord = generated_level_path_coords[0]
+            goal_coord = generated_level_path_coords[-1]
+
+        elif os.path.exists(state_graph_file):
             graph = nx.read_gpickle(state_graph_file)
-        elif generated_state_graph_file is not None and os.path.exists(generated_state_graph_file):
-            graph = nx.read_gpickle(generated_state_graph_file)
-        if graph is None:
-            error_exit("No state graph available to draw solution path")
-        else:
             shortest_path_dict = shortest_path_xy(graph)
             path_coords = shortest_path_dict.get("path_coords")
             start_coord = shortest_path_dict.get("start_coord")
             goal_coord = shortest_path_dict.get("goal_coord")
+
+        else:
+            error_exit("No enumeratd state graph available to draw solution path")
 
     # Input handling
     input_handler = Inputs()
@@ -211,7 +214,8 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
         entities_to_draw = []
         entities_to_draw += list(bonus_sprites)  # draw bonus tiles
         entities_to_draw += list(platform_sprites)  # draw platforms tiles
-        entities_to_draw += list(one_way_platform_sprites) # draw one-way platform tiles
+        entities_to_draw += list(one_way_platform_sprites)  # draw one-way platform tiles
+        entities_to_draw += list(hazard_sprites)
         entities_to_draw += list(player_list)  # draw player
         entities_to_draw += list(goal_sprites)  # draw goal tiles
 
@@ -239,6 +243,7 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
                     color = goal_font_color
                 else:
                     color = path_font_color
+                coord = eval(coord)
                 path_component = pygame.Rect(coord[0], coord[1], 2, 2)
                 path_component = camera.apply_to_rect(path_component)
                 pygame.draw.rect(world, color, path_component, 1)

@@ -217,7 +217,7 @@ def main(prolog_file, config_file, max_sol, threads, print_level_stats, print_le
     config = get_solver_config(config, prolog_file_info)
 
     # Create tile ids dictionary
-    tile_types = ['block', 'bonus', 'one_way_platform', 'start', 'goal']
+    tile_types = ['block', 'bonus', 'one_way_platform', 'start', 'goal', 'hazard']
     tile_ids = {}
     for tile_type in tile_types:
         tile_ids[tile_type] = prolog_file_info.get('%s_tile_ids' % tile_type)

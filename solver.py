@@ -73,6 +73,7 @@ class Solver:
         block_tile_id = self.tile_ids.get('block')[0]
         goal_tile_id = self.tile_ids.get('goal')[0]
         one_way_tile_ids = self.tile_ids.get('one_way_platform')
+        hazard_tile_ids = self.tile_ids.get('hazard')
 
         # Create one_way facts for one_way_platform tile assignments
         if len(one_way_tile_ids) > 0:
@@ -347,6 +348,9 @@ class Solver:
             self.stopwatch.start()  # start stopwatch
             print("----- VALIDATING -----")
 
+            player_img, prolog_filename = Solver.parse_prolog_filepath(self.prolog_file)
+            validate_log = []
+
             for answer_set_filename, model_str in self.generated_levels_dict.items():
 
                 # Create new graph for the solution model
@@ -370,7 +374,16 @@ class Solver:
                 target = str(Solver.get_fact_xy(goal_fact))
                 has_path = nx.has_path(graph, source=source, target=target)
 
-                print("%s: %s" % (answer_set_filename, "VALID" if has_path else "INVALID"))
+                # Save valid path to file
+                if has_path:
+                    path_coords = nx.dijkstra_path(graph, source=source, target=target)
+                    outfile = get_filepath("level_saved_files_%s/generated_level_paths" % player_img, "%s.pickle" % answer_set_filename)
+                    write_pickle(outfile, path_coords)
+
+                validate_log.append((answer_set_filename, "VALID" if has_path else "INVALID"))
+
+            for answer_set_filename, result in validate_log:
+                print("%s: %s" % (answer_set_filename, result))
 
             print(self.stopwatch.get_lap_time_str("Validation"))
             self.stopwatch.stop()

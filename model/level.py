@@ -14,8 +14,7 @@ TILE_CHARS = {
         ']': ['solid', 'right pipe', 'pipe'],
         'B': ['cannon top', 'cannon', 'solid', 'hazard'],
         'b': ['cannon bottom', 'cannon', 'solid'],
-        '#': ['solid', 'ground'],
-        'H': ['solid', 'damaging', 'hazard']
+        '#': ['solid', 'ground']
     },
     'bonus': {
         '?': ["solid","question block", "full question block"],
@@ -38,6 +37,9 @@ TILE_CHARS = {
     },
     'door': {
         'D': ['solid', 'openable', 'door']
+    },
+    'hazard': {
+        'H': ['solid', 'damaging', 'hazard']
     }
 }
 
@@ -48,7 +50,7 @@ MAX_HEIGHT = 600
 
 class Level:
 
-    def __init__(self, name, game, width, height, platform_coords, goal_coords, start_coord, bonus_coords, one_way_platform_coords):
+    def __init__(self, name, game, width, height, platform_coords, goal_coords, start_coord, bonus_coords, one_way_platform_coords, hazard_coords):
         self.name = name
         self.game = game
         self.width = width  # in px
@@ -58,6 +60,7 @@ class Level:
         self.start_coord = start_coord
         self.bonus_coords = bonus_coords
         self.one_way_platform_coords = one_way_platform_coords
+        self.hazard_coords = hazard_coords
 
     def get_name(self):
         return self.name
@@ -85,6 +88,9 @@ class Level:
 
     def get_one_way_platform_coords(self):
         return list(self.one_way_platform_coords)
+
+    def get_hazard_coords(self):
+        return list(self.hazard_coords)
 
     def get_all_possible_coords(self):
         return Level.all_possible_coords(self.width, self.height)
@@ -130,7 +136,7 @@ class Level:
             last_line = line.rstrip()
 
         for char in last_line:
-            if TILE_CHARS['empty'].get(char) is not None:
+            if TILE_CHARS['hazard'].get(char) is not None:
                 num_gaps += 1
         return num_gaps
 
@@ -209,4 +215,6 @@ class Level:
         return Level(name=level, game=game, width=level_w * TILE_DIM, height=level_h * TILE_DIM,  # in px
                      platform_coords=tile_coords_dict['block'], goal_coords=tile_coords_dict['goal'],
                      start_coord=tile_coords_dict['start'][0],
-                     bonus_coords=tile_coords_dict['bonus'], one_way_platform_coords=tile_coords_dict['one_way_platform'])
+                     bonus_coords=tile_coords_dict['bonus'],
+                     one_way_platform_coords=tile_coords_dict['one_way_platform'],
+                     hazard_coords=tile_coords_dict['hazard'])
