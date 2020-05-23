@@ -73,6 +73,7 @@ class Solver:
         block_tile_id = self.tile_ids.get('block')[0]
         goal_tile_id = self.tile_ids.get('goal')[0]
         one_way_tile_ids = self.tile_ids.get('one_way_platform')
+        hazard_tile_ids = self.tile_ids.get('hazard')
 
         # Create one_way facts for one_way_platform tile assignments
         if len(one_way_tile_ids) > 0:
