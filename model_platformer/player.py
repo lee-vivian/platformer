@@ -87,6 +87,13 @@ class PlayerPlatformer:
             elif new_state.movex > 0:
                 new_state.x += 1
 
+            # Handle hazard tile collisions
+            hazard_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_hazard_coords())
+            if hazard_collision_coord is not None:
+                new_state.is_dead = True
+                new_state.is_start = False
+                return new_state
+
             # Handle block tile collisions
             tile_collision_coord = self.collide(new_state.x, new_state.y,
                                                 self.level.get_platform_coords() +
@@ -132,6 +139,12 @@ class PlayerPlatformer:
                 new_state.y -= 1
             elif new_state.movey > 0:
                 new_state.y += 1
+
+            hazard_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_hazard_coords())
+            if hazard_collision_coord is not None:
+                new_state.is_dead = True
+                new_state.is_start = False
+                return new_state
 
             # Collide with one-way block tile from above
             block_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_platform_coords())

@@ -13,4 +13,3 @@ XS--------------------XXXXXXXX--XX---------------------SS-------------------EE--
 XS------------------XXXXXXXXXX--XXXX-------------------SS-----------------------------------------------[]----[]----<>-----SS---------EXXXXX-------------------X
 XS---*---------EE-XXXXXXXXXXXXE-XXXX-------EE---------E------E--E--------------------------------E-EE---[]----[]--E-[]-----SS---------XXXXXX---------E---------X
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXHHHXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXHHXXHHXXXXXXXXXXXXHHHHHHHXXXXXXXXHHXXXX
-
