@@ -30,7 +30,7 @@ class PlayerPlatformer:
         start_x, start_y = self.level.get_start_coord()
         start_x += self.half_player_w
         start_y += self.half_player_h
-        return StatePlatformer(x=start_x, y=start_y, movex=0, movey=self.gravity, onground=True, is_start=True,
+        return StatePlatformer(x=start_x, y=start_y, movex=0, movey=self.gravity, onground=False, is_start=True,
                                goal_reached=False, hit_bonus_coord=None, is_dead=False)
 
     def reset(self):
@@ -55,6 +55,9 @@ class PlayerPlatformer:
 
     def next_state(self, state, action):
         new_state = state.clone()
+        
+        new_state.is_start = False
+
         if new_state.goal_reached or new_state.is_dead:
             return new_state
 
@@ -76,6 +79,9 @@ class PlayerPlatformer:
 
         if action.jump and new_state.onground:
             new_state.movey = -self.max_vel
+
+        new_state.onground = False
+        new_state.hit_bonus_coord = None
 
         use_kid_icarus_rules = self.level.get_game() == "kid_icarus"
 
@@ -121,9 +127,6 @@ class PlayerPlatformer:
                 new_state.x = old_x
                 new_state.movex = 0
                 break
-
-        new_state.onground = False
-        new_state.hit_bonus_coord = None
 
         # Move in y direction
         for jj in range(abs(new_state.movey)):
@@ -176,8 +179,6 @@ class PlayerPlatformer:
                 new_state.y = self.level.get_height() - 1
                 new_state.is_dead = True
                 break
-
-        new_state.is_start = False
 
         # Check if goal reached
         goal_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_goal_coords())
