@@ -24,15 +24,20 @@ def main(state_graph_file, dot):
 
             nodedata = eval(node)
             nodeattr = ''
-            nodeattr += ' pos="%f,%f!"' % (nodedata['x'] / 1.5 + nodedata['movex'] / 6.0, nodedata['y'] / -3.0 + nodedata['movey'] / -8.0)
-            nodeattr += ' label="%d,%d;%d,%d"' % (nodedata['x'], nodedata['y'], nodedata['movex'], nodedata['movey'])
-            if nodedata['is_dead']:
+            if 'movex' in nodedata:
+                nodeattr += ' pos="%f,%f!"' % (nodedata['x'] / 1.5 + nodedata['movex'] / 6.0, nodedata['y'] / -3.0 + nodedata['movey'] / -8.0)
+                nodeattr += ' label="%d,%d;%d,%d"' % (nodedata['x'], nodedata['y'], nodedata['movex'], nodedata['movey'])
+            else:
+                nodeattr += ' pos="%f,%f!"' % (nodedata['x'] / 4, nodedata['y'] / -4)
+                nodeattr += ' label="%d,%d"' % (nodedata['x'], nodedata['y'])
+
+            if 'is_dead' in nodedata and nodedata['is_dead']:
                 nodeattr += ' style="filled" fillcolor="red"'
-            elif nodedata['is_start']:
+            elif 'is_start' in nodedata and nodedata['is_start']:
                 nodeattr += ' style="filled" fillcolor="blue"'
-            elif nodedata['goal_reached']:
+            elif 'goal_reached' in nodedata and nodedata['goal_reached']:
                 nodeattr += ' style="filled" fillcolor="green"'
-            elif nodedata['onground']:
+            elif 'onground' in nodedata and nodedata['onground']:
                 nodeattr += ' style="filled" fillcolor="lightgray"'
 
             print('  %s [%s ];' % (nodeid, nodeattr))
