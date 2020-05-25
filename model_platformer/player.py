@@ -103,7 +103,8 @@ class PlayerPlatformer:
             # Handle block tile collisions
             tile_collision_coord = self.collide(new_state.x, new_state.y,
                                                 self.level.get_platform_coords() +
-                                                self.level.get_bonus_coords())
+                                                self.level.get_bonus_coords() +
+                                                self.level.get_wall_coords())
 
             # kid icarus wrap
             if use_kid_icarus_rules:
@@ -150,7 +151,7 @@ class PlayerPlatformer:
                 return new_state
 
             # Collide with one-way block tile from above
-            block_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_platform_coords())
+            block_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_platform_coords() + self.level.get_wall_coords())
             bonus_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_bonus_coords())
             one_way_platform_tile_collision_coord = self.collide(new_state.x, new_state.y, self.level.get_one_way_platform_coords())
 

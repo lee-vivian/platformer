@@ -2,6 +2,8 @@
 Level Object
 """
 
+from utils import error_exit
+
 TILE_DIM = 40
 
 TILE_CHARS = {
@@ -40,6 +42,9 @@ TILE_CHARS = {
     },
     'hazard': {
         'H': ['solid', 'damaging', 'hazard']
+    },
+    'wall': {
+        'W': ['solid', 'border', 'wall']
     }
 }
 
@@ -50,7 +55,8 @@ MAX_HEIGHT = 600
 
 class Level:
 
-    def __init__(self, name, game, width, height, platform_coords, goal_coords, start_coord, bonus_coords, one_way_platform_coords, hazard_coords):
+    def __init__(self, name, game, width, height, platform_coords, goal_coords, start_coord, bonus_coords,
+                 one_way_platform_coords, hazard_coords, wall_coords):
         self.name = name
         self.game = game
         self.width = width  # in px
@@ -61,6 +67,7 @@ class Level:
         self.bonus_coords = bonus_coords
         self.one_way_platform_coords = one_way_platform_coords
         self.hazard_coords = hazard_coords
+        self.wall_coords = wall_coords
 
     def get_name(self):
         return self.name
@@ -91,6 +98,9 @@ class Level:
 
     def get_hazard_coords(self):
         return list(self.hazard_coords)
+
+    def get_wall_coords(self):
+        return list(self.wall_coords)
 
     def get_all_possible_coords(self):
         return Level.all_possible_coords(self.width, self.height)
@@ -128,18 +138,29 @@ class Level:
     @staticmethod
     def get_num_gaps(game, level):
         filepath = "level_structural_layers/%s/%s.txt" % (game, level)
-        last_line = None
         num_gaps = 0
+        floor_line = None
 
+        lines = []
         f = open(filepath, 'r')
         for line in f:
-            last_line = line.rstrip()
+            lines.append(line.rstrip())
 
-        for char in last_line:
+        for line in reversed(lines):
+            char_is_wall = [TILE_CHARS['wall'].get(char) is not None for char in line]
+            all_wall_chars = all(char_is_wall)
+            if not all_wall_chars:
+                floor_line = line  # first line (starting from the bottom) that is not all wall tiles
+                break
+
+        if floor_line is None:
+            error_exit("No floor line in file. Every line is composed of wall tiles only.")
+
+        for char in floor_line:
             if TILE_CHARS['hazard'].get(char) is not None:
                 num_gaps += 1
-        return num_gaps
 
+        return num_gaps
 
     @staticmethod
     def print_tile_summary(game, level):
@@ -217,4 +238,5 @@ class Level:
                      start_coord=tile_coords_dict['start'][0],
                      bonus_coords=tile_coords_dict['bonus'],
                      one_way_platform_coords=tile_coords_dict['one_way_platform'],
-                     hazard_coords=tile_coords_dict['hazard'])
+                     hazard_coords=tile_coords_dict['hazard'],
+                     wall_coords=tile_coords_dict['wall'])

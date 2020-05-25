@@ -131,6 +131,7 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
     bonus_sprites = get_sprites(level_obj.get_bonus_coords(), 'bonus_tile.png')
     one_way_platform_sprites = get_sprites(level_obj.get_one_way_platform_coords(), 'one_way_block_tile.png')
     hazard_sprites = get_sprites(level_obj.get_hazard_coords(), 'hazard_tile.png')
+    wall_sprites = get_sprites(level_obj.get_wall_coords(), 'block_tile.png')
     collected_bonus_tile_coords_dict = {}
 
     # Camera
@@ -216,6 +217,7 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
         entities_to_draw += list(platform_sprites)  # draw platforms tiles
         entities_to_draw += list(one_way_platform_sprites)  # draw one-way platform tiles
         entities_to_draw += list(hazard_sprites)
+        entities_to_draw += list(wall_sprites)
         entities_to_draw += list(player_list)  # draw player
         entities_to_draw += list(goal_sprites)  # draw goal tiles
 
