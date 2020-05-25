@@ -170,11 +170,6 @@ def main(tile_constraints_file, debug, print_pl):
     reachable_tile_rule = "reachable_tile(X/T,Y/T) :- reachable(%s), Y\\T <= T/2, T=%d." % (generic_state, TILE_DIM)
     prolog_statements += reachable_tile_rule + "\n"
 
-    # Ensure that bonus tiles can be collected
-    if bonus_tile_id is not None:
-        bonus_reachable_rule = ":- assignment(TX,TY,%s), not reachable_tile(TX,TY+1)." % bonus_tile_id
-        prolog_statements += bonus_reachable_rule + "\n"
-
     # Add one-way platform tile prolog rules
     one_way_platform_tile_ids = metatile_type_ids_map.get("one_way_platform")
 

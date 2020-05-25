@@ -31,6 +31,7 @@ class Solver:
         self.require_goal_on_ground = config.get('require_goal_on_ground')      # bool
         self.num_gaps_range = config.get('num_gaps_range')                      # (min, max)
         self.require_all_platforms_reachable = config.get('require_all_platforms_reachable')  # bool
+        self.require_all_bonus_tiles_reachable = config.get('require_all_bonus_tiles_reachable')  # bool
         self.tile_ids = tile_ids                                                # { tile_type: list-of-tile-ids }
         self.level_ids_map = level_ids_map                                      # { level: list-of-tile-ids }
         self.print_level_stats = print_level_stats
@@ -74,6 +75,7 @@ class Solver:
         block_tile_id = self.tile_ids.get('block')[0]
         goal_tile_id = self.tile_ids.get('goal')[0]
         one_way_tile_ids = self.tile_ids.get('one_way_platform')
+        bonus_tile_id = None if len(self.tile_ids.get('bonus')) == 0 else self.tile_ids.get('bonus')[0]
 
         # Add border tile rules if wall tiles exist
         if len(self.tile_ids.get('wall')) > 0:
@@ -90,13 +92,16 @@ class Solver:
                 wall_tile_id, self.level_w - 1, self.level_h - 1)
 
         # Ensure tiles above platforms are reachable if they are not block/bonus/goal tiles
-        exception_tile_ids = [block_tile_id, goal_tile_id]
-        if len(self.tile_ids.get('bonus')) > 0:
-            exception_tile_ids += [self.tile_ids.get('bonus')[0]]
-        exception_tile_assignments = ["not assignment(X,Y-1,%s)" % tile_id for tile_id in exception_tile_ids]
-        platform_reachable_rule = ":- assignment(X,Y,%s), not reachable_tile(X,Y-1), %s." % (
-            block_tile_id, ', '.join(exception_tile_assignments))
-        tmp_prolog_statements += platform_reachable_rule + "\n"
+        if self.require_all_platforms_reachable:
+            exception_tile_ids = [block_tile_id, goal_tile_id]
+            exception_tile_ids += [] if bonus_tile_id is None else [bonus_tile_id]
+            exception_tile_assignments = ["not assignment(X,Y-1,%s)" % tile_id for tile_id in exception_tile_ids]
+            tmp_prolog_statements += ":- assignment(X,Y,%s), not reachable_tile(X,Y-1), %s.\n" % (
+                block_tile_id, ', '.join(exception_tile_assignments))
+
+        # Ensure tiles below bonus tiles are reachable (ensure bonus tiles can be collected)
+        if self.require_all_bonus_tiles_reachable and bonus_tile_id is not None:
+                tmp_prolog_statements += ":- assignment(TX,TY,%s), not reachable_tile(TX,TY+1).\n" % bonus_tile_id
 
         # Create one_way facts for one_way_platform tile assignments
         if len(one_way_tile_ids) > 0:
