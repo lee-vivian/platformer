@@ -135,6 +135,7 @@ def main(tile_constraints_file, debug, print_pl):
     start_tile_id = metatile_type_ids_map.get("start")[0]
     goal_tile_id = metatile_type_ids_map.get("goal")[0]
     hazard_tile_ids = metatile_type_ids_map.get("hazard")
+    wall_tile_ids = metatile_type_ids_map.get("wall")
 
     # Get bonus tile id if exists
     bonus_tile_ids = metatile_type_ids_map.get("bonus")
@@ -174,7 +175,7 @@ def main(tile_constraints_file, debug, print_pl):
         bonus_reachable_rule = ":- assignment(TX,TY,%s), not reachable_tile(TX,TY+1)." % bonus_tile_id
         prolog_statements += bonus_reachable_rule + "\n"
 
-    # # Ensure that tiles above platforms are reachable if they are not block/bonus/goal tiles
+    # Ensure that tiles above platforms are reachable if they are not block/bonus/goal tiles
     exception_tile_ids = [block_tile_id, goal_tile_id]
     exception_tile_ids += [] if bonus_tile_id is None else [bonus_tile_id]
     exception_tile_assignments = ["not assignment(X,Y-1,%s)" % tile_id for tile_id in exception_tile_ids]
@@ -223,6 +224,7 @@ def main(tile_constraints_file, debug, print_pl):
         "bonus_tile_ids": [] if bonus_tile_id is None else [bonus_tile_id],
         "one_way_platform_tile_ids": one_way_platform_tile_ids,
         "hazard_tile_ids": hazard_tile_ids,
+        "wall_tile_ids": wall_tile_ids,
         "level_ids_map": metatile_level_ids_map
     }
 

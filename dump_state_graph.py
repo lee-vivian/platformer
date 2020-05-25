@@ -8,25 +8,58 @@ import networkx as nx
 import argparse
 
 
-def main(state_graph_file):
+def main(state_graph_file, dot):
 
     # Load in state graph
     state_graph = nx.read_gpickle(state_graph_file)
 
-    # Print
-    for node in state_graph.nodes:
-        print(node)
+    if dot:
+        print('digraph G {')
+        print('  node [ shape="circle" fixedsize="true" width="1" ];')
 
-    for node in state_graph.nodes:
-        print()
-        print(node)
-        for edge in state_graph.out_edges(node):
-            print(' ' * 10, '->', ','.join(state_graph.edges[edge]["action"]), '->', edge[1])
+        nodeids = {}
+        for nodei, node in enumerate(state_graph.nodes):
+            nodeid = 'n%d' % nodei
+            nodeids[node] = nodeid
+
+            nodedata = eval(node)
+            nodeattr = ''
+            nodeattr += ' pos="%f,%f!"' % (nodedata['x'] / 1.5 + nodedata['movex'] / 6.0, nodedata['y'] / -3.0 + nodedata['movey'] / -8.0)
+            nodeattr += ' label="%d,%d;%d,%d"' % (nodedata['x'], nodedata['y'], nodedata['movex'], nodedata['movey'])
+            if nodedata['is_dead']:
+                nodeattr += ' style="filled" fillcolor="red"'
+            elif nodedata['is_start']:
+                nodeattr += ' style="filled" fillcolor="blue"'
+            elif nodedata['goal_reached']:
+                nodeattr += ' style="filled" fillcolor="green"'
+            elif nodedata['onground']:
+                nodeattr += ' style="filled" fillcolor="lightgray"'
+
+            print('  %s [%s ];' % (nodeid, nodeattr))
+
+        for edge in state_graph.edges:
+            nodeid0 = nodeids[edge[0]]
+            nodeid1 = nodeids[edge[1]]
+            print('  %s -> %s;' % (nodeid0, nodeid1))
+
+        print('}')
+
+    else:
+        # Print
+        for node in state_graph.nodes:
+            print(node)
+
+        for node in state_graph.nodes:
+            print()
+            print(node)
+            for edge in state_graph.out_edges(node):
+                print(' ' * 10, '->', ','.join(state_graph.edges[edge]["action"]), '->', edge[1])
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Print state graph')
     parser.add_argument('state_graph_file', type=str, help="File path of the state graph to print")
+    parser.add_argument('--dot', const=True, nargs='?', type=bool, help="Output in dot format", default=False)
     args = parser.parse_args()
 
-    main(args.state_graph_file)
+    main(args.state_graph_file, args.dot)
