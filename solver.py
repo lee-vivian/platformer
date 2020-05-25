@@ -30,6 +30,7 @@ class Solver:
         self.require_start_on_ground = config.get('require_start_on_ground')    # bool
         self.require_goal_on_ground = config.get('require_goal_on_ground')      # bool
         self.num_gaps_range = config.get('num_gaps_range')                      # (min, max)
+        self.require_all_platforms_reachable = config.get('require_all_platforms_reachable')  # bool
         self.tile_ids = tile_ids                                                # { tile_type: list-of-tile-ids }
         self.level_ids_map = level_ids_map                                      # { level: list-of-tile-ids }
         self.print_level_stats = print_level_stats
@@ -87,6 +88,15 @@ class Solver:
             # Non-border tiles cannot be wall tiles
             tmp_prolog_statements += ":- assignment(X,Y,ID), tile(X,Y), ID==%s, X>0, X<%d, Y>0, Y<%d.\n" % (
                 wall_tile_id, self.level_w - 1, self.level_h - 1)
+
+        # Ensure tiles above platforms are reachable if they are not block/bonus/goal tiles
+        exception_tile_ids = [block_tile_id, goal_tile_id]
+        if len(self.tile_ids.get('bonus')) > 0:
+            exception_tile_ids += [self.tile_ids.get('bonus')[0]]
+        exception_tile_assignments = ["not assignment(X,Y-1,%s)" % tile_id for tile_id in exception_tile_ids]
+        platform_reachable_rule = ":- assignment(X,Y,%s), not reachable_tile(X,Y-1), %s." % (
+            block_tile_id, ', '.join(exception_tile_assignments))
+        tmp_prolog_statements += platform_reachable_rule + "\n"
 
         # Create one_way facts for one_way_platform tile assignments
         if len(one_way_tile_ids) > 0:

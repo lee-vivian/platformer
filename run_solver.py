@@ -179,6 +179,11 @@ def get_solver_config(config, prolog_file_info):
         min_gaps, max_gaps = setup_tile_freq_range('gap', min_gaps, max_gaps, num_gaps_min, num_gaps_max)
         num_gaps_range = (min_gaps, max_gaps)
 
+    # ----- SPECIFY IF ALL PLATFORM TILES MUST BE REACHABLE -----
+    require_all_platforms_reachable = False
+    if config.get('require_all_platforms_reachable') is not None:
+        require_all_platforms_reachable = eval(config['require_all_platforms_reachable'])
+
     return {
         'level_w': level_w,                                     # int
         'level_h': level_h,                                     # int
@@ -190,7 +195,8 @@ def get_solver_config(config, prolog_file_info):
         'tile_position_ranges': tile_position_ranges,           # { position: (min, max) }
         'require_start_on_ground': require_start_on_ground,     # bool
         'require_goal_on_ground': require_goal_on_ground,       # bool
-        'num_gaps_range': num_gaps_range                        # (min, max)
+        'num_gaps_range': num_gaps_range,                        # (min, max)
+        'require_all_platforms_reachable': require_all_platforms_reachable  # bool
     }
 
 

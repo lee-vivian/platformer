@@ -40,7 +40,8 @@
 
     "require_start_on_ground": "False",
     "require_goal_on_ground": "False",
-    "num_gaps_range": "(None, None)"
+    "num_gaps_range": "(None, None)",
+    "require_all_platforms_reachable": "False"
 
   }
 }
