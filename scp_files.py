@@ -7,12 +7,17 @@ import re
 import argparse
 from utils import error_exit
 
-FILES = ['config-mario-1-1.json', 'config-mario-1-2.json', 'config-mario-1-3.json']
+FILES = []
 DIRECTORIES = []
 FILE_TYPES = []
 
-DIRECTORIES += ['', 'model', 'model_maze', 'model_platformer', 'images', 'level_structural_layers/super_mario_bros']
-FILE_TYPES += ['py', 'png', 'txt']
+
+FILES += ['trial.py',
+          'config-mario-1-1-50.json', 'config-mario-1-1-100.json', 'config-mario-1-1-150.json',
+          'config-mario-1-2-50.json', 'config-mario-1-2-100.json', 'config-mario-1-2-150.json',
+          'config-mario-1-3-50.json', 'config-mario-1-3-100.json', 'config-mario-1-3-150.json']
+# DIRECTORIES += ['', 'model', 'model_maze', 'model_platformer', 'images', 'level_structural_layers/super_mario_bros']
+# FILE_TYPES += ['py', 'png', 'txt']
 
 INSTANCE_URL = "ec2-user@ec2-3-90-45-9.compute-1.amazonaws.com"
 

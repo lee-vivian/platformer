@@ -15,6 +15,6 @@ for level in levels:
     prolog_file = "level_saved_files_block/prolog_files/%s.pl" % level
     for w in solver_widths:
         config_file = "config-%s-%d.json" % (level, w)
-        os.system("python run_solver.py %s %s --max_sol %d --threads %d --save --validate > %s-%d.txt" % (
+        os.system("time python run_solver.py %s %s --max_sol %d --threads %d --save --validate > %s-%d.txt" % (
             prolog_file, config_file, max_sol, threads, level, w))
         print("Saved to: %s-%d.txt" % (level, w))
