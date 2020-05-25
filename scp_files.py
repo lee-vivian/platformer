@@ -7,14 +7,14 @@ import re
 import argparse
 from utils import error_exit
 
-FILES = []
+FILES = ['config-mario-1-1.json', 'config-mario-1-2.json', 'config-mario-1-3.json']
 DIRECTORIES = []
 FILE_TYPES = []
 
-DIRECTORIES += ['', 'model', 'model_maze', 'model_platformer', 'images']
-FILE_TYPES += ['py', 'png']
+DIRECTORIES += ['', 'model', 'model_maze', 'model_platformer', 'images', 'level_structural_layers/super_mario_bros']
+FILE_TYPES += ['py', 'png', 'txt']
 
-INSTANCE_URL = "ec2-user@ec2-100-24-26-91.compute-1.amazonaws.com"
+INSTANCE_URL = "ec2-user@ec2-3-90-45-9.compute-1.amazonaws.com"
 
 
 def main(push, pull):
