@@ -12,7 +12,7 @@ ENVIRONMENTS = ['maze', 'platformer']
 
 
 def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score,
-         process, dimensions, structure, summary):
+         process, dimensions, structure, summary, runtime):
 
     # Set environment variable
     if environment not in ENVIRONMENTS:
@@ -32,37 +32,87 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
             print("Num gaps: %d" % Level.get_num_gaps(game, level))
         exit(0)
 
+    if runtime:
+        import json
+
+        all_levels_process_info_file = utils.get_filepath("", "all_levels_process_info.pickle")
+        if not os.path.exists(all_levels_process_info_file):
+            utils.error_exit("%s file not found" % all_levels_process_info_file)
+        all_levels_process_info = utils.read_pickle(all_levels_process_info_file)
+
+        cur_game_level = "%s/%s" % (game, level)
+
+        for process_key, process_runtimes in all_levels_process_info.items():
+            if process_key == cur_game_level:
+                print("----- Process Script Runtimes -----")
+                print("Game: %s" % game)
+                print("Level: %s" % level)
+                print(json.dumps(process_runtimes, indent=2))
+                exit(0)
+
+        utils.error_exit("Process runtimes for level %s not found. Run 'python main.py <environment> %s %s --process'" % cur_game_level)
+
     if process:
+
+        # Load in file to record process script runtimes for the current level
+        all_levels_process_info_file = utils.get_filepath("", "all_levels_process_info.pickle")
+
+        if os.path.exists(all_levels_process_info_file):
+            all_levels_process_info = utils.read_pickle(all_levels_process_info_file)
+        else:
+            all_levels_process_info = {}
+
+        process_key = "%s/%s" % (game, level)
+        if all_levels_process_info.get(process_key) is None:
+            all_levels_process_info[process_key] = {}
+
+        process_runtimes = []
+
         import enumerate
-        state_graph_file = enumerate.main(game, level, player_img)
+        state_graph_file, runtime = enumerate.main(game, level, player_img)
+        process_runtimes.append(('enumerate', runtime))
 
         import extract_metatiles
-        unique_metatiles_file, metatile_coords_dict_file = extract_metatiles.main(save_filename=level,
-                                                                                  player_img=player_img,
-                                                                                  print_stats=False,
-                                                                                  state_graph_files=[state_graph_file])
+        unique_metatiles_file, metatile_coords_dict_file, runtime = extract_metatiles.main(save_filename=level,
+                                                                                           player_img=player_img,
+                                                                                           print_stats=False,
+                                                                                           state_graph_files=[state_graph_file])
+        process_runtimes.append(('extract_metatiles', runtime))
 
         import get_metatile_id_map
-        id_metatile_map_file, metatile_id_map_file = get_metatile_id_map.main(save_filename=level,
-                                                                              unique_metatiles_file=unique_metatiles_file,
-                                                                              player_img=player_img)
+        id_metatile_map_file, metatile_id_map_file, runtime = get_metatile_id_map.main(save_filename=level,
+                                                                                       unique_metatiles_file=unique_metatiles_file,
+                                                                                       player_img=player_img)
+        process_runtimes.append(('get_metatile_id_map', runtime))
 
         import get_tile_id_coords_map
-        get_tile_id_coords_map.main(game, level, metatile_coords_dict_file, metatile_id_map_file, player_img)
+        tile_id_extra_info_coords_map_file, runtime = get_tile_id_coords_map.main(game, level, metatile_coords_dict_file,
+                                                                                  metatile_id_map_file, player_img)
+        process_runtimes.append(('get_tile_id_coords_map', runtime))
 
         import get_states_per_metatile
-        get_states_per_metatile.main(save_filename=level, unique_metatiles_file=unique_metatiles_file,
-                                     player_img=player_img, print_stats=False)
+        runtime = get_states_per_metatile.main(save_filename=level, unique_metatiles_file=unique_metatiles_file,
+                                               player_img=player_img, print_stats=False)
+        process_runtimes.append(('get_states_per_metatile', runtime))
 
         import extract_constraints
-        metatile_constraints_file = extract_constraints.main(save_filename=level, metatile_id_map_file=metatile_id_map_file,
-                                                             id_metatile_map_file=id_metatile_map_file,
-                                                             metatile_coords_dict_files=[metatile_coords_dict_file],
-                                                             player_img=player_img)
+        metatile_constraints_file, runtime = extract_constraints.main(save_filename=level,
+                                                                      metatile_id_map_file=metatile_id_map_file,
+                                                                      id_metatile_map_file=id_metatile_map_file,
+                                                                      metatile_coords_dict_files=[metatile_coords_dict_file],
+                                                                      player_img=player_img)
+        process_runtimes.append(('extract_constraints', runtime))
 
         import gen_prolog
-        prolog_file = gen_prolog.main(tile_constraints_file=metatile_constraints_file, debug=False, print_pl=False)
+        prolog_file, runtime = gen_prolog.main(tile_constraints_file=metatile_constraints_file, debug=False, print_pl=False)
+        process_runtimes.append(('gen_prolog', runtime))
 
+        # Save process script runtimes for the level
+        for process_step, runtime_str in process_runtimes:
+            all_levels_process_info[process_key][process_step] = runtime_str
+
+        print("Saving process script runtimes...")
+        utils.write_pickle(all_levels_process_info_file, all_levels_process_info)
 
     else:
         import platformer
@@ -84,9 +134,10 @@ if __name__ == "__main__":
     parser.add_argument('--dimensions', const=True, nargs='?', type=bool, help="Get level dimensions in tiles (width, height)", default=False)
     parser.add_argument('--structure', const=True, nargs='?', type=bool, help="Print level txt structural layer", default=False)
     parser.add_argument('--summary', const=True, nargs='?', type=bool, help="Print level tile summmary stats", default=False)
+    parser.add_argument('--runtime', const=True, nargs='?', type=bool, help="Print process script runtimes", default=False)
 
     args = parser.parse_args()
 
     main(args.environment, args.game, args.level, args.player_img,
          args.use_graph, args.draw_all_labels, args.draw_dup_labels, args.draw_path, args.show_score,
-         args.process, args.dimensions, args.structure, args.summary)
+         args.process, args.dimensions, args.structure, args.summary, args.runtime)

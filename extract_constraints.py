@@ -120,10 +120,12 @@ def main(save_filename, metatile_id_map_file, id_metatile_map_file, metatile_coo
     tile_id_constraints_dict = populate_tile_id_constraints_adjacencies(tile_id_constraints_dict, coord_tile_ids_map)
 
     end_time = datetime.now()
-    print("Runtime: %s" % str(end_time-start_time))
+    runtime = str(end_time-start_time)
 
     write_pickle(metatile_constraints_file, tile_id_constraints_dict)
-    return metatile_constraints_file
+    print("Runtime: %s\n" % runtime)
+
+    return metatile_constraints_file, runtime
 
 
 if __name__ == "__main__":

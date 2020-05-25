@@ -53,9 +53,10 @@ def main(save_filename, unique_metatiles_file, player_img):
     write_pickle(metatile_id_map_file, metatile_id_map)
 
     end_time = datetime.now()
-    print("Runtime: %s" % str(end_time-start_time))
+    runtime = str(end_time-start_time)
+    print("Runtime: %s" % runtime)
 
-    return id_metatile_map_file, metatile_id_map_file
+    return id_metatile_map_file, metatile_id_map_file, runtime
 
 
 if __name__ == '__main__':

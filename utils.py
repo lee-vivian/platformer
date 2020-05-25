@@ -26,7 +26,7 @@ def get_directory(path):
 
 
 def get_filepath(directory, file):
-    dir = get_directory(directory)
+    dir = get_directory(directory) if directory != "" else ""
     return os.path.join(dir, file)
 
 

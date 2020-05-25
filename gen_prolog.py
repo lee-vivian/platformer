@@ -231,9 +231,10 @@ def main(tile_constraints_file, debug, print_pl):
     utils.write_pickle(all_prolog_info_filepath, all_prolog_info_map)
 
     end_time = datetime.now()
-    print("Runtime: %s" % str(end_time-start_time))
+    runtime = str(end_time-start_time)
+    print("Runtime: %s\n" % runtime)
 
-    return prolog_filepath
+    return prolog_filepath, runtime
 
 
 if __name__ == "__main__":

@@ -97,8 +97,9 @@ def main(game_name, level_name, player_img):
     build_state_graph(player_img, level_obj, state_graph_file)
 
     end_time = datetime.datetime.now()
-    print("Runtime: ", end_time - start_time, "\n")
-    return state_graph_file
+    runtime = str(end_time - start_time)
+    print("Runtime: %s\n" % runtime)
+    return state_graph_file, runtime
 
 
 if __name__ == "__main__":

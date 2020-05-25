@@ -33,9 +33,10 @@ def main(game, level, metatile_coords_dict_file, metatile_id_map_file, player_im
     write_pickle(tile_id_extra_info_coords_map_file, tile_id_extra_info_coords_map)
 
     end_time = datetime.now()
-    print("Runtime: ", end_time - start_time, "\n")
+    runtime = str(end_time-start_time)
+    print("Runtime: %s\n" % runtime)
 
-    return tile_id_extra_info_coords_map_file
+    return tile_id_extra_info_coords_map_file, runtime
 
 
 if __name__ == "__main__":

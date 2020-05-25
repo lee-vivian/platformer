@@ -47,10 +47,14 @@ def main(save_filename, unique_metatiles_file, player_img, print_stats):
     write_pickle(metatile_num_states_dict_file, metatile_num_states_dict)
 
     end_time = datetime.now()
-    print("Runtime: %s" % str(end_time-start_time))
+    runtime = str(end_time-start_time)
 
     if print_stats:
         print(get_metatile_num_states_stats(metatile_num_states_dict))
+
+    print("Runtime: %s\n" % runtime)
+
+    return runtime
 
 
 if __name__ == "__main__":

@@ -214,7 +214,8 @@ def main(save_filename, player_img, print_stats, state_graph_files):
     start_time = datetime.now()
     all_metatiles, unique_metatiles = extract_metatiles(state_graph_files, unique_metatiles_file, metatile_coords_dict_file)
     end_time = datetime.now()
-    print("Runtime: %s" % str(end_time-start_time))
+    runtime = str(end_time-start_time)
+    print("Runtime: %s\n" % runtime)
 
     # Calculate Level Metatile Stats
     if print_stats:
@@ -225,9 +226,9 @@ def main(save_filename, player_img, print_stats, state_graph_files):
         for key in key_order:
             print(key, ": ", metatile_stats_dict.get(key))
         end_time = datetime.now()
-        print("Runtime: %s" % str(end_time-start_time))
+        print("Runtime: %s\n" % str(end_time-start_time))
 
-    return unique_metatiles_file, metatile_coords_dict_file
+    return unique_metatiles_file, metatile_coords_dict_file, runtime
 
 
 if __name__ == "__main__":
