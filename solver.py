@@ -73,7 +73,15 @@ class Solver:
         block_tile_id = self.tile_ids.get('block')[0]
         goal_tile_id = self.tile_ids.get('goal')[0]
         one_way_tile_ids = self.tile_ids.get('one_way_platform')
-        hazard_tile_ids = self.tile_ids.get('hazard')
+        wall_tile_id = self.tile_ids.get('wall')[0]
+
+        # Border tiles must be wall tiles
+        tmp_prolog_statements += ":- assignment(X,Y,%s), tile(X,Y), X!=(0;%d).\n" % (wall_tile_id, self.level_w-1)
+        tmp_prolog_statements += ":- assignment(X,Y,%s), tile(X,Y), Y!=(0;%d).\n" % (wall_tile_id, self.level_h-1)
+
+        # Non-border tiles cannot be wall tiles
+        tmp_prolog_statements += ":- assignment(X,Y,ID), tile(X,Y), X=(0;%d), ID!=%s.\n" % (self.level_w-1, wall_tile_id)
+        tmp_prolog_statements += ":- assignment(X,Y,ID), tile(X,Y), Y=(0;%d), ID!=%s.\n" % (self.level_h-1, wall_tile_id)
 
         # Create one_way facts for one_way_platform tile assignments
         if len(one_way_tile_ids) > 0:
