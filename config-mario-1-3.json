@@ -1,0 +1,12 @@
+{
+  "config": {
+
+    "level_dimensions": {
+      "width": 152,
+      "height": 16
+    },
+    "require_all_platforms_reachable": "True",
+    "require_all_bonus_tiles_reachable": "True"
+
+  }
+}
