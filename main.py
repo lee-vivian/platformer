@@ -50,7 +50,7 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
                 print(json.dumps(process_runtimes, indent=2))
                 exit(0)
 
-        utils.error_exit("Process runtimes for level %s not found. Run 'python main.py <environment> %s %s --process'" % cur_game_level)
+        utils.error_exit("Run 'python main.py <environment> %s %s --process'" % (game, level))
 
     if process:
 
