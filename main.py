@@ -68,6 +68,10 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
 
         process_runtimes = []
 
+        print("---- Processing Level -----")
+        print("Game: %s" % game)
+        print("Level: %s" % level)
+
         import enumerate
         state_graph_file, runtime = enumerate.main(game, level, player_img)
         process_runtimes.append(('enumerate', runtime))
