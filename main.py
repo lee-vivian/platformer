@@ -6,6 +6,7 @@ B. Play a level [use python3 interpreter]
 import os
 import argparse
 
+from model.level import Level
 import utils
 
 ENVIRONMENTS = ['maze', 'platformer']
@@ -20,8 +21,11 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
     if environment == 'maze':
         os.environ['MAZE'] = "1"
 
+    # Make all level chars in txt layer uniform
+    print("----- Creating Uniform Txt Layer File -----")
+    Level.get_uniform_tile_chars(game, level)
+
     if dimensions or structure or summary:
-        from model.level import Level
         if dimensions:
             print(Level.get_level_dimensions_in_tiles(game, level))
         if structure:

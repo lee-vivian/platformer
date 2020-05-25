@@ -2,7 +2,7 @@
 Level Object
 """
 
-from utils import error_exit
+from utils import error_exit, write_file
 
 TILE_DIM = 40
 
@@ -190,6 +190,25 @@ class Level:
         f = open(filepath, 'r')
         structural_txt = f.read()
         print(structural_txt)
+
+    @staticmethod
+    def get_uniform_tile_chars(game, level):
+        filepath = "level_structural_layers/%s/%s.txt" % (game, level)
+        f = open(filepath, 'r')
+
+        uniform_chars = ""
+        for line in f:
+            line = line.rstrip()
+            for char in line:
+                for tile_type in TILE_CHARS.keys():
+                    tile_type_dict = TILE_CHARS.get(tile_type)
+                    match = tile_type_dict.get(char) is not None
+                    if match:
+                        uniform_char = list(tile_type_dict.keys())[0]  # use first char in tile type dictionary
+                        uniform_chars += uniform_char
+            uniform_chars += "\n"
+        write_file(filepath, uniform_chars)
+
 
     @staticmethod
     def generate_level_from_file(game, level):

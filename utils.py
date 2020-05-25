@@ -66,7 +66,7 @@ def write_file(filepath, statements):
     with open(filepath, 'w') as file:
         file.write("%s" % statements)
     file.close()
-    print("Saved to:", filepath)
+    print("Saved to: %s\n" % filepath)
     return filepath
 
 
