@@ -1,0 +1,16 @@
+{
+  "config": {
+
+    "level_dimensions": {
+      "width": 76,
+      "height": 17
+    },
+    "tile_position_ranges": {
+      "start_column": "(None, 0+9)",
+      "goal_column": "(76-9, None)"
+    },
+    "require_all_platforms_reachable": "True",
+    "require_all_bonus_tiles_reachable": "True"
+
+  }
+}

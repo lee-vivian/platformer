@@ -8,5 +8,6 @@ W-----------S?S?S------------W
 W----------------------------W
 W----------------------------W
 W*--------------------------!W
+WXXXX--XXXXXXXXXXXXXXX--XXXXXW
 WXXXXHHXXXXXXXXXXXXXXXHHXXXXXW
 WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
