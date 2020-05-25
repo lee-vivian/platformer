@@ -11,15 +11,33 @@ FILES = []
 DIRECTORIES = []
 FILE_TYPES = []
 
-
-FILES += ['trial.py',
-          'config-mario-1-1-50.json', 'config-mario-1-1-100.json', 'config-mario-1-1-150.json',
-          'config-mario-1-2-50.json', 'config-mario-1-2-100.json', 'config-mario-1-2-150.json',
-          'config-mario-1-3-50.json', 'config-mario-1-3-100.json', 'config-mario-1-3-150.json']
-# DIRECTORIES += ['', 'model', 'model_maze', 'model_platformer', 'images', 'level_structural_layers/super_mario_bros']
-# FILE_TYPES += ['py', 'png', 'txt']
+DIRECTORIES += ['', 'model', 'model_maze', 'model_platformer', 'images', 'solver_config',
+                'level_structural_layers/super_mario_bros']
+FILE_TYPES += ['py', 'png', 'txt', 'json']
 
 INSTANCE_URL = "ec2-user@ec2-3-90-45-9.compute-1.amazonaws.com"
+
+# # Pull solver generated levels from ec2 instance for specified training levels
+# LEVELS = ['mario-sample-gaps-border', 'mario-1-1', 'mario-1-2', 'mario-1-3']
+# WIDTHS = [50, 100, 150]
+# MAX_SOL = 2
+# for level in LEVELS:
+#     for width in WIDTHS:
+#         for sol in range(MAX_SOL):
+#             FILES += ['level_structural_layers/generated/%s_config-%s-%d_a%d.txt' % (level, level, width, sol)]
+#
+# # Write solver generated levels to combined txt file
+#
+# with open("generated_mario_levels.txt", 'w') as outfile:
+#     for file in FILES:
+#         if os.path.exists(file):
+#             outfile.write("Level: %s\n\n" % file)
+#             with open(file, 'r') as infile:
+#                 for line in infile:
+#                     outfile.write(line)
+#                 outfile.write("\n\n")
+#
+# exit(0)
 
 
 def main(push, pull):
