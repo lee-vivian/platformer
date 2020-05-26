@@ -11,14 +11,13 @@ FILES = []
 DIRECTORIES = []
 FILE_TYPES = []
 
-DIRECTORIES += ['', 'model', 'model_maze', 'model_platformer', 'images', 'solver_config',
-                'level_structural_layers/super_mario_bros']
+DIRECTORIES += ['', 'model', 'model_maze', 'model_platformer', 'images', 'level_structural_layers/super_mario_bros']
 FILE_TYPES += ['py', 'png', 'txt', 'json']
 
 INSTANCE_URL = "ec2-user@ec2-3-90-45-9.compute-1.amazonaws.com"
 
 # # Pull solver generated levels from ec2 instance for specified training levels
-# LEVELS = ['mario-sample-gaps-border', 'mario-1-1', 'mario-1-2', 'mario-1-3']
+# LEVELS = ['mario-1-1', 'mario-1-2', 'mario-1-3']
 # WIDTHS = [50, 100, 150]
 # MAX_SOL = 2
 # for level in LEVELS:
@@ -38,7 +37,6 @@ INSTANCE_URL = "ec2-user@ec2-3-90-45-9.compute-1.amazonaws.com"
 #                 outfile.write("\n\n")
 #
 # exit(0)
-
 
 def main(push, pull):
 

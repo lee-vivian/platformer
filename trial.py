@@ -6,6 +6,7 @@ import utils
 
 # SOLVER SPECIFICATIONS
 GAME = "super_mario_bros"
+# LEVELS = ['mario-sample-gaps-border']
 LEVELS = ["mario-1-1", "mario-1-2", "mario-1-3"]
 MAX_SOL = 2
 THREADS = 12

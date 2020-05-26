@@ -4,6 +4,7 @@ venv/
 level_structural_layers/
 level_screenshots/
 level_solution_paths/
+process_console_output/
 solver_console_output/
 related_works/
 solver_config/
