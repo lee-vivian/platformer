@@ -113,6 +113,26 @@ class Level:
         return level_w, level_h
 
     @staticmethod
+    def get_perc_tiles_map(game, level):
+        level_obj = Level.generate_level_from_file(game, level)
+        total_tiles = len(level_obj.get_all_possible_coords())
+        num_tiles_map = {
+            'block': len(level_obj.get_platform_coords()),
+            'bonus': len(level_obj.get_bonus_coords()),
+            'one_way_platform': len(level_obj.get_one_way_platform_coords()),
+            'hazard': len(level_obj.get_hazard_coords()),
+            'wall': len(level_obj.get_wall_coords())
+        }
+
+        perc_tiles_map = {}
+
+        for tile_type, count in num_tiles_map.items():
+            perc_tiles_map[tile_type] = int(count / total_tiles * 100)
+
+        return perc_tiles_map
+
+
+    @staticmethod
     def all_possible_coords(level_w, level_h):  # level_w and level_h in px
         coords = []
         for x in range(int(level_w / TILE_DIM)):
