@@ -67,7 +67,7 @@ Steps to generate 5 NxM sized levels from the level "example_level" in a platfor
 3. Run "python main.py platformer example_game example_level --process"  
 4. Make a copy of *config_basic_template.json* and save it as *config_example_level.json*
 5. Open *config_example_level.json* and set width and height to N and M, respectively. Save and close the file.
-6. Run "python run_solver.py level_saved_files_block/prolog_files/example_level.pl config_example_level.json --max_sol 5 --print_level --save"
+6. Run "python run_solver.py level_saved_files_block/prolog_files/example_level.pl config_example_level.json --max_sol 5 --print_level --save --validate"
 
 Generated levels are stored in the directory: "level_structural_layers/generated".  
 
@@ -75,6 +75,8 @@ To play the first generated level run "python main.py platformer generated examp
 
 
 ### VI. Putting It All Together with an Example (multiple training levels)
+
+*Instructions for this step are under construction. Skip this step for now.*
 
 Steps to generate 5 levels from 2 sample levels: super_mario_bros/mario-sample-left and super_mario_bros/mario-sample-right
 
