@@ -38,6 +38,7 @@ INSTANCE_URL = "ec2-user@ec2-3-90-45-9.compute-1.amazonaws.com"
 #
 # exit(0)
 
+
 def main(push, pull):
 
     if push == pull:
@@ -68,10 +69,11 @@ def main(push, pull):
         instance_path = "%s:/home/ec2-user/platformer/%s" % (INSTANCE_URL, file)
         src = local_path if push else instance_path
         dest = instance_path if push else local_path
-        os.system("scp -i platformer.pem %s %s\n" % (src, dest))
-        files_transferred_count += 1
+        transfer_status = os.system("scp -i platformer.pem %s %s\n" % (src, dest))
+        files_transferred_count += 1 if transfer_status == 0 else 0
 
-    print("Transfered Files: %d" % files_transferred_count)
+    print("Files to Transfer: %d" % len(files_to_transfer))
+    print("Transferred Files: %d" % files_transferred_count)
 
 
 if __name__ == "__main__":
