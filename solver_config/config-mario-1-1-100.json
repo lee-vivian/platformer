@@ -7,7 +7,7 @@
     },
     "tile_position_ranges": {
       "start_column": "(None, 0+9)",
-      "goal_column": "(204-9, None)"
+      "goal_column": "(204-10, None)"
     },
     "require_all_platforms_reachable": "True",
     "require_all_bonus_tiles_reachable": "True"
