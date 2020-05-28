@@ -21,7 +21,7 @@ Pygame, Python, Clingo
 
 - Run "conda activate platformer"
 
-- Run "conda install -c potassco clingo"
+- Run "conda install -c potassco clingo scikit-learn"
 
 - Run "python3 -m pip install -U pygame"
 
