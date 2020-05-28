@@ -41,6 +41,9 @@ def main(process, solve, max_sol, threads):
                 config_filename = re.match(r'([.a-zA-Z0-9_-]+).json', config_filename)
                 config_filename = config_filename.group(1)
                 solve_file = utils.get_filepath(solve_level_dir, "%s.txt" % config_filename)
+
+                print("Solve file: %s" % solve_file)
+
                 os.system("(time python run_solver.py %s %s --max_sol %d --threads %d --save --validate) > %s 2>&1" % (
                     prolog_file % level, config_file % level, max_sol, threads, solve_file
                 ))

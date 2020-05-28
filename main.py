@@ -13,7 +13,7 @@ ENVIRONMENTS = ['maze', 'platformer']
 
 
 def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score,
-         process, dimensions, structure, summary, runtime):
+         process, dimensions, structure, summary, runtime, exp_range):
 
     # Set environment variable
     if environment not in ENVIRONMENTS:
@@ -25,7 +25,7 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
     print("----- Creating Uniform Txt Layer File -----")
     Level.get_uniform_tile_chars(game, level)
 
-    if dimensions or structure or summary:
+    if dimensions or structure or summary or exp_range:
         if dimensions:
             print(Level.get_level_dimensions_in_tiles(game, level))
         if structure:
@@ -34,6 +34,9 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
             Level.print_tile_summary(game, level)
             Level.print_start_goal_tile_locations(game, level)
             print("Num gaps: %d" % Level.get_num_gaps(game, level))
+        if exp_range:
+            import expressive_range
+            expressive_range.main(game, level)
         exit(0)
 
     if runtime:
@@ -143,9 +146,10 @@ if __name__ == "__main__":
     parser.add_argument('--structure', const=True, nargs='?', type=bool, help="Print level txt structural layer", default=False)
     parser.add_argument('--summary', const=True, nargs='?', type=bool, help="Print level tile summmary stats", default=False)
     parser.add_argument('--runtime', const=True, nargs='?', type=bool, help="Print process script runtimes", default=False)
+    parser.add_argument('--exp_range', const=True, nargs='?', type=bool, help="Print level expressive range metrics", default=False)
 
     args = parser.parse_args()
 
     main(args.environment, args.game, args.level, args.player_img,
          args.use_graph, args.draw_all_labels, args.draw_dup_labels, args.draw_path, args.show_score,
-         args.process, args.dimensions, args.structure, args.summary, args.runtime)
+         args.process, args.dimensions, args.structure, args.summary, args.runtime, args.exp_range)
