@@ -16,7 +16,7 @@ from utils import get_directory, get_filepath, write_pickle, read_pickle, write_
 
 class Solver:
 
-    def __init__(self, prolog_file, config, config_filename, tile_ids, level_ids_map, print_level_stats, print_level, save, validate):
+    def __init__(self, prolog_file, config, config_filename, tile_ids, level_ids_map, print_level, save, validate):
         self.prolog_file = prolog_file
         self.config_filename = config_filename
         self.level_w = config.get('level_w')
@@ -34,7 +34,6 @@ class Solver:
         self.require_all_bonus_tiles_reachable = config.get('require_all_bonus_tiles_reachable')  # bool
         self.tile_ids = tile_ids                                                # { tile_type: list-of-tile-ids }
         self.level_ids_map = level_ids_map                                      # { level: list-of-tile-ids }
-        self.print_level_stats = print_level_stats
         self.print_level = print_level
         self.save = save
         self.validate = validate
@@ -268,25 +267,25 @@ class Solver:
             assignments_dict[(tile_x, tile_y)] = tile_id
         return assignments_dict  # {(tile_x, tile_y): tile_id}
 
-    def create_tile_id_coords_map(self, assignments_dict, player_img, answer_set_filename):
-        tile_id_coords_map = {}
-        for tile_coord, tile_id in assignments_dict.items():  # {(tile_x, tile_y): tile_id}
-            if tile_id_coords_map.get(tile_id) is None:
-                tile_id_coords_map[tile_id] = []
-            metatile_coord = (tile_coord[0] * TILE_DIM, tile_coord[1] * TILE_DIM)
-            tile_id_coords_map[tile_id].append(metatile_coord)
-
-        tile_id_coords_map_with_extra_info = {}
-        for tile_id, coords in tile_id_coords_map.items():
-            extra_info = "S" if len(coords) == 1 else ""
-            tile_id_coords_map_with_extra_info[(tile_id, extra_info)] = coords
-
-        if self.save:
-            tile_id_coords_map_dir = "level_saved_files_%s/tile_id_coords_maps/" % player_img
-            tile_id_coords_map_file = get_filepath(tile_id_coords_map_dir, "%s.pickle" % answer_set_filename)
-            write_pickle(tile_id_coords_map_file, tile_id_coords_map_with_extra_info)
-
-        return tile_id_coords_map_with_extra_info
+    # def create_tile_id_coords_map(self, assignments_dict, player_img, answer_set_filename):
+    #     tile_id_coords_map = {}
+    #     for tile_coord, tile_id in assignments_dict.items():  # {(tile_x, tile_y): tile_id}
+    #         if tile_id_coords_map.get(tile_id) is None:
+    #             tile_id_coords_map[tile_id] = []
+    #         metatile_coord = (tile_coord[0] * TILE_DIM, tile_coord[1] * TILE_DIM)
+    #         tile_id_coords_map[tile_id].append(metatile_coord)
+    #
+    #     tile_id_coords_map_with_extra_info = {}
+    #     for tile_id, coords in tile_id_coords_map.items():
+    #         extra_info = "S" if len(coords) == 1 else ""
+    #         tile_id_coords_map_with_extra_info[(tile_id, extra_info)] = coords
+    #
+    #     if self.save:
+    #         tile_id_coords_map_dir = "level_saved_files_%s/tile_id_coords_maps/" % player_img
+    #         tile_id_coords_map_file = get_filepath(tile_id_coords_map_dir, "%s.pickle" % answer_set_filename)
+    #         write_pickle(tile_id_coords_map_file, tile_id_coords_map_with_extra_info)
+    #
+    #     return tile_id_coords_map_with_extra_info
 
     def get_tile_char(self, tile_id):
         for tile_type, tile_ids in self.tile_ids.items():
@@ -319,29 +318,6 @@ class Solver:
         # Create assignments dictionary {(tile_x, tile_y): tile_id}
         assignments_dict = self.create_assignments_dict(model_str)
 
-        # Create {(tile_id, extra_info): coords} map
-        tile_id_extra_info_coords_map = self.create_tile_id_coords_map(assignments_dict, player_img, answer_set_filename)
-
-        # Print tiles per level
-        if self.print_level_stats:
-
-            # Initialize num tiles dictionary
-            num_tiles_dict = {'total': 0}  # total
-            for tile_type in self.tile_ids.keys():  # start, goal, block, bonus, one-way
-                num_tiles_dict[tile_type] = 0
-
-            # Update num tiles dictionary values
-            for (tile_id, extra_info), coords in tile_id_extra_info_coords_map.items():
-                len_coords = len(coords)
-                num_tiles_dict['total'] += len_coords  # update num total tiles
-
-                for tile_type, tile_ids in self.tile_ids.items():
-                    if tile_id in tile_ids:
-                        num_tiles_dict[tile_type] += len_coords  # update num <tile-type> tiles
-
-            for tile_type, count in num_tiles_dict.items():
-                print("%s tiles: %d (%d%%)" % (tile_type, count, count / num_tiles_dict['total'] * 100))
-
         # Create and save structural txt file for the generated level
         level_structural_txt = ""
         for row in range(self.level_h):
@@ -368,56 +344,60 @@ class Solver:
     def end_and_validate(self):
         self.stopwatch.stop()  # stop stopwatch
 
-        if not self.validate:
-            print("----- SUMMARY -----")
-            print("Levels generated: %d" % self.answer_set_count)
+        print("----- SUMMARY -----")
+        print("Levels generated: %d" % self.answer_set_count)
 
-        else:
-            self.stopwatch.start()  # start stopwatch
-            print("----- VALIDATING -----")
-
-            player_img, prolog_filename = Solver.parse_prolog_filepath(self.prolog_file)
-            validate_log = []
-
-            for answer_set_filename, model_str in self.generated_levels_dict.items():
-
-                # Create new graph for the solution model
-                graph = nx.Graph()
-
-                # Add reachable nodes
-                reachable_facts = Solver.get_facts_as_list(model_str, fact_name="reachable")
-                for reachable in reachable_facts:
-                    graph.add_node(str(Solver.get_fact_xy(reachable)))
-
-                # Add link edges
-                link_facts = Solver.get_facts_as_list(model_str, fact_name="link")
-                for link in link_facts:
-                    src_x, src_y, dest_x, dest_y = Solver.get_fact_xy_from_link(link)
-                    graph.add_edge(str((src_x, src_y)), str((dest_x, dest_y)))
-
-                # Check if valid path exists from start to goal
-                start_fact = Solver.get_facts_as_list(model_str, fact_name="start")[0]
-                goal_fact = Solver.get_facts_as_list(model_str, fact_name="goal")[0]
-                source = str(Solver.get_fact_xy(start_fact))
-                target = str(Solver.get_fact_xy(goal_fact))
-                has_path = nx.has_path(graph, source=source, target=target)
-
-                # Save valid path to file
-                if has_path:
-                    path_coords = nx.dijkstra_path(graph, source=source, target=target)
-                    outfile = get_filepath("level_saved_files_%s/generated_level_paths" % player_img, "%s.pickle" % answer_set_filename)
-                    write_pickle(outfile, path_coords)
-
-                validate_log.append((answer_set_filename, "VALID" if has_path else "INVALID"))
-
-            for answer_set_filename, result in validate_log:
-                print("%s: %s" % (answer_set_filename, result))
-
-            print(self.stopwatch.get_lap_time_str("Validation"))
-            self.stopwatch.stop()
-
-            print("----- SUMMARY -----")
-            print("Levels generated: %d" % self.answer_set_count)
+        # TODO update validate function
+        # if not self.validate:
+        #     print("----- SUMMARY -----")
+        #     print("Levels generated: %d" % self.answer_set_count)
+        #
+        # else:
+        #     self.stopwatch.start()  # start stopwatch
+        #     print("----- VALIDATING -----")
+        #
+        #     player_img, prolog_filename = Solver.parse_prolog_filepath(self.prolog_file)
+        #     validate_log = []
+        #
+        #     for answer_set_filename, model_str in self.generated_levels_dict.items():
+        #
+        #         # Create new graph for the solution model
+        #         graph = nx.Graph()
+        #
+        #         # Add reachable nodes
+        #         reachable_facts = Solver.get_facts_as_list(model_str, fact_name="reachable")
+        #         for reachable in reachable_facts:
+        #             graph.add_node(str(Solver.get_fact_xy(reachable)))
+        #
+        #         # Add link edges
+        #         link_facts = Solver.get_facts_as_list(model_str, fact_name="link")
+        #         for link in link_facts:
+        #             src_x, src_y, dest_x, dest_y = Solver.get_fact_xy_from_link(link)
+        #             graph.add_edge(str((src_x, src_y)), str((dest_x, dest_y)))
+        #
+        #         # Check if valid path exists from start to goal
+        #         start_fact = Solver.get_facts_as_list(model_str, fact_name="start")[0]
+        #         goal_fact = Solver.get_facts_as_list(model_str, fact_name="goal")[0]
+        #         source = str(Solver.get_fact_xy(start_fact))
+        #         target = str(Solver.get_fact_xy(goal_fact))
+        #         has_path = nx.has_path(graph, source=source, target=target)
+        #
+        #         # Save valid path to file
+        #         if has_path:
+        #             path_coords = nx.dijkstra_path(graph, source=source, target=target)
+        #             outfile = get_filepath("level_saved_files_%s/generated_level_paths" % player_img, "%s.pickle" % answer_set_filename)
+        #             write_pickle(outfile, path_coords)
+        #
+        #         validate_log.append((answer_set_filename, "VALID" if has_path else "INVALID"))
+        #
+        #     for answer_set_filename, result in validate_log:
+        #         print("%s: %s" % (answer_set_filename, result))
+        #
+        #     print(self.stopwatch.get_lap_time_str("Validation"))
+        #     self.stopwatch.stop()
+        #
+        #     print("----- SUMMARY -----")
+        #     print("Levels generated: %d" % self.answer_set_count)
 
         return True
 

@@ -204,7 +204,7 @@ def get_solver_config(config, prolog_file_info):
     }
 
 
-def main(prolog_file, config_file, max_sol, threads, print_level_stats, print_level, save, validate):
+def main(prolog_file, config_file, max_sol, threads, print_level, save, validate):
 
     if not os.path.exists(prolog_file):
         error_exit("prolog_file does not exist: %s" % prolog_file)
@@ -243,7 +243,6 @@ def main(prolog_file, config_file, max_sol, threads, print_level_stats, print_le
                     config_filename=config_filename,
                     tile_ids=tile_ids,
                     level_ids_map=prolog_file_info.get('level_ids_map'),
-                    print_level_stats=print_level_stats,
                     print_level=print_level,
                     save=save,
                     validate=validate)
@@ -265,11 +264,10 @@ if __name__ == "__main__":
     parser.add_argument('config_file', type=str, help="File path of the json file to use to specify design decisions")
     parser.add_argument('--max_sol', type=int, default=1, help="Max number of answer sets to return")
     parser.add_argument('--threads', type=int, default=1, help="Number of threads to run the solver on")
-    parser.add_argument('--print_level_stats', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--print_level', const=True, nargs='?', type=bool, default=False, help="Print structural txt layer of generated levels")
     parser.add_argument('--save', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--validate', const=True, nargs='?', type=bool, default=False, help="Validate generated levels")
     args = parser.parse_args()
 
     main(prolog_file=args.prolog_file, config_file=args.config_file, max_sol=args.max_sol, threads=args.threads,
-         print_level_stats=args.print_level_stats, print_level=args.print_level, save=args.save, validate=args.validate)
+         print_level=args.print_level, save=args.save, validate=args.validate)
