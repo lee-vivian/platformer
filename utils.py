@@ -3,6 +3,7 @@ import json
 import pickle
 import networkx as nx
 from math import sqrt, pow
+import re
 
 
 def error_exit(msg):
@@ -113,6 +114,13 @@ def euclidean_distance(coord_a, coord_b):
 
 def get_all_indices(item, list):
     return [i for i, x in enumerate(list) if x == item]
+
+
+def get_basepath_filename(filepath, extension):
+    filename = os.path.basename(filepath)
+    filename = re.match(r'([.a-zA-Z0-9_-]+).%s' % extension, filename)
+    filename = filename.group(1)
+    return filename
 
 # def state_in_metatile(metatile_coord, state_coord, half_player_w, half_player_h, tile_dim):
 #     return metatile_coord == metatile_coord_from_state_coord(state_coord, half_player_w, half_player_h, tile_dim)
