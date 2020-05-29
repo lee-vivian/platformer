@@ -6,15 +6,15 @@
       "height": 17
     },
     "tile_position_ranges": {
-      "start_column": "(None, 0+9)",
-      "goal_column": "(80-10, None)"
+      "start_column": "(None, 9)",
+      "goal_column": "(70, None)"
     },
     "require_all_platforms_reachable": "False",
-    "require_all_bonus_tiles_reachable": "False",
+    "require_all_bonus_tiles_reachable": "True",
 
     "num_tile_ranges": {
-      "block": "(255,382)",
-      "bonus": "(4,6)",
+      "block": "(246,368)",
+      "bonus": "(4,5)",
       "hazard": "(6,10)"
     }
 
