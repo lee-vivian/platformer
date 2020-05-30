@@ -53,7 +53,8 @@ def main(process, solve, max_sol, threads):
                 answer_set_filepath_format += "_".join([prolog_filename, config_filename, "a%d.txt"])
                 if os.path.exists(answer_set_filepath_format % 0):
                     os.system("mv %s %s" % (answer_set_filepath_format % 0, answer_set_filepath_format % sol))
-                print("Level path: %s" % answer_set_filepath_format % sol)
+                if os.path.exists(answer_set_filepath_format % sol):
+                    print("Level path: %s" % answer_set_filepath_format % sol)
 
 
 if __name__ == "__main__":
