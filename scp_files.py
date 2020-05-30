@@ -53,7 +53,7 @@ def merge_txt_files(level_filepaths, filename):
     print("Saved to: %s" % filename)
 
 
-def get_files_to_transfer(files, dirs, file_types):
+def get_local_files_to_transfer(files, dirs, file_types):
     files_to_transfer = []
 
     # ----- Add all specified files -----
@@ -86,6 +86,16 @@ def transfer_files(files, push, pull):
     print("Files %s-ed: %d" % (action_str, files_transferred_count))
 
 
+def pull_directories(dirs):
+    directories_pulled = 0
+    for directory in dirs:
+        instance_path = "%s:/home/ec2-user/platformer/%s/" % (INSTANCE_URL, directory)
+        local_path = "%s/" % directory
+        status = os.system("scp -r -i platformer.pem %s %s\n" % (instance_path, local_path))
+        directories_pulled += 1 if status == 0 else 0
+    print("Dirs PULL-ed: %d" % directories_pulled)
+
+
 def main(files, dirs, file_types, push, pull):
 
     if push == pull:
@@ -94,13 +104,17 @@ def main(files, dirs, file_types, push, pull):
     if not push and not pull:
         error_exit('Must specify --push or --pull')
 
-    files_to_transfer = get_files_to_transfer(files, dirs, file_types)
+    if push:
+        files_to_transfer = get_local_files_to_transfer(files, dirs, file_types)
+        transfer_files(files_to_transfer, push=True, pull=False)
+
+    if pull:
+        files_to_transfer = files
+        transfer_files(files_to_transfer, push=False, pull=True)
+        pull_directories(dirs)
 
     # generated_level_files = get_generated_level_filepaths()
     # files_to_transfer += generated_level_files
-
-    transfer_files(files_to_transfer, push, pull)
-
     # merge_txt_files(generated_level_files, "combine_mario-1-1.txt")
 
 
