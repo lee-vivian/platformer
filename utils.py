@@ -63,6 +63,14 @@ def write_pickle(filepath, contents):
     return filepath
 
 
+def read_txt(filepath):
+    contents = ""
+    with open(filepath, 'r') as file:
+        for line in file:
+            contents += line
+    return contents
+
+
 def write_file(filepath, statements):
     with open(filepath, 'w') as file:
         file.write("%s" % statements)
@@ -121,6 +129,24 @@ def get_basepath_filename(filepath, extension):
     filename = re.match(r'([.a-zA-Z0-9_-]+).%s' % extension, filename)
     filename = filename.group(1)
     return filename
+
+
+def create_generated_level_path_txt(generated_levels):
+    generated_level_file_format = 'level_structural_layers/generated/%s.txt'
+    generated_paths_file_format = 'level_saved_files_block/generated_level_paths/%s.pickle'
+    for level in generated_levels:
+        outfile = "path_%s.txt" % level
+        generated_level_txt = read_txt(generated_level_file_format % level)
+        generated_path_coords = read_pickle(generated_paths_file_format % level)
+
+        contents = "----- Level: %s -----\n\n" % level
+        contents += "----- Structure -----\n"
+        contents += generated_level_txt + "\n"
+        contents += "----- Solution Path State Coords -----\n"
+        contents += " => ".join(generated_path_coords)
+
+        write_file(outfile, contents)
+
 
 # def state_in_metatile(metatile_coord, state_coord, half_player_w, half_player_h, tile_dim):
 #     return metatile_coord == metatile_coord_from_state_coord(state_coord, half_player_w, half_player_h, tile_dim)
