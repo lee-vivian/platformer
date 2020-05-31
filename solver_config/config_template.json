@@ -15,8 +15,6 @@
       "one_way_platform": "[(x,y)]"
     },
 
-    "reachable_tiles": "[(x1,x2), (x2,y2)]",
-
     "num_tile_ranges": {
       "bonus": "(None, None)",
       "one_way_platform": "(None, None)"

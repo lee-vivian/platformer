@@ -4,15 +4,16 @@ Solver Object
 
 import clingo
 import re
+import os
 import networkx as nx
 import random
 from datetime import datetime
 
 from model.metatile import Metatile
 from model.level import TILE_DIM, TILE_CHARS
+from model_platformer.state import StatePlatformer as State
 from stopwatch import Stopwatch
 from utils import get_directory, get_filepath, write_pickle, read_pickle, write_file, error_exit, get_node_at_coord, get_unique_lines
-
 
 class Solver:
 
@@ -22,7 +23,6 @@ class Solver:
         self.level_w = config.get('level_w')
         self.level_h = config.get('level_h')
         self.forced_tiles = config.get('forced_tiles')                          # {type: list-of-tile-coords}
-        self.reachable_tiles = config.get('reachable_tiles')                    # list-of-tile-coords
         self.num_tile_ranges = config.get('num_tile_ranges')                    # { type: (min, max) }
         self.perc_tile_ranges = config.get('perc_tile_ranges')                  # { type: (min, max) }
         self.perc_level_ranges = config.get('perc_level_ranges')                # { level: (min, max) }
@@ -90,17 +90,18 @@ class Solver:
             tmp_prolog_statements += ":- assignment(X,Y,ID), tile(X,Y), ID==%s, X>0, X<%d, Y>0, Y<%d.\n" % (
                 wall_tile_id, self.level_w - 1, self.level_h - 1)
 
-        # Ensure tiles above platforms are reachable if they are not block/bonus/goal tiles
-        if self.require_all_platforms_reachable:
-            exception_tile_ids = [block_tile_id, goal_tile_id]
-            exception_tile_ids += [] if bonus_tile_id is None else [bonus_tile_id]
-            exception_tile_assignments = ["not assignment(X,Y-1,%s)" % tile_id for tile_id in exception_tile_ids]
-            tmp_prolog_statements += ":- assignment(X,Y,%s), not reachable_tile(X,Y-1), %s.\n" % (
-                block_tile_id, ', '.join(exception_tile_assignments))
+        # Add rules for enforcing reachable states
+        generic_state = State.generic_prolog_contents()
 
-        # Ensure tiles below bonus tiles are reachable (ensure bonus tiles can be collected)
-        if self.require_all_bonus_tiles_reachable and bonus_tile_id is not None:
-                tmp_prolog_statements += ":- assignment(TX,TY,%s), not reachable_tile(TX,TY+1).\n" % bonus_tile_id
+        if self.require_all_platforms_reachable:
+            tmp_prolog_statements += ":- state(%s), not reachable(%s), %s.\n" % (
+                generic_state, generic_state, State.generic_ground_reachability_expression()
+            )
+
+        if self.require_all_bonus_tiles_reachable:
+            tmp_prolog_statements += ":- state(%s), not reachable(%s), %s.\n" % (
+                generic_state, generic_state, State.generic_bonus_reachability_expression()
+            )
 
         # Create one_way facts for one_way_platform tile assignments
         if len(one_way_tile_ids) > 0:
@@ -173,10 +174,6 @@ class Solver:
             max_tiles = int(tile_perc_range[1] / 100 * num_total_tiles)
             level_perc_range_rule = "%d { level_assignment(L,X,Y) : tile(X,Y), L=\"%s\" } %d.\n" % (min_tiles, level, max_tiles)
             tmp_prolog_statements += level_perc_range_rule
-
-        # Force specified tiles to be reachable
-        for x, y in self.reachable_tiles:
-            tmp_prolog_statements += ":- not reachable_tile(%d,%d).\n" % (x, y)
 
         # Set num tile ranges
         for tile_type, tile_range in self.num_tile_ranges.items():

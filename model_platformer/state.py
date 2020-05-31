@@ -66,7 +66,7 @@ class StatePlatformer:
 
     @staticmethod
     def generic_bonus_reachability_expression():
-        return "HBC != \"\""
+        return "HBC == ('N';'NE','NW')"
 
     @staticmethod
     def generic_ground_reachability_expression():
