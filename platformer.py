@@ -208,10 +208,15 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
         if hit_bonus_coord is not '':
             hit_bonus_coord_x = player_model.state.x // TILE_DIM
             hit_bonus_coord_y = player_model.state.y // TILE_DIM - 1
-            if hit_bonus_coord == 'NE':
+            if hit_bonus_coord == 'N':
+                pass
+            elif hit_bonus_coord == 'NE':
                 hit_bonus_coord_x += 1
             elif hit_bonus_coord == 'NW':
                 hit_bonus_coord_x -= 1
+            else:
+                error_exit("unrecognized hit bonus coord")
+
             hit_bonus_coord_xy = (hit_bonus_coord_x * TILE_DIM, hit_bonus_coord_y * TILE_DIM)
 
             if hit_bonus_coord_xy not in level_obj.get_bonus_coords():
