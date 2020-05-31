@@ -29,7 +29,7 @@ class StatePlatformer:
         string += "'onground': " + str(self.onground) + ", "
         string += "'is_start': " + str(self.is_start) + ", "
         string += "'goal_reached': " + str(self.goal_reached) + ", "
-        string += "'hit_bonus_coord': " + str(self.hit_bonus_coord) + ", "
+        string += "'hit_bonus_coord': '" + str(self.hit_bonus_coord) + "', "
         string += "'is_dead': " + str(self.is_dead)
         string += "}"
         return string
@@ -50,7 +50,7 @@ class StatePlatformer:
             "%d" % self.onground,
             "%d" % self.is_start,
             "%d" % self.goal_reached,
-            "\"%s\"" % str(self.hit_bonus_coord),
+            "\"%s\"" % self.hit_bonus_coord,
             "%d" % self.is_dead
         ]
         return ','.join(prolog_contents)

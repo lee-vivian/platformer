@@ -161,7 +161,7 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
             goal_coord = shortest_path_dict.get("goal_coord")
 
         else:
-            error_exit("No enumeratd state graph available to draw solution path")
+            error_exit("No enumerated state graph available to draw solution path")
 
     # Input handling
     input_handler = Inputs()
@@ -205,9 +205,21 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
         # Update the current score
         hit_bonus_coord = player_model.get_hit_bonus_coord()
 
-        if hit_bonus_coord is not None and collected_bonus_tile_coords_dict.get(hit_bonus_coord) is None:
-            collected_bonus_tile_coords_dict[hit_bonus_coord] = 1
-            platform_sprites.add(Tile(hit_bonus_coord[0], hit_bonus_coord[1], 'block_tile.png'))
+        if hit_bonus_coord is not '':
+            hit_bonus_coord_x = player_model.state.x // TILE_DIM
+            hit_bonus_coord_y = player_model.state.y // TILE_DIM - 1
+            if hit_bonus_coord == 'NE':
+                hit_bonus_coord_x += 1
+            elif hit_bonus_coord == 'NW':
+                hit_bonus_coord_x -= 1
+            hit_bonus_coord_xy = (hit_bonus_coord_x * TILE_DIM, hit_bonus_coord_y * TILE_DIM)
+
+            if hit_bonus_coord_xy not in level_obj.get_bonus_coords():
+                error_exit("hit bonus tile that is not there: " + str(hit_bonus_coord_xy))
+
+            if collected_bonus_tile_coords_dict.get(hit_bonus_coord_xy) is None:
+                collected_bonus_tile_coords_dict[hit_bonus_coord_xy] = 1
+                platform_sprites.add(Tile(hit_bonus_coord_xy[0], hit_bonus_coord_xy[1], 'block_tile.png'))
 
         score = len(collected_bonus_tile_coords_dict) * 10
 

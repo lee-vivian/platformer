@@ -31,7 +31,7 @@ class PlayerPlatformer:
         start_x += self.half_player_w
         start_y += self.half_player_h
         return StatePlatformer(x=start_x, y=start_y, movex=0, movey=self.gravity, onground=False, is_start=True,
-                               goal_reached=False, hit_bonus_coord=None, is_dead=False)
+                               goal_reached=False, hit_bonus_coord='', is_dead=False)
 
     def reset(self):
         self.state = self.get_start_state()
@@ -45,13 +45,27 @@ class PlayerPlatformer:
     def get_hit_bonus_coord(self):
         return self.state.hit_bonus_coord
 
+    #def collide(self, x, y, tile_coords):
+    #    for tile_coord in tile_coords:
+    #        x_overlap = tile_coord[0] < (x + self.half_player_w) and (tile_coord[0] + TILE_DIM) > (x - self.half_player_w)
+    #        y_overlap = tile_coord[1] < (y + self.half_player_h) and (tile_coord[1] + TILE_DIM) > (y - self.half_player_h)
+    #        if x_overlap and y_overlap:
+    #            return tile_coord
+    #    return None
+
     def collide(self, x, y, tile_coords):
+        ret = None
         for tile_coord in tile_coords:
             x_overlap = tile_coord[0] < (x + self.half_player_w) and (tile_coord[0] + TILE_DIM) > (x - self.half_player_w)
             y_overlap = tile_coord[1] < (y + self.half_player_h) and (tile_coord[1] + TILE_DIM) > (y - self.half_player_h)
             if x_overlap and y_overlap:
-                return tile_coord
-        return None
+                if ret == None:
+                    ret = tile_coord
+                else:
+                    if (x - (tile_coord[0] + TILE_DIM//2))**2 + (y - (tile_coord[1] + TILE_DIM//2))**2 < (x - (ret[0] + TILE_DIM//2))**2 + (y - (ret[1] + TILE_DIM//2))**2:
+                        ret = tile_coord
+        return ret
+
 
     def next_state(self, state, action):
         new_state = state.clone()
@@ -81,7 +95,7 @@ class PlayerPlatformer:
             new_state.movey = -self.max_vel
 
         new_state.onground = False
-        new_state.hit_bonus_coord = None
+        new_state.hit_bonus_coord = ''
 
         use_kid_icarus_rules = self.level.get_game() == "kid_icarus"
 
@@ -186,7 +200,12 @@ class PlayerPlatformer:
 
                 # if bonus tile was hit from below
                 if bonus_tile_collision_coord is not None and new_state.y >= bonus_tile_collision_coord[1] + TILE_DIM:
-                    new_state.hit_bonus_coord = bonus_tile_collision_coord
+                    if new_state.x >= bonus_tile_collision_coord[0] + TILE_DIM:
+                        new_state.hit_bonus_coord = 'NW'
+                    elif new_state.x < bonus_tile_collision_coord[0]:
+                        new_state.hit_bonus_coord = 'NE'
+                    else:
+                        new_state.hit_bonus_coord = 'N'
 
             # Player is dead if it falls off the screen (e.g. down a pit)
             if new_state.y >= self.level.get_height():
