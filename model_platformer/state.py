@@ -63,3 +63,13 @@ class StatePlatformer:
         index_str = "" if index is None else str(index)
         generic_prolog_contents = [item + index_str for item in generic_prolog_contents]
         return ','.join(generic_prolog_contents)
+
+    @staticmethod
+    def generic_bonus_reachability_expression():
+        return "HBC != \"\""
+
+    @staticmethod
+    def generic_ground_reachability_expression():
+        return "OG == 1"
+
+

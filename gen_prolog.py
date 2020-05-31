@@ -27,7 +27,7 @@ def parse_constraints_filepath(constraints_filename):
     match = re.match(r'([^/]+)/metatile_constraints/([a-zA-Z0-9_-]+).pickle', constraints_filename)
     level_saved_files_dir = match.group(1)
     prolog_filename = match.group(2)
-    return level_saved_files_dir + "/", prolog_filename
+    return level_saved_files_dir, prolog_filename
 
 
 def main(tile_constraints_file, debug, print_pl):
@@ -35,50 +35,52 @@ def main(tile_constraints_file, debug, print_pl):
     print("Generating prolog file for constraints file: %s ..." % tile_constraints_file)
     start_time = datetime.now()
 
-    # Set up save file directory
+    # Setup save file directory and get save filepath
     level_saved_files_dir, prolog_filename = parse_constraints_filepath(tile_constraints_file)
-    prolog_filepath = utils.get_filepath(level_saved_files_dir + "prolog_files", "%s.pl" % prolog_filename)
+    prolog_filepath = utils.get_filepath("%s/prolog_files" % level_saved_files_dir, "%s.pl" % prolog_filename)
 
-    # Load in tile constraints dictionary
+    # Load in tile_id constraints
     tile_id_constraints_dict = utils.read_pickle(tile_constraints_file)
 
-    # Generate prolog statements
+    # Create prolog statements
     prolog_statements = ""
-    prolog_statements += "dim_metatiles(1..%d).\n" % (len(tile_id_constraints_dict.keys()))
+    prolog_statements += "dim_metatiles(1..%d).\n" % len(tile_id_constraints_dict)
 
-    # Limit number of metatile assignments per tile
+    # Limit num metatile assignments per tile
     min_assignments = 0 if debug else 1
-    limit_metatile_per_tile_rule = "%d {assignment(TX, TY, MT) : metatile(MT) } 1 :- tile(TX,TY)." % min_assignments
-    prolog_statements += limit_metatile_per_tile_rule + "\n"
+    prolog_statements += "%d {assignment(TX, TY, MT) : metatile(MT) } 1 :- tile(TX,TY).\n" % min_assignments
 
     # Create tile adjacency rules
     adj_rule_prefix = "adj(X1,Y1,X2,Y2,DX,DY) :- tile(X1,Y1), tile(X2,Y2), X2-X1 == DX, Y2-Y1 == DY"
     horizontal_adj_rule = "%s, |DX| == 1, DY == 0." % adj_rule_prefix
     vertical_adj_rule = "%s, DX == 0, |DY| == 1." % adj_rule_prefix
     diagonal_adj_rule = "%s, |DX| == 1, |DY| == 1." % adj_rule_prefix
-    prolog_statements += horizontal_adj_rule + "\n"
-    prolog_statements += vertical_adj_rule + "\n"
-    prolog_statements += diagonal_adj_rule + "\n"
+    prolog_statements += horizontal_adj_rule + "\n" + vertical_adj_rule + "\n" + diagonal_adj_rule + "\n"
 
+    # Create {metatile_type: tile_ids} map
     metatile_type_ids_map = {}
-    for type in METATILE_TYPES:
-        metatile_type_ids_map[type] = []  # {metatile_type: list-metatile-ids}
+    for t in METATILE_TYPES:
+        metatile_type_ids_map[t] = []
 
+    # Create {level: tile_ids} map
     metatile_level_ids_map = {}
 
-    start_state = None
-    goal_state = None
+    # Get generic state strs in prolog format
+    generic_state = State.generic_prolog_contents()
+    generic_src_state = State.generic_prolog_contents(index=1)
+    generic_dest_state = State.generic_prolog_contents(index=2)
 
-    # Create metatile facts, metatile_type facts, and legal neighbor statements for the specified tile constraints dict
-
+    # Add prolog facts and rules based on the given tile constraints
     for tile_id, tile_constraints in tile_id_constraints_dict.items():
 
-        metatile_fact = "metatile(%s)." % tile_id
-        prolog_statements += metatile_fact + "\n"
+        # Create metatile fact
+        prolog_statements += "metatile(%s).\n" % tile_id
 
+        # Populate {metatile_type: tile_ids} map
         metatile_type = tile_constraints.get('type')
         metatile_type_ids_map[metatile_type].append(tile_id)
 
+        # Populate {level: tile_ids} map
         metatile_levels = tile_constraints.get('levels')
         for level in metatile_levels:
             if metatile_level_ids_map.get(level) is None:
@@ -86,34 +88,29 @@ def main(tile_constraints_file, debug, print_pl):
             else:
                 metatile_level_ids_map[level].append(tile_id)
 
+        # Retrieve the metatile graph
         metatile_graph = nx.DiGraph(tile_constraints.get('graph'))
 
         # Create state and link rules based on metatile graph
-
         for edge in metatile_graph.edges():
             src_state = State.from_str(edge[0])
-            dest_state = State.from_str(edge[1])
             src_state_contents = src_state.to_prolog_contents()
+            dest_state = State.from_str(edge[1])
             dest_state_contents = dest_state.to_prolog_contents()
 
             state_rule = "state(%s) :- assignment(TX,TY,%s)." % (src_state_contents, tile_id)
             link_rule = "link(%s,%s) :- assignment(TX,TY,%s)." % (src_state_contents, dest_state_contents, tile_id)
-            prolog_statements += state_rule + "\n"
-            prolog_statements += link_rule + "\n"
+            prolog_statements += state_rule + "\n" + link_rule + "\n"
 
-            # Define start fact in prolog
-            if start_state is None and src_state.is_start:
-                start_rule = "start(%s) :- assignment(TX,TY,%s)." % (src_state_contents, tile_id)
-                prolog_statements += start_rule + "\n"
-                start_state = src_state
+            # Start states are inherently reachable
+            if src_state.is_start:
+                prolog_statements += "reachable(%s) :- state(%s).\n" % (src_state_contents, src_state_contents)
 
-            # Define goal fact in prolog
-            if goal_state is None and src_state.goal_reached:
-                goal_rule = "goal(%s) :- assignment(TX,TY,%s)." % (dest_state_contents, tile_id)
-                prolog_statements += goal_rule + "\n"
-                goal_state = src_state
+            # Goal states must be reachable
+            if dest_state.goal_reached:
+                prolog_statements += ":- not reachable(%s), state(%s).\n" % (dest_state_contents, dest_state_contents)
 
-        # Create legal rules based on valid adjacent tiles
+        # Create legal tile placement rules based on valid adjacent tiles
         for direction, adjacent_tiles in tile_constraints.get("adjacent").items():  # for each adjacent dir
             dx, dy = direction
 
@@ -122,12 +119,8 @@ def main(tile_constraints_file, debug, print_pl):
                                   "MT1 == %s, MT2 == %s." % (dx, dy, tile_id, adjacent_id)
                 prolog_statements += legal_statement + "\n"
 
-    generic_state = State.generic_prolog_contents()
-    generic_src_state = State.generic_prolog_contents(index=1)
-    generic_dest_state = State.generic_prolog_contents(index=2)
-
-    link_exists_rule = ":- link(%s,%s), state(%s), not state(%s)." % (generic_src_state, generic_dest_state,
-                                                                      generic_src_state, generic_dest_state)
+    # Add rule for valid links
+    link_exists_rule = ":- link(%s,%s), state(%s), not state(%s).\n" % (generic_src_state, generic_dest_state, generic_src_state, generic_dest_state)
     prolog_statements += link_exists_rule
 
     # Get block, start, and goal tile_ids
@@ -141,54 +134,32 @@ def main(tile_constraints_file, debug, print_pl):
     bonus_tile_ids = metatile_type_ids_map.get("bonus")
     bonus_tile_id = None if len(bonus_tile_ids) == 0 else bonus_tile_ids[0]
 
-    # Limit number of tiles of specified tile id
-    limit_tile_type_rule = "MIN { assignment(X,Y,MT) : metatile(MT), tile(X,Y) } MAX :- limit(MT, MIN, MAX)."
-    prolog_statements += limit_tile_type_rule + "\n"
-
-    # Limit number of goal tiles
+    # Limit number of tiles of specified tile_id
+    limit_tile_id_rule = "MIN { assignment(X,Y,MT) : metatile(MT), tile(X,Y) } MAX :- limit(MT, MIN, MAX)."
+    prolog_statements += limit_tile_id_rule + "\n"
+    prolog_statements += "limit(%s, 1, 1).\n" % start_tile_id
     prolog_statements += "limit(%s, 1, 1).\n" % goal_tile_id
 
-    # Limit number of start tiles
-    prolog_statements += "limit(%s, 1, 1).\n" % start_tile_id
-
-    # Start state is inherently reachable
-    start_reachable_rule = "reachable(%s) :- start(%s)." % (generic_state, generic_state)
-    prolog_statements += start_reachable_rule + "\n"
-
-    # Goal state must be reachable
-    goal_reachable_rule = ":- goal(%s), not reachable(%s)." % (generic_state, generic_state)
-    prolog_statements += goal_reachable_rule + "\n"
-
-    # State reachable rule
-    state_reachable_rule = "reachable(%s) :- link(%s,%s), state(%s), state(%s), reachable(%s)." % (generic_dest_state,
-                                                                                                   generic_src_state, generic_dest_state,
-                                                                                                   generic_src_state, generic_dest_state,
-                                                                                                   generic_src_state)
+    # Add state reachable rule
+    state_reachable_rule = "reachable(%s) :- link(%s,%s), state(%s), state(%s), reachable(%s)." % (
+        generic_dest_state, generic_src_state, generic_dest_state, generic_src_state, generic_dest_state, generic_src_state
+    )
     prolog_statements += state_reachable_rule + "\n"
 
-    # Tile reachable rule (only if state in top half of the tile is reachable)
-    reachable_tile_rule = "reachable_tile(X/T,Y/T) :- reachable(%s), Y\\T <= T/2, T=%d." % (generic_state, TILE_DIM)
-    prolog_statements += reachable_tile_rule + "\n"
-
-    # Add one-way platform tile prolog rules
+    # Add rules for placing one_way_platform tiles
     one_way_platform_tile_ids = metatile_type_ids_map.get("one_way_platform")
-
     if len(one_way_platform_tile_ids) > 0:
-        # Disallow vertically stacking one-way platform tiles
-        for tile_id_bottom in one_way_platform_tile_ids:
-            for tile_id_top in one_way_platform_tile_ids:
-                prolog_statements += ":- assignment(X,Y,%s), assignment(X,Y-1,%s).\n" % (tile_id_bottom, tile_id_top)
 
-        # Ensure that tiles above one-way platform tiles are reachable
-        for tile_id in one_way_platform_tile_ids:
-            one_way_platform_reachable_rule = ":- assignment(X,Y,%s), not reachable_tile(X,Y-1)." % tile_id
-            prolog_statements += one_way_platform_reachable_rule + "\n"
+        # Forbid vertically stacking one_way_platform tiles
+        for top_tile in one_way_platform_tile_ids:
+            for bottom_tile in one_way_platform_tile_ids:
+                prolog_statements += ":- assignment(X,Y,%s), assignment(X,Y+1,%s), tile(X,Y), tile(X,Y+1).\n" % (top_tile, bottom_tile)
 
     # ASP WFC algorithm rule
     wfc_rule = ":- adj(X1,Y1,X2,Y2,DX,DY), assignment(X1,Y1,MT1), not 1 { assignment(X2,Y2,MT2) : legal(DX,DY,MT1,MT2) }."
     prolog_statements += wfc_rule + "\n"
 
-    # Remove duplicate statements
+    # Remove duplicate prolog statements
     prolog_statements = utils.get_unique_lines(prolog_statements)
 
     # Print
