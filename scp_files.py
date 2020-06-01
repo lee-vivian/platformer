@@ -10,8 +10,9 @@ from utils import error_exit, get_basepath_filename
 INSTANCE_URL = "ec2-user@ec2-3-90-45-9.compute-1.amazonaws.com"
 
 FILE_TYPES = ['py', 'png', 'txt', 'json']
-# DIRECTORIES = ['', 'model', 'model_maze', 'model_platformer', 'images', 'level_structural_layers/super_mario_bros']
-# DIRECTORIES += ['solver_config', 'solver_config/widths_num_tiles']
+
+PROJECT_DIRS = ['', 'model', 'model_maze', 'model_platformer', 'images', 'level_structural_layers/super_mario_bros',
+                'solver_config', 'solver_config/widths_num_tiles']
 
 
 def get_generated_level_filepaths():
@@ -96,7 +97,7 @@ def pull_directories(dirs):
     print("Dirs PULL-ed: %d" % directories_pulled)
 
 
-def main(files, dirs, file_types, push, pull):
+def main(files, dirs, file_types, push, pull, project):
 
     if push == pull:
         error_exit('Push and pull are mutually exclusive')
@@ -105,6 +106,8 @@ def main(files, dirs, file_types, push, pull):
         error_exit('Must specify --push or --pull')
 
     if push:
+        if project:
+            dirs += PROJECT_DIRS
         files_to_transfer = get_local_files_to_transfer(files, dirs, file_types)
         transfer_files(files_to_transfer, push=True, pull=False)
 
@@ -125,6 +128,7 @@ if __name__ == "__main__":
     parser.add_argument('--file_types', type=str, nargs='+', help='File types to transfer', default=FILE_TYPES)
     parser.add_argument('--push', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--pull', const=True, nargs='?', type=bool, default=False)
+    parser.add_argument('--project', const=True, nargs='?', type=bool, default=False, help='Add project directories to transfer list')
     args = parser.parse_args()
-    main(files=args.files, dirs=args.dirs, file_types=args.file_types, push=args.push, pull=args.pull)
+    main(files=args.files, dirs=args.dirs, file_types=args.file_types, push=args.push, pull=args.pull, project=args.project)
 

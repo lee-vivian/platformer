@@ -168,11 +168,8 @@ def main(tile_constraints_file, debug, print_pl):
     utils.write_file(prolog_filepath, prolog_statements)
 
     # Update all_prolog_info file
-    all_prolog_info_filepath = utils.get_filepath(level_saved_files_dir + "prolog_files", "all_prolog_info.pickle")
+    all_prolog_info_filepath = utils.get_filepath("%s/prolog_files" % level_saved_files_dir, "all_prolog_info.pickle")
     all_prolog_info_map = utils.read_pickle(all_prolog_info_filepath) if os.path.exists(all_prolog_info_filepath) else {}
-
-    if all_prolog_info_map.get(prolog_filename) is not None:
-        del all_prolog_info_map[prolog_filename]  # remove the old prolog info for the given tile constraints
 
     all_prolog_info_map[prolog_filename] = {
         "block_tile_ids": [block_tile_id],
