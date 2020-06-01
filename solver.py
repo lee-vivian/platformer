@@ -330,6 +330,10 @@ class Solver:
             level_assignments_file = get_filepath(generated_level_assignments_dir, "%s.pickle" % answer_set_filename)
             write_pickle(level_assignments_file, assignments_dict)
 
+            generated_level_model_str_dir = "level_saved_files_%s/generated_level_model_strs/" % player_img
+            level_model_str_file = get_filepath(generated_level_model_str_dir, "%s.txt" % answer_set_filename)
+            write_pickle(level_model_str_file, model_str)
+
         if self.print_level:
             print(level_structural_txt)
 

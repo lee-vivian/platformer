@@ -4,8 +4,8 @@ import argparse
 import utils
 
 GAME = "super_mario_bros"
-LEVELS = ["mario-sample"]
-# LEVELS = ["mario-1-3"]
+# LEVELS = ["mario-sample"]
+LEVELS = ["mario-1-1", "mario-1-2", "mario-1-3"]
 
 PROLOG_CONFIG_FORMAT_PAIRS = [
     ("level_saved_files_block/prolog_files/%s.pl", "solver_config/widths_num_tiles/config-%s-50_num_tiles.json"),
@@ -48,12 +48,22 @@ def main(process, solve, max_sol, threads):
                 ))
                 print("Saved to: %s" % solve_file)
 
-                answer_set_filepath_format = "level_structural_layers/generated/"
-                answer_set_filepath_format += "_".join([prolog_filename, config_filename, "a%d.txt"])
-                if os.path.exists(answer_set_filepath_format % 0):
-                    os.system("mv %s %s" % (answer_set_filepath_format % 0, answer_set_filepath_format % sol))
-                if os.path.exists(answer_set_filepath_format % sol):
-                    print("Level path: %s" % answer_set_filepath_format % sol)
+                answer_set_filename = "_".join([prolog_filename, config_filename, "a%d"])
+                level_structural_txt_format = "level_structural_layers/generated/%s.txt" % answer_set_filename
+                level_assignments_format = "level_saved_files_block/generated_level_assignments_dicts/%s.pickle" % answer_set_filename
+                level_model_str_format = "level_saved_files_block/generated_level_model_strs/%s.txt" % answer_set_filename
+
+                if sol != 0 and os.path.exists(level_structural_txt_format % 0):
+                    os.system("mv %s %s" % (level_structural_txt_format % 0, level_structural_txt_format % sol))
+
+                if sol != 0 and os.path.exists(level_assignments_format % 0):
+                    os.system("mv %s %s" % (level_assignments_format % 0, level_assignments_format % sol))
+
+                if sol != 0 and os.path.exists(level_model_str_format % 0):
+                    os.system("mv %s %s" % (level_model_str_format % 0, level_model_str_format % sol))
+
+                if os.path.exists(level_structural_txt_format % sol):
+                    print("Level txt path: %s" % level_structural_txt_format % sol)
 
 
 if __name__ == "__main__":
