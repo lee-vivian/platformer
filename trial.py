@@ -52,6 +52,8 @@ def main(process, solve, max_sol, threads):
                 level_structural_txt_format = "level_structural_layers/generated/%s.txt" % answer_set_filename
                 level_assignments_format = "level_saved_files_block/generated_level_assignments_dicts/%s.pickle" % answer_set_filename
                 level_model_str_format = "level_saved_files_block/generated_level_model_strs/%s.txt" % answer_set_filename
+                level_valid_path_format = "level_saved_files_block/generated_level_paths/%s.pickle" % answer_set_filename
+                level_state_graph_format = "level_saved_files_block/enumerated_state_graphs/generated/%s.gpickle" % answer_set_filename
 
                 if sol != 0 and os.path.exists(level_structural_txt_format % 0):
                     os.system("mv %s %s" % (level_structural_txt_format % 0, level_structural_txt_format % sol))
@@ -61,6 +63,12 @@ def main(process, solve, max_sol, threads):
 
                 if sol != 0 and os.path.exists(level_model_str_format % 0):
                     os.system("mv %s %s" % (level_model_str_format % 0, level_model_str_format % sol))
+
+                if sol != 0 and os.path.exists(level_valid_path_format % 0):
+                    os.system("mv %s %s" % (level_valid_path_format % 0, level_valid_path_format % sol))
+
+                if sol != 0 and os.path.exists(level_state_graph_format % 0):
+                    os.system("mv %s %s" % (level_state_graph_format % 0, level_state_graph_format % sol))
 
                 if os.path.exists(level_structural_txt_format % sol):
                     print("Level txt path: %s" % level_structural_txt_format % sol)

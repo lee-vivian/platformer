@@ -1,7 +1,6 @@
 import os
 import json
 import pickle
-import networkx as nx
 from math import sqrt, pow
 import re
 
@@ -146,53 +145,3 @@ def create_generated_level_path_txt(generated_levels):
         contents += " => ".join(generated_path_coords)
 
         write_file(outfile, contents)
-
-
-# def state_in_metatile(metatile_coord, state_coord, half_player_w, half_player_h, tile_dim):
-#     return metatile_coord == metatile_coord_from_state_coord(state_coord, half_player_w, half_player_h, tile_dim)
-
-
-def get_node_xy(node):
-    state_dict = eval(node)
-    return state_dict['x'], state_dict['y']
-
-
-def get_node_at_coord(graph, coord):
-    for node in graph.nodes():
-        if get_node_xy(node) == coord:
-            return node
-    return None
-
-
-def get_start_and_goal_states(state_graph):
-    start_states = []
-    goal_states = []
-    for node in state_graph.nodes():
-        state_dict = eval(node)
-        if state_dict.get("is_start"):
-            start_states.append(node)
-        elif state_dict.get("goal_reached"):
-            goal_states.append(node)
-    return start_states, goal_states
-
-
-def shortest_path_xy(state_graph):
-    start_states, goal_states = get_start_and_goal_states(state_graph)
-
-    if len(start_states) < 1:
-        error_exit("No start states found in state graph")
-
-    if len(goal_states) < 1:
-        error_exit("No goal states found in state graph")
-
-    for src in start_states:
-        for dest in goal_states:
-            if nx.has_path(state_graph, src, dest):
-                shortest_path = nx.dijkstra_path(state_graph, src, dest, weight='weight')
-                return {
-                    "path_coords": [get_node_xy(node) for node in shortest_path],
-                    "start_coord": get_node_xy(src),
-                    "goal_coord": get_node_xy(dest)
-                }
-
-    error_exit("No solution path found in state graph")
