@@ -63,11 +63,9 @@ def write_pickle(filepath, contents):
 
 
 def read_txt(filepath):
-    contents = ""
-    with open(filepath, 'r') as file:
-        for line in file:
-            contents += line
-    return contents
+    with open(filepath, encoding='utf-8', errors='ignore') as file:
+        content = file.read()
+        return content
 
 
 def write_file(filepath, statements):

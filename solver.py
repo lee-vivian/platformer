@@ -267,23 +267,6 @@ class Solver:
         return assignments_dict  # {(tile_x, tile_y): tile_id}
 
     @staticmethod
-    def construct_state_graph(assignments_dict, id_metatile_file):
-        id_metatile_map = read_pickle(id_metatile_file)
-        state_graph = nx.DiGraph()
-        for (tile_x, tile_y), tile_id in assignments_dict.items():
-            metatile = Metatile.from_str(id_metatile_map.get(tile_id))
-            metatile_graph = nx.DiGraph(metatile.graph_as_dict)
-            if nx.is_empty(metatile_graph):
-                pass
-            else:
-                unnormalized_graph = Metatile.get_normalized_graph(metatile_graph,
-                                                                   coord=(tile_x*TILE_DIM, tile_y*TILE_DIM),
-                                                                   normalize=False)
-                state_graph = nx.compose(state_graph, unnormalized_graph)
-
-        return state_graph
-
-    @staticmethod
     def get_facts_as_list(model_str, fact_name):
         return re.findall(r'%s\([^\)]+\).' % fact_name, model_str)
 
@@ -327,27 +310,16 @@ class Solver:
             print(level_structural_txt)
 
         if self.validate:
-
-            # Check ASP model output for valid path
-            asp_valid_path = Solver.get_asp_valid_path(model_str)
+            asp_valid_path = Solver.get_asp_valid_path(model_str, player_img, answer_set_filename, save=self.save)
             self.asp_valid_levels_count += 1 if asp_valid_path is not None else 0
-            if asp_valid_path is not None and self.save:
-                valid_path_file = get_filepath('level_saved_files_%s/generated_level_paths' % player_img, '%s.pickle' % answer_set_filename)
-                write_pickle(valid_path_file, asp_valid_path)
 
-            # Construct state graph and check for valid path
-            id_metatile_file = "level_saved_files_%s/id_metatile_maps/%s.pickle" % (player_img, prolog_filename)
-            state_graph = Solver.construct_state_graph(assignments_dict, id_metatile_file)
-            state_graph_has_valid_path = Solver.check_state_graph_valid_path(state_graph)
-            self.state_graph_valid_levels_count += 1 if state_graph_has_valid_path else 0
-            if self.save:
-                state_graph_file = get_filepath('level_saved_files_%s/enumerated_state_graphs/generated' % player_img,'%s.gpickle' % answer_set_filename)
-                nx.write_gpickle(state_graph, state_graph_file)
+            # state_graph_valid_path = Solver.get_state_graph_valid_path(assignments_dict, player_img, prolog_filename, answer_set_filename, save=self.save)
+            # self.state_graph_valid_levels_count += 1 if state_graph_valid_path is not None else 0
 
         self.increment_answer_set_count()
 
     @staticmethod
-    def get_asp_valid_path(model_str):
+    def get_asp_valid_path(model_str, player_img, answer_set_filename, save=True):
         # Initialize start and goal fact variables
         start_nodes = []
         goal_nodes = []
@@ -388,34 +360,61 @@ class Solver:
             for goal_node in goal_nodes:
                 valid_path_exists = nx.has_path(graph, source=start_node, target=goal_node)
                 if valid_path_exists:
-                    return nx.dijkstra_path(graph, source=start_node, target=goal_node)
+                    valid_path = nx.dijkstra_path(graph, source=start_node, target=goal_node)
+                    if save:
+                        valid_path_str = " => \n".join(valid_path)
+                        valid_path_file = get_filepath("level_saved_files_%s/generated_level_paths" % player_img, "%s.pickle" % answer_set_filename)
+                        write_pickle(valid_path_file, valid_path_str)
+                    return valid_path
 
         return None
 
     @staticmethod
-    def check_state_graph_valid_path(state_graph):
+    def construct_state_graph(assignments_dict, id_metatile_file):
+        id_metatile_map = read_pickle(id_metatile_file)
+        state_graph = nx.DiGraph()
+        for (tile_x, tile_y), tile_id in assignments_dict.items():
+            metatile = Metatile.from_str(id_metatile_map.get(tile_id))
+            metatile_graph = nx.DiGraph(metatile.graph_as_dict)
+            if nx.is_empty(metatile_graph):
+                pass
+            else:
+                unnormalized_graph = Metatile.get_normalized_graph(metatile_graph,
+                                                                   coord=(tile_x*TILE_DIM, tile_y*TILE_DIM),
+                                                                   normalize=False)
+                state_graph = nx.compose(state_graph, unnormalized_graph)
+
+        return state_graph
+
+    @staticmethod
+    def get_state_graph_valid_path(assignments_dict, player_img, prolog_filename, answer_set_filename, save=True):
+
+        # Construct state graph for generated level
+        id_metatile_file = "level_saved_files_%s/id_metatile_maps/%s.pickle" % (player_img, prolog_filename)
+        state_graph = Solver.construct_state_graph(assignments_dict, id_metatile_file)
+        if save:
+            state_graph_file = get_filepath('level_saved_files_%s/enumerated_state_graphs/generated' % player_img, '%s.gpickle' % answer_set_filename)
+            nx.write_gpickle(state_graph, state_graph_file)
+
+        # Check for valid path from start to goal state
         start_nodes = []
         goal_nodes = []
-
         for node in state_graph.nodes():
             state = State.from_str(node)
             if state.is_start:
                 start_nodes.append(node)
             if state.goal_reached:
                 goal_nodes.append(node)
-
         if len(start_nodes) == 0:
             error_exit("No start states found in generated level state graph")
-
         if len(goal_nodes) == 0:
             error_exit("No goal states found in generated level state graph")
-
         for start_node in start_nodes:
             for goal_node in goal_nodes:
                 if nx.has_path(state_graph, source=start_node, target=goal_node):
-                    return True
+                    return nx.dijkstra_path(state_graph, source=start_node, target=goal_node)
 
-        return False
+        return None
 
     def end_and_validate(self):
         print("----- SUMMARY -----")
@@ -426,4 +425,3 @@ class Solver:
             print('State graph validated levels: %d' % self.state_graph_valid_levels_count)
 
         return True
-
