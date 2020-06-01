@@ -14,43 +14,46 @@ FILE_TYPES = ['py', 'png', 'txt', 'json']
 PROJECT_DIRS = ['', 'model', 'model_maze', 'model_platformer', 'images', 'level_structural_layers/super_mario_bros',
                 'solver_config', 'solver_config/widths_num_tiles']
 
+LEVELS = ['mario-1-1', 'mario-1-2', 'mario-1-3']
+MAX_SOL = 5
+PROLOG_CONFIG_PAIRS = [
+    ("level_saved_files_block/prolog_files/%s.pl", "solver_config/widths_num_tiles/config-%s-50_num_tiles.json"),
+    ("level_saved_files_block/prolog_files/%s.pl", "solver_config/widths_num_tiles/config-%s-100_num_tiles.json"),
+    ("level_saved_files_block/prolog_files/%s.pl", "solver_config/widths_num_tiles/config-%s-150_num_tiles.json")
+]
 
-def get_generated_level_filepaths():
 
-    def get_generated_level_files(prolog_file, config_file, num_sol):
-        prolog_filename = get_basepath_filename(prolog_file, 'pl')
-        config_filename = get_basepath_filename(config_file, 'json')
-        generated_level_files = []
-        for i in range(num_sol):
-            generated_level_file = "%s_%s_a%d.txt" % (prolog_filename, config_filename, i)
-            generated_level_files.append(generated_level_file)
-        return generated_level_files
+def get_generated_level_filepaths(levels, max_sol, prolog_config_pairs):
 
-    levels = ['mario-1-1']
-    max_sol = 5
-    prolog_config_pairs = [
-        ("level_saved_files_block/prolog_files/%s.pl", "solver_config/widths_num_tiles/config-%s-50_num_tiles.json"),
-        ("level_saved_files_block/prolog_files/%s.pl", "solver_config/widths_num_tiles/config-%s-100_num_tiles.json"),
-        ("level_saved_files_block/prolog_files/%s.pl", "solver_config/widths_num_tiles/config-%s-150_num_tiles.json")
-    ]
+    generated_level_filepaths = []
+    generated_level_filepath_format = "level_structural_layers/generated/%s.txt"
 
-    generated_level_files = []
     for level in levels:
-        for prolog_file, config_file in prolog_config_pairs:
-            generated_level_files += get_generated_level_files(prolog_file % level, config_file % level, max_sol)
-    return ["level_structural_layers/generated/%s" % file for file in generated_level_files]
+        for prolog_file_format, config_file_format in prolog_config_pairs:
+
+            prolog_filename = get_basepath_filename(prolog_file_format % level, 'pl')
+            config_filename = get_basepath_filename(config_file_format % level, 'json')
+            answer_set_file_format = "%s_%s_" % (prolog_filename, config_filename) + "a%d"
+
+            for sol in range(max_sol):
+                generated_level_filepaths.append(generated_level_filepath_format % (answer_set_file_format % sol))
+
+    return generated_level_filepaths
 
 
 # Merge given level txt layers into single txt file
 def merge_txt_files(level_filepaths, filename):
+    count = 0
     with open(filename, 'w') as outfile:
         for filepath in level_filepaths:
             if os.path.exists(filepath):
+                count += 1
                 with open(filepath, 'r') as infile:
                     outfile.write("Level: %s\n" % filepath)
                     for line in infile:
                         outfile.write(line)
                     outfile.write("\n\n")
+        outfile.write("\nCombined Levels: %d\n" % count)
     print("Saved to: %s" % filename)
 
 
@@ -74,17 +77,25 @@ def get_local_files_to_transfer(files, dirs, file_types):
 
 
 def transfer_files(files, push, pull):
-    files_transferred_count = 0
+    success_files = []
+    failed_files = []
     for file in files:
         local_path = "%s" % file
         instance_path = "%s:/home/ec2-user/platformer/%s" % (INSTANCE_URL, file)
         src = local_path if push else instance_path
         dest = instance_path if push else local_path
         status = os.system("scp -i platformer.pem %s %s\n" % (src, dest))
-        files_transferred_count += 1 if status == 0 else 0
+        if status == 0:
+            success_files.append(file)
+        else:
+            failed_files.append(file)
+
     action_str = "PUSH" if push else "PULL"
     print("Files to %s: %d" % (action_str, len(files)))
-    print("Files %s-ed: %d" % (action_str, files_transferred_count))
+    print("Files %s-ed: %d" % (action_str, len(success_files)))
+    print("Files not %s-ed: %d" % (action_str, len(failed_files)))
+
+    return success_files, failed_files
 
 
 def pull_directories(dirs):
@@ -97,7 +108,7 @@ def pull_directories(dirs):
     print("Dirs PULL-ed: %d" % directories_pulled)
 
 
-def main(files, dirs, file_types, push, pull, project):
+def main(files, dirs, file_types, push, pull, project, gen_levels):
 
     if push == pull:
         error_exit('Push and pull are mutually exclusive')
@@ -111,14 +122,15 @@ def main(files, dirs, file_types, push, pull, project):
         files_to_transfer = get_local_files_to_transfer(files, dirs, file_types)
         transfer_files(files_to_transfer, push=True, pull=False)
 
-    if pull:
+    if pull and gen_levels:
+        files_to_transfer = get_generated_level_filepaths(LEVELS, MAX_SOL, PROLOG_CONFIG_PAIRS)
+        success_files, failed_files = transfer_files(files_to_transfer, push=False, pull=True)
+        merge_txt_files(success_files, 'combined_generated_levels.txt')
+
+    if pull and not gen_levels:
         files_to_transfer = files
         transfer_files(files_to_transfer, push=False, pull=True)
         pull_directories(dirs)
-
-    # generated_level_files = get_generated_level_filepaths()
-    # files_to_transfer += generated_level_files
-    # merge_txt_files(generated_level_files, "combine_mario-1-1.txt")
 
 
 if __name__ == "__main__":
@@ -128,7 +140,8 @@ if __name__ == "__main__":
     parser.add_argument('--file_types', type=str, nargs='+', help='File types to transfer', default=FILE_TYPES)
     parser.add_argument('--push', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--pull', const=True, nargs='?', type=bool, default=False)
-    parser.add_argument('--project', const=True, nargs='?', type=bool, default=False, help='Add project directories to transfer list')
+    parser.add_argument('--project', const=True, nargs='?', type=bool, default=False, help='Add project directories to push transfer list')
+    parser.add_argument('--gen_levels', const=True, nargs='?', type=bool, default=False, help='Add generated level files to pull transfer list')
     args = parser.parse_args()
-    main(files=args.files, dirs=args.dirs, file_types=args.file_types, push=args.push, pull=args.pull, project=args.project)
+    main(files=args.files, dirs=args.dirs, file_types=args.file_types, push=args.push, pull=args.pull, project=args.project, gen_levels=args.gen_levels)
 
