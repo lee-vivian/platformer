@@ -94,14 +94,10 @@ class Solver:
         generic_state = State.generic_prolog_contents()
 
         if self.require_all_platforms_reachable:
-            tmp_prolog_statements += ":- state(%s), not reachable(%s), %s.\n" % (
-                generic_state, generic_state, State.generic_ground_reachability_expression()
-            )
+            tmp_prolog_statements += ":- state(%s), not reachable(%s), %s.\n" % (generic_state, generic_state, State.generic_ground_reachability_expression())
 
         if self.require_all_bonus_tiles_reachable:
-            tmp_prolog_statements += ":- state(%s), not reachable(%s), %s.\n" % (
-                generic_state, generic_state, State.generic_bonus_reachability_expression()
-            )
+            tmp_prolog_statements += ":- state(%s), not reachable(%s), %s.\n" % (generic_state, generic_state, State.generic_bonus_reachability_expression())
 
         # Create one_way facts for one_way_platform tile assignments
         if len(one_way_tile_ids) > 0:

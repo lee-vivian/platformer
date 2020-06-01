@@ -66,10 +66,18 @@ class StatePlatformer:
 
     @staticmethod
     def generic_bonus_reachability_expression():
-        return "HBC == ('N';'NE','NW')"
+        return "HBC != \"\""
 
     @staticmethod
     def generic_ground_reachability_expression():
         return "OG == 1"
+
+    @staticmethod
+    def generic_start_reachability_expression():
+        return "IS == 1"
+
+    @staticmethod
+    def generic_goal_reachability_expression():
+        return "GR == 1"
 
 

@@ -102,14 +102,6 @@ def main(tile_constraints_file, debug, print_pl):
             link_rule = "link(%s,%s) :- assignment(TX,TY,%s)." % (src_state_contents, dest_state_contents, tile_id)
             prolog_statements += state_rule + "\n" + link_rule + "\n"
 
-            # Start states are inherently reachable
-            if src_state.is_start:
-                prolog_statements += "reachable(%s) :- state(%s).\n" % (src_state_contents, src_state_contents)
-
-            # Goal states must be reachable
-            if dest_state.goal_reached:
-                prolog_statements += ":- not reachable(%s), state(%s).\n" % (dest_state_contents, dest_state_contents)
-
         # Create legal tile placement rules based on valid adjacent tiles
         for direction, adjacent_tiles in tile_constraints.get("adjacent").items():  # for each adjacent dir
             dx, dy = direction
@@ -145,6 +137,12 @@ def main(tile_constraints_file, debug, print_pl):
         generic_dest_state, generic_src_state, generic_dest_state, generic_src_state, generic_dest_state, generic_src_state
     )
     prolog_statements += state_reachable_rule + "\n"
+
+    # Start states are inherently reachable
+    prolog_statements += "reachable(%s) :- state(%s), %s.\n" % (generic_state, generic_state, State.generic_start_reachability_expression())
+
+    # Goal states must be reachable
+    prolog_statements += ":- state(%s), not reachable(%s), %s.\n" % (generic_state, generic_state, State.generic_goal_reachability_expression())
 
     # Add rules for placing one_way_platform tiles
     one_way_platform_tile_ids = metatile_type_ids_map.get("one_way_platform")
