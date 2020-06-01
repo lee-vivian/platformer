@@ -4,16 +4,15 @@ Solver Object
 
 import clingo
 import re
-import os
 import networkx as nx
 import random
 from datetime import datetime
 
-from model.metatile import Metatile
-from model.level import TILE_DIM, TILE_CHARS
+from model.level import TILE_CHARS
 from model_platformer.state import StatePlatformer as State
 from stopwatch import Stopwatch
-from utils import get_directory, get_filepath, write_pickle, read_pickle, write_file, error_exit, get_node_at_coord, get_unique_lines
+from utils import get_filepath, write_pickle, write_file, error_exit, get_unique_lines
+
 
 class Solver:
 
@@ -37,12 +36,10 @@ class Solver:
         self.print_level = print_level
         self.save = save
         self.validate = validate
-
         self.tmp_prolog_statements = ""
         self.init_tmp_prolog_statements()  # create tmp prolog statements
         self.answer_set_count = 0
-
-        self.generated_levels_dict = {}  # { answer_set_filename: model_str }
+        self.valid_levels_count = 0
         self.stopwatch = Stopwatch()
 
     @staticmethod
@@ -249,7 +246,14 @@ class Solver:
 
         self.stopwatch.stop()
 
-    def create_assignments_dict(self, model_str):
+    def get_tile_char(self, tile_id):
+        for tile_type, tile_ids in self.tile_ids.items():
+            if tile_id in tile_ids:
+                return list(TILE_CHARS[tile_type].keys())[0]  # start, goal, block, bonus, one-way
+        return list(TILE_CHARS['empty'].keys())[0]  # empty
+
+    @staticmethod
+    def create_assignments_dict(model_str):
         assignments = re.findall(r'assignment\([0-9t,]*\)', model_str)
         assignments_dict = {}  # {(tile_x, tile_y): tile_id}
         for assignment in assignments:
@@ -260,56 +264,22 @@ class Solver:
             assignments_dict[(tile_x, tile_y)] = tile_id
         return assignments_dict  # {(tile_x, tile_y): tile_id}
 
-    # def create_tile_id_coords_map(self, assignments_dict, player_img, answer_set_filename):
-    #     tile_id_coords_map = {}
-    #     for tile_coord, tile_id in assignments_dict.items():  # {(tile_x, tile_y): tile_id}
-    #         if tile_id_coords_map.get(tile_id) is None:
-    #             tile_id_coords_map[tile_id] = []
-    #         metatile_coord = (tile_coord[0] * TILE_DIM, tile_coord[1] * TILE_DIM)
-    #         tile_id_coords_map[tile_id].append(metatile_coord)
-    #
-    #     tile_id_coords_map_with_extra_info = {}
-    #     for tile_id, coords in tile_id_coords_map.items():
-    #         extra_info = "S" if len(coords) == 1 else ""
-    #         tile_id_coords_map_with_extra_info[(tile_id, extra_info)] = coords
-    #
-    #     if self.save:
-    #         tile_id_coords_map_dir = "level_saved_files_%s/tile_id_coords_maps/" % player_img
-    #         tile_id_coords_map_file = get_filepath(tile_id_coords_map_dir, "%s.pickle" % answer_set_filename)
-    #         write_pickle(tile_id_coords_map_file, tile_id_coords_map_with_extra_info)
-    #
-    #     return tile_id_coords_map_with_extra_info
-
-    def get_tile_char(self, tile_id):
-        for tile_type, tile_ids in self.tile_ids.items():
-            if tile_id in tile_ids:
-                return list(TILE_CHARS[tile_type].keys())[0]  # start, goal, block, bonus, one-way
-        return list(TILE_CHARS['empty'].keys())[0]  # empty
-
     @staticmethod
     def get_facts_as_list(model_str, fact_name):
         return re.findall(r'%s\([^\)]+\).' % fact_name, model_str)
 
     @staticmethod
-    def get_fact_xy(fact_str):
-        match = re.match(r'[a-zA-Z_]+\(([0-9]+),([0-9]+),[^\)]+\).', fact_str)
-        x = int(match.group(1))
-        y = int(match.group(2))
-        return x, y
-
-    @staticmethod
-    def get_fact_xy_from_link(link_fact_str):
-        match = re.match(r'link\(([^\)]+)\).', link_fact_str)
-        link_contents = match.group(1).split(',')
-        midpoint = int(len(link_contents) / 2)
-        return int(link_contents[0]), int(link_contents[1]), int(link_contents[midpoint]), int(link_contents[midpoint+1])
+    def get_fact_contents_as_list(fact_str):  # reachable(X,Y,Z) => X,Y,Z
+        match = re.match(r'[a-zA-Z_]+\(([^\)]+)\)\s', fact_str)
+        match = match.group(1)
+        return match.split(',')
 
     def process_answer_set(self, model_str):
         player_img, prolog_filename = Solver.parse_prolog_filepath(self.prolog_file)
         answer_set_filename = self.get_cur_answer_set_filename(prolog_filename)
 
         # Create assignments dictionary {(tile_x, tile_y): tile_id}
-        assignments_dict = self.create_assignments_dict(model_str)
+        assignments_dict = Solver.create_assignments_dict(model_str)
 
         # Create and save structural txt file for the generated level
         level_structural_txt = ""
@@ -320,6 +290,8 @@ class Solver:
                 tile_char = self.get_tile_char(tile_id)
                 level_structural_txt += tile_char
             level_structural_txt += "\n"
+
+        # Create enumerated state graph for the generated level
 
         if self.save:
             generated_level_txt_dir = "level_structural_layers/generated/"
@@ -338,67 +310,66 @@ class Solver:
             print(level_structural_txt)
 
         if self.validate:
-            self.generated_levels_dict[answer_set_filename] = model_str
+            is_valid = Solver.has_valid_path(model_str, player_img, answer_set_filename)
+            self.valid_levels_count += 1 if is_valid else 0
 
         self.increment_answer_set_count()
 
+    @staticmethod
+    def has_valid_path(model_str, player_img, answer_set_filename):
+        # Initialize start and goal fact variables
+        start_nodes = []
+        goal_nodes = []
+        is_start_idx = State.prolog_state_contents_is_start_index()
+        goal_reached_idx = State.prolog_state_contents_goal_reached_index()
+
+        # Create new graph for model
+        graph = nx.Graph()
+
+        # Add nodes from reachable facts
+        reachable_facts = Solver.get_facts_as_list(model_str, fact_name='reachable')
+
+        for reachable_fact in reachable_facts:
+            reachable_contents = Solver.get_fact_contents_as_list(reachable_fact)
+            reachable_node = str(reachable_contents)
+            graph.add_node(reachable_node)
+            if reachable_contents[is_start_idx] == '1':
+                start_nodes.append(reachable_node)
+            if reachable_contents[goal_reached_idx] == '1':
+                goal_nodes.append(reachable_node)
+
+        # Check that reachable start and goal states exist
+        if len(start_nodes) == 0:
+            error_exit('No reachable start states found in model str')
+        if len(goal_nodes) == 0:
+            error_exit('No reachable goal states found in model str')
+
+        # Add edges from link facts
+        link_facts = Solver.get_facts_as_list(model_str, fact_name='link')
+        for link_fact in link_facts:
+            link_contents = Solver.get_fact_contents_as_list(link_fact)
+            src_node = str(link_contents[:len(link_contents)//2])
+            dest_node = str(link_contents[len(link_contents)//2:])
+            graph.add_edge(src_node, dest_node)
+
+        # Check if valid path exists from start to goal
+        for start_node in start_nodes:
+            for goal_node in goal_nodes:
+                valid_path_exists = nx.has_path(graph, source=start_node, target=goal_node)
+                if valid_path_exists:
+                    valid_path = nx.dijkstra_path(graph, source=start_node, target=goal_node)
+                    valid_path_file = get_filepath('level_saved_files_%s/generated_level_paths' % player_img, '%s.pickle' % answer_set_filename)
+                    write_pickle(valid_path_file, valid_path)
+                    return True
+
+        return False
+
     def end_and_validate(self):
-        self.stopwatch.stop()  # stop stopwatch
-
         print("----- SUMMARY -----")
-        print("Levels generated: %d" % self.answer_set_count)
+        print("Generated Levels: %d" % self.answer_set_count)
 
-        # TODO update validate function
-        # if not self.validate:
-        #     print("----- SUMMARY -----")
-        #     print("Levels generated: %d" % self.answer_set_count)
-        #
-        # else:
-        #     self.stopwatch.start()  # start stopwatch
-        #     print("----- VALIDATING -----")
-        #
-        #     player_img, prolog_filename = Solver.parse_prolog_filepath(self.prolog_file)
-        #     validate_log = []
-        #
-        #     for answer_set_filename, model_str in self.generated_levels_dict.items():
-        #
-        #         # Create new graph for the solution model
-        #         graph = nx.Graph()
-        #
-        #         # Add reachable nodes
-        #         reachable_facts = Solver.get_facts_as_list(model_str, fact_name="reachable")
-        #         for reachable in reachable_facts:
-        #             graph.add_node(str(Solver.get_fact_xy(reachable)))
-        #
-        #         # Add link edges
-        #         link_facts = Solver.get_facts_as_list(model_str, fact_name="link")
-        #         for link in link_facts:
-        #             src_x, src_y, dest_x, dest_y = Solver.get_fact_xy_from_link(link)
-        #             graph.add_edge(str((src_x, src_y)), str((dest_x, dest_y)))
-        #
-        #         # Check if valid path exists from start to goal
-        #         start_fact = Solver.get_facts_as_list(model_str, fact_name="start")[0]
-        #         goal_fact = Solver.get_facts_as_list(model_str, fact_name="goal")[0]
-        #         source = str(Solver.get_fact_xy(start_fact))
-        #         target = str(Solver.get_fact_xy(goal_fact))
-        #         has_path = nx.has_path(graph, source=source, target=target)
-        #
-        #         # Save valid path to file
-        #         if has_path:
-        #             path_coords = nx.dijkstra_path(graph, source=source, target=target)
-        #             outfile = get_filepath("level_saved_files_%s/generated_level_paths" % player_img, "%s.pickle" % answer_set_filename)
-        #             write_pickle(outfile, path_coords)
-        #
-        #         validate_log.append((answer_set_filename, "VALID" if has_path else "INVALID"))
-        #
-        #     for answer_set_filename, result in validate_log:
-        #         print("%s: %s" % (answer_set_filename, result))
-        #
-        #     print(self.stopwatch.get_lap_time_str("Validation"))
-        #     self.stopwatch.stop()
-        #
-        #     print("----- SUMMARY -----")
-        #     print("Levels generated: %d" % self.answer_set_count)
+        if self.validate:
+            print("Valid Levels: %s" % self.valid_levels_count)
 
         return True
 

@@ -80,4 +80,13 @@ class StatePlatformer:
     def generic_goal_reachability_expression():
         return "GR == 1"
 
+    @staticmethod
+    def prolog_state_contents_is_start_index():
+        generic_prolog_contents = StatePlatformer.generic_prolog_contents().split(',')
+        return generic_prolog_contents.index('IS')
+
+    @staticmethod
+    def prolog_state_contents_goal_reached_index():
+        generic_prolog_contents = StatePlatformer.generic_prolog_contents().split(',')
+        return generic_prolog_contents.index('GR')
 
