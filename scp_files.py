@@ -14,6 +14,10 @@ FILE_TYPES = ['py', 'png', 'txt', 'json']
 PROJECT_DIRS = ['', 'model', 'model_maze', 'model_platformer', 'images', 'level_structural_layers/super_mario_bros',
                 'solver_config', 'solver_config/widths_num_tiles']
 
+VALIDATE_ASP_DIRS = ['level_saved_files_block/generated_level_model_strs']
+VALIDATE_GRAPH_DIRS = ['level_saved_files_block/generated_level_assignments_dicts',
+                       'level_saved_files_block/id_metatile_maps']
+
 LEVELS = ['mario-1-1', 'mario-1-2', 'mario-1-3']
 MAX_SOL = 5
 PROLOG_CONFIG_PAIRS = [
@@ -108,7 +112,7 @@ def pull_directories(dirs):
     print("Dirs PULL-ed: %d" % directories_pulled)
 
 
-def main(files, dirs, file_types, push, pull, project, gen_levels):
+def main(files, dirs, file_types, push, pull, project, gen_levels, validate_asp, validate_graph):
 
     if push == pull:
         error_exit('Push and pull are mutually exclusive')
@@ -122,12 +126,18 @@ def main(files, dirs, file_types, push, pull, project, gen_levels):
         files_to_transfer = get_local_files_to_transfer(files, dirs, file_types)
         transfer_files(files_to_transfer, push=True, pull=False)
 
-    if pull and gen_levels:
-        files_to_transfer = get_generated_level_filepaths(LEVELS, MAX_SOL, PROLOG_CONFIG_PAIRS)
-        success_files, failed_files = transfer_files(files_to_transfer, push=False, pull=True)
-        merge_txt_files(success_files, 'combined_generated_levels.txt')
+    if pull:
+        if gen_levels:
+            files_to_transfer = get_generated_level_filepaths(LEVELS, MAX_SOL, PROLOG_CONFIG_PAIRS)
+            success_files, failed_files = transfer_files(files_to_transfer, push=False, pull=True)
+            merge_txt_files(success_files, 'combined_generated_levels.txt')
 
-    if pull and not gen_levels:
+        if validate_asp:
+            pull_directories(VALIDATE_ASP_DIRS)
+
+        if validate_graph:
+            pull_directories(VALIDATE_GRAPH_DIRS)
+
         files_to_transfer = files
         transfer_files(files_to_transfer, push=False, pull=True)
         pull_directories(dirs)
@@ -142,6 +152,9 @@ if __name__ == "__main__":
     parser.add_argument('--pull', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--project', const=True, nargs='?', type=bool, default=False, help='Add project directories to push transfer list')
     parser.add_argument('--gen_levels', const=True, nargs='?', type=bool, default=False, help='Add generated level files to pull transfer list')
+    parser.add_argument('--validate_asp', const=True, nargs='?', type=bool, default=False, help='Add validate asp directories to pull transfer list')
+    parser.add_argument('--validate_graph', const=True, nargs='?', type=bool, default=False, help='Add validate state graph directories to pull transfer list')
     args = parser.parse_args()
-    main(files=args.files, dirs=args.dirs, file_types=args.file_types, push=args.push, pull=args.pull, project=args.project, gen_levels=args.gen_levels)
+    main(files=args.files, dirs=args.dirs, file_types=args.file_types, push=args.push, pull=args.pull,
+         project=args.project, gen_levels=args.gen_levels, validate_asp=args.validate_asp, validate_graph=args.validate_graph)
 
