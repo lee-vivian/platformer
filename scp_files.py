@@ -5,7 +5,7 @@ Transfer files to or from the ec2 instance
 import os
 import re
 import argparse
-from utils import error_exit, get_basepath_filename
+from utils import error_exit, get_basepath_filename, get_directory
 
 INSTANCE_URL = "ec2-user@ec2-3-90-45-9.compute-1.amazonaws.com"
 
@@ -43,6 +43,20 @@ def get_generated_level_filepaths(levels, max_sol, prolog_config_pairs):
                 generated_level_filepaths.append(generated_level_filepath_format % (answer_set_file_format % sol))
 
     return generated_level_filepaths
+
+
+def get_generated_level_solver_console_output(levels, max_sol, prolog_config_pairs):
+    solver_console_output_filepaths = []
+    solver_console_output_filepath_format = "solver_console_output/%s/%s_a%d.txt"
+
+    for level in levels:
+        get_directory("solver_console_output/%s" % level)
+        for prolog_file_format, config_file_format in prolog_config_pairs:
+            config_filename = get_basepath_filename(config_file_format % level, 'json')
+            for sol in range(max_sol):
+                solver_console_output_filepaths.append(solver_console_output_filepath_format % (level, config_filename, sol))
+
+    return solver_console_output_filepaths
 
 
 # Merge given level txt layers into single txt file
@@ -131,6 +145,8 @@ def main(files, dirs, file_types, push, pull, project, gen_levels, validate_asp,
             files_to_transfer = get_generated_level_filepaths(LEVELS, MAX_SOL, PROLOG_CONFIG_PAIRS)
             success_files, failed_files = transfer_files(files_to_transfer, push=False, pull=True)
             merge_txt_files(success_files, 'combined_generated_levels.txt')
+            files_to_transfer = get_generated_level_solver_console_output(LEVELS, MAX_SOL, PROLOG_CONFIG_PAIRS)
+            transfer_files(files_to_transfer, push=False, pull=True)
 
         if validate_asp:
             pull_directories(VALIDATE_ASP_DIRS)
