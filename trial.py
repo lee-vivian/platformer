@@ -41,7 +41,8 @@ def main(process, solve, max_sol, threads):
             for level, prolog_file, config_file in level_prolog_config_tuples:
                 prolog_filename = utils.get_basepath_filename(prolog_file, 'pl')
                 config_filename = utils.get_basepath_filename(config_file, 'json')
-                solve_file = utils.get_filepath("%s/%s/" % (solve_dir, level), "%s_a%d.txt" % (config_filename, sol))
+                solve_file = utils.get_filepath("%s/%s/" % (solve_dir, level),
+                                                "%s_%s_a%d.txt" % (prolog_filename, config_filename, sol))
 
                 os.system("(time python run_solver.py %s %s --max_sol 1 --threads %d --save --validate) > %s 2>&1" % (
                     prolog_file, config_file, threads, solve_file
