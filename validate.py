@@ -43,11 +43,11 @@ def main(levels, max_sol, prolog_config_format_pairs):
             model_str_file = model_str_file_format % answer_set_filename
             if os.path.exists(model_str_file):
                 model_str = utils.read_txt(model_str_file)
-                asp_valid_path = Solver.get_asp_valid_path(model_str, 'block', answer_set_filename, save=False)
-                status = "ASP VALID" if asp_valid_path else "ASP INVALID"
+                asp_valid = Solver.asp_is_valid(model_str, 'block', answer_set_filename, save=False)
+                status = "ASP VALID" if asp_valid else "ASP INVALID"
                 print("%s: %s" % (answer_set_filename, status))
                 asp_checked_count += 1
-                asp_valid_count += 1 if asp_valid_path is not None else 0
+                asp_valid_count += 1 if asp_valid else 0
 
         if CHECK_STATE_GRAPH_PATH:
             assignments_dict_file = assignments_dict_file_format % answer_set_filename

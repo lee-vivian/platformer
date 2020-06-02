@@ -310,13 +310,69 @@ class Solver:
             print(level_structural_txt)
 
         if self.validate:
-            asp_valid_path = Solver.get_asp_valid_path(model_str, player_img, answer_set_filename, save=self.save)
-            self.asp_valid_levels_count += 1 if asp_valid_path is not None else 0
+            asp_valid = Solver.asp_is_valid(model_str, player_img, answer_set_filename, save=self.save)
+            self.asp_valid_levels_count += 1 if asp_valid else 0
 
-            # state_graph_valid_path = Solver.get_state_graph_valid_path(assignments_dict, player_img, prolog_filename, answer_set_filename, save=self.save)
+            # state_graph_valid_path = Solver.get_state_graph_valid_path(assignments_dict, player_img, prolog_filename,
+            #                                                            answer_set_filename, save=self.save)
             # self.state_graph_valid_levels_count += 1 if state_graph_valid_path is not None else 0
 
         self.increment_answer_set_count()
+
+    @staticmethod
+    def asp_is_valid(model_str, player_img, answer_set_filename, save):
+        asp_valid_path = Solver.get_asp_valid_path(model_str, player_img, answer_set_filename, save)
+        bonus_states_reachable = Solver.all_bonus_states_reachable(model_str)
+        ground_states_reachable = Solver.all_ground_states_reachable(model_str)
+        return all([asp_valid_path, bonus_states_reachable, ground_states_reachable])
+
+    @staticmethod
+    def all_ground_states_reachable(model_str):
+        state_facts = Solver.get_facts_as_list(model_str, fact_name='state')
+        reachable_facts = Solver.get_facts_as_list(model_str, fact_name='reachable')
+
+        on_ground_idx = State.prolog_state_contents_on_ground_index()
+        on_ground_nodes = []
+        reachable_nodes_dict = {}
+
+        for state_fact in state_facts:
+            state_contents = Solver.get_fact_contents_as_list(state_fact)
+            if state_contents[on_ground_idx] == '1':
+                on_ground_nodes.append(str(state_contents))
+
+        for reachable_fact in reachable_facts:
+            reachable_contents = Solver.get_fact_contents_as_list(reachable_fact)
+            reachable_nodes_dict[str(reachable_contents)] = 1
+
+        for on_ground_node in on_ground_nodes:
+            if reachable_nodes_dict.get(on_ground_node) is None:
+                return False
+
+        return True
+
+    @staticmethod
+    def all_bonus_states_reachable(model_str):
+        state_facts = Solver.get_facts_as_list(model_str, fact_name='state')
+        reachable_facts = Solver.get_facts_as_list(model_str, fact_name='reachable')
+
+        bonus_idx = State.prolog_state_contents_hit_bonus_coord_index()
+        bonus_nodes = []
+        reachable_nodes_dict = {}
+
+        for state_fact in state_facts:
+            state_contents = Solver.get_fact_contents_as_list(state_fact)
+            if state_contents[bonus_idx] != '':
+                bonus_nodes.append(str(state_contents))
+
+        for reachable_fact in reachable_facts:
+            reachable_contents = Solver.get_fact_contents_as_list(reachable_fact)
+            reachable_nodes_dict[str(reachable_contents)] = 1
+
+        for bonus_node in bonus_nodes:
+            if reachable_nodes_dict.get(bonus_node) is None:
+                return False
+
+        return True
 
     @staticmethod
     def get_asp_valid_path(model_str, player_img, answer_set_filename, save=True):

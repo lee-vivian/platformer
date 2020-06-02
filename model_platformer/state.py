@@ -90,3 +90,13 @@ class StatePlatformer:
         generic_prolog_contents = StatePlatformer.generic_prolog_contents().split(',')
         return generic_prolog_contents.index('GR')
 
+    @staticmethod
+    def prolog_state_contents_on_ground_index():
+        generic_prolog_contents = StatePlatformer.generic_prolog_contents().split(',')
+        return generic_prolog_contents.index('OG')
+
+    @staticmethod
+    def prolog_state_contents_hit_bonus_coord_index():
+        generic_prolog_contents = StatePlatformer.generic_prolog_contents().split(',')
+        return generic_prolog_contents.index('HBC')
+
