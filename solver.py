@@ -92,21 +92,14 @@ class Solver:
         # Add rules for enforcing reachable states
         generic_state = State.generic_prolog_contents()
 
-        # Block tiles that do not have a block tile above should have a reachable ground state above
+        # Block tiles that do not have a block tile above or a goal tile above should have a reachable ground state above
         if self.require_all_platforms_reachable:
-
-            tmp_prolog_statements += "tile_above_block(TX,TY) :- tile(TX,TY), tile(TX,TY+1), assignment(TX,TY,ID1), ID1 != %s, " \
-                                     "assignment(TX,TY+1,ID2), ID2 == %s.\n" % (block_tile_id, block_tile_id)
-
-            tmp_prolog_statements += "tile_has_reachable_ground_state(TX,TY) :- tile(TX,TY), reachable(%s), %s, TX==X/%d, TY==Y/%d.\n" % (
-                generic_state, State.generic_ground_reachability_expression(), TILE_DIM, TILE_DIM
-            )
-
+            tmp_prolog_statements += "tile_above_block(TX,TY) :- tile(TX,TY), assignment(TX,TY,ID1), ID1 != %s, ID1 != %s, tile(TX,TY+1), assignment(TX,TY+1,ID2), ID2 == %s.\n" % (goal_tile_id, block_tile_id, block_tile_id)
+            tmp_prolog_statements += "tile_has_reachable_ground_state(TX,TY) :- tile(TX,TY), reachable(%s), %s, TX==X/%d, TY==Y/%d.\n"  % (generic_state, State.generic_ground_reachability_expression(), TILE_DIM, TILE_DIM)
             tmp_prolog_statements += ":- tile_above_block(TX,TY), not tile_has_reachable_ground_state(TX,TY).\n"
 
         # Bonus tiles should have a reachable bonus state below
         if self.require_all_bonus_tiles_reachable:
-
             tmp_prolog_statements += "tile_below_bonus(TX,TY) :- tile(TX,TY), tile(TX,TY-1), assignment(TX,TY-1,%s).\n" % bonus_tile_id
             tmp_prolog_statements += "tile_has_reachable_bonus_state(TX,TY) :- tile(TX,TY), reachable(%s), %s, TX==X/%d, TY==Y/%d.\n" % (
                 generic_state, State.generic_bonus_reachability_expression(), TILE_DIM, TILE_DIM
@@ -283,11 +276,13 @@ class Solver:
 
     @staticmethod
     def get_facts_as_list(model_str, fact_name):
-        return re.findall(r'%s\([^\)]+\).' % fact_name, model_str)
+        facts = re.findall(r'\s%s\([^\)]+\).' % fact_name, model_str)
+        facts = [fact.strip() for fact in facts]
+        return facts
 
     @staticmethod
     def get_fact_contents_as_list(fact_str):  # reachable(X,Y,Z) => X,Y,Z
-        match = re.match(r'[a-zA-Z_]+\(([^\)]+)\)\s', fact_str)
+        match = re.match(r'[^\(]+\(([^\)]+)\)', fact_str)
         match = match.group(1)
         return match.split(',')
 
@@ -376,6 +371,7 @@ class Solver:
 
         for state_fact in state_facts:
             state_contents = Solver.get_fact_contents_as_list(state_fact)
+
             if state_contents[bonus_idx] != '':
                 bonus_nodes.append(str(state_contents))
 
