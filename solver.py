@@ -92,11 +92,23 @@ class Solver:
         # Add rules for enforcing reachable states
         generic_state = State.generic_prolog_contents()
 
+        # Block tiles that do not have a block tile above should have a reachable ground state above
         if self.require_all_platforms_reachable:
-            tmp_prolog_statements += ":- state(%s), not reachable(%s), %s.\n" % (generic_state, generic_state, State.generic_ground_reachability_expression())
+            top_tile_not_block = "tile(TX,TY), assignment(TX,TY,ID1), ID1 != %s" % block_tile_id
+            bottom_tile_is_block = "tile(TX,TY+1), assignment(TX,TY+1,ID2), ID2 == %s" % block_tile_id
+            reachable_ground_state_above_platform = ":- %s, %s, not state(%s), not reachable(%s), %s, X/TILE==TX, Y/TILE==TY, TILE==%d." % (
+                top_tile_not_block, bottom_tile_is_block, generic_state, generic_state, State.generic_ground_reachability_expression(), TILE_DIM
+            )
+            tmp_prolog_statements += reachable_ground_state_above_platform + "\n"
 
+        # Bonus tiles should have a reachable bonus state below
         if self.require_all_bonus_tiles_reachable:
-            tmp_prolog_statements += ":- state(%s), not reachable(%s), %s.\n" % (generic_state, generic_state, State.generic_bonus_reachability_expression())
+
+            reachable_bonus_state_below_bonus = ":- tile(TX,TY), assignment(TX,TY,ID), ID == %s, not state(%s), " \
+                                                "not reachable(%s), %s, X/TILE == TX, Y/TILE == TY+1, TILE==%d." % (
+                bonus_tile_id, generic_state, generic_state, State.generic_bonus_reachability_expression(), TILE_DIM)
+
+            tmp_prolog_statements += reachable_bonus_state_below_bonus + "\n"
 
         # Create one_way facts for one_way_platform tile assignments
         if len(one_way_tile_ids) > 0:
