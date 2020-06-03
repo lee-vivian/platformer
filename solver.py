@@ -92,13 +92,13 @@ class Solver:
         # Add rules for enforcing reachable states
         generic_state = State.generic_prolog_contents()
 
-        # Block tiles that do not have a block tile above or a goal tile above should have a reachable ground state above
+        # Non-block and non-goal tiles on top of block tiles must have a reachable ground state in them
         if self.require_all_platforms_reachable:
             tmp_prolog_statements += "tile_above_block(TX,TY) :- tile(TX,TY), assignment(TX,TY,ID1), ID1 != %s, ID1 != %s, tile(TX,TY+1), assignment(TX,TY+1,ID2), ID2 == %s.\n" % (goal_tile_id, block_tile_id, block_tile_id)
             tmp_prolog_statements += "tile_has_reachable_ground_state(TX,TY) :- tile(TX,TY), reachable(%s), %s, TX==X/%d, TY==Y/%d.\n"  % (generic_state, State.generic_ground_reachability_expression(), TILE_DIM, TILE_DIM)
             tmp_prolog_statements += ":- tile_above_block(TX,TY), not tile_has_reachable_ground_state(TX,TY).\n"
 
-        # Bonus tiles should have a reachable bonus state below
+        # Bonus tiles must have a reachable bonus state in the tile below them
         if self.require_all_bonus_tiles_reachable:
             tmp_prolog_statements += "tile_below_bonus(TX,TY) :- tile(TX,TY), tile(TX,TY-1), assignment(TX,TY-1,%s).\n" % bonus_tile_id
             tmp_prolog_statements += "tile_has_reachable_bonus_state(TX,TY) :- tile(TX,TY), reachable(%s), %s, TX==X/%d, TY==Y/%d.\n" % (
@@ -320,7 +320,8 @@ class Solver:
             print(level_structural_txt)
 
         if self.validate:
-            asp_valid = Solver.asp_is_valid(model_str, player_img, answer_set_filename, save=self.save)
+            asp_valid = Solver.asp_is_valid(model_str=model_str, player_img=player_img, answer_set_filename=answer_set_filename,
+                                            tile_ids=self.tile_ids.copy(), save=self.save)
             self.asp_valid_levels_count += 1 if asp_valid else 0
 
             # state_graph_valid_path = Solver.get_state_graph_valid_path(assignments_dict, player_img, prolog_filename,
@@ -330,57 +331,90 @@ class Solver:
         self.increment_answer_set_count()
 
     @staticmethod
-    def asp_is_valid(model_str, player_img, answer_set_filename, save):
+    def asp_is_valid(model_str, player_img, answer_set_filename, tile_ids, save):
+
+        asp_validation_checks = []
+
+        # Check valid path from start to goal state
         asp_valid_path = Solver.get_asp_valid_path(model_str, player_img, answer_set_filename, save)
-        bonus_states_reachable = Solver.all_bonus_states_reachable(model_str)
-        ground_states_reachable = Solver.all_ground_states_reachable(model_str)
-        return all([asp_valid_path, bonus_states_reachable, ground_states_reachable])
+        asp_validation_checks.append(asp_valid_path)
+
+        # Get tile_ids
+        block_tile_id = tile_ids.get('block')[0]
+        goal_tile_id = tile_ids.get('goal')[0]
+        bonus_tile_id = None if len(tile_ids.get('bonus')) == 0 else tile_ids.get('bonus')[0]
+
+        # Create assignments_dict from model_str {(tile_x, tile_y): tile_id}
+        assignment_facts = Solver.get_facts_as_list(model_str, fact_name='assignment')
+        assignments_dict = {}
+        for assignment_fact in assignment_facts:
+            tile_x, tile_y, tile_id = Solver.get_fact_contents_as_list(assignment_fact)
+            tile_x, tile_y = int(tile_x), int(tile_y)
+            assignments_dict[(tile_x, tile_y)] = tile_id
+
+        # Get reachable fact contents from model_str
+        reachable_facts = Solver.get_facts_as_list(model_str, fact_name='reachable')
+        reachable_contents = [Solver.get_fact_contents_as_list(fact) for fact in reachable_facts]
+
+        # Check that all platforms are reachable
+        ground_states_reachable = Solver.all_ground_states_reachable(assignments_dict, reachable_contents,
+                                                                     block_tile_id=block_tile_id,
+                                                                     goal_tile_id=goal_tile_id)
+        asp_validation_checks.append(ground_states_reachable)
+
+        # Check that all bonus tiles are collectable
+        if bonus_tile_id is not None:
+            bonus_states_reachable = Solver.all_bonus_states_reachable(assignments_dict, reachable_contents,
+                                                                       bonus_tile_id=bonus_tile_id)
+            asp_validation_checks.append(bonus_states_reachable)
+
+        return all(asp_validation_checks)
 
     @staticmethod
-    def all_ground_states_reachable(model_str):
-        state_facts = Solver.get_facts_as_list(model_str, fact_name='state')
-        reachable_facts = Solver.get_facts_as_list(model_str, fact_name='reachable')
+    def all_ground_states_reachable(assignments_dict, reachable_contents, block_tile_id, goal_tile_id):
 
-        on_ground_idx = State.prolog_state_contents_on_ground_index()
-        on_ground_nodes = []
-        reachable_nodes_dict = {}
+        # Get list of non-block/non-goal tiles on top of block tiles
+        tiles_above_blocks = []
+        for (tile_x, tile_y), tile_id in assignments_dict.items():
+            if tile_id == block_tile_id and assignments_dict.get((tile_x, tile_y-1)) is not None:
+                if assignments_dict.get((tile_x, tile_y-1)) not in [block_tile_id, goal_tile_id]:
+                    tiles_above_blocks.append((tile_x, tile_y-1))
 
-        for state_fact in state_facts:
-            state_contents = Solver.get_fact_contents_as_list(state_fact)
-            if state_contents[on_ground_idx] == '1':
-                on_ground_nodes.append(str(state_contents))
+        # Create tile_with_reachable_ground_state_dict {(tile_x, tile_y): 1}
+        tile_with_reachable_ground_state_dict = {}
+        for reachable_content_list in reachable_contents:
+            if reachable_content_list[State.prolog_state_contents_on_ground_index()] == '1':
+                state_x = int(reachable_content_list[State.prolog_state_contents_x_index()])
+                state_y = int(reachable_content_list[State.prolog_state_contents_y_index()])
+                tile_with_reachable_ground_state_dict[(state_x // TILE_DIM, state_y // TILE_DIM)] = 1
 
-        for reachable_fact in reachable_facts:
-            reachable_contents = Solver.get_fact_contents_as_list(reachable_fact)
-            reachable_nodes_dict[str(reachable_contents)] = 1
-
-        for on_ground_node in on_ground_nodes:
-            if reachable_nodes_dict.get(on_ground_node) is None:
+        # Ensure that every tile_above_block has a reachable ground state
+        for tile_x, tile_y in tiles_above_blocks:
+            if tile_with_reachable_ground_state_dict.get((tile_x, tile_y)) is None:
                 return False
 
         return True
 
     @staticmethod
-    def all_bonus_states_reachable(model_str):
-        state_facts = Solver.get_facts_as_list(model_str, fact_name='state')
-        reachable_facts = Solver.get_facts_as_list(model_str, fact_name='reachable')
+    def all_bonus_states_reachable(assignments_dict, reachable_contents, bonus_tile_id):
 
-        bonus_idx = State.prolog_state_contents_hit_bonus_coord_index()
-        bonus_nodes = []
-        reachable_nodes_dict = {}
+        # Get list of tiles below bonus tiles
+        tiles_below_bonus = []
+        for (tile_x, tile_y), tile_id in assignments_dict.items():
+            if tile_id == bonus_tile_id and assignments_dict.get((tile_x, tile_y+1)) is not None:
+                tiles_below_bonus.append((tile_x, tile_y+1))
 
-        for state_fact in state_facts:
-            state_contents = Solver.get_fact_contents_as_list(state_fact)
+        # Create tile_with_reachable_bonus_state_dict {(tile_x, tile_y}: 1}
+        tile_with_reachable_bonus_state_dict = {}
+        for reachable_content_list in reachable_contents:
+            if reachable_content_list[State.prolog_state_contents_hit_bonus_coord_index()] != '':
+                state_x = int(reachable_content_list[State.prolog_state_contents_x_index()])
+                state_y = int(reachable_content_list[State.prolog_state_contents_y_index()])
+                tile_with_reachable_bonus_state_dict[(state_x//TILE_DIM, state_y//TILE_DIM)] = 1
 
-            if state_contents[bonus_idx] != '':
-                bonus_nodes.append(str(state_contents))
-
-        for reachable_fact in reachable_facts:
-            reachable_contents = Solver.get_fact_contents_as_list(reachable_fact)
-            reachable_nodes_dict[str(reachable_contents)] = 1
-
-        for bonus_node in bonus_nodes:
-            if reachable_nodes_dict.get(bonus_node) is None:
+        # Ensure that every tile_below_bonus has a reachable bonus state
+        for tile_x, tile_y in tiles_below_bonus:
+            if tile_with_reachable_bonus_state_dict.get((tile_x, tile_y)) is None:
                 return False
 
         return True

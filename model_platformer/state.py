@@ -81,6 +81,16 @@ class StatePlatformer:
         return "GR == 1"
 
     @staticmethod
+    def prolog_state_contents_x_index():
+        generic_prolog_contents = StatePlatformer.generic_prolog_contents().split(',')
+        return generic_prolog_contents.index('X')
+
+    @staticmethod
+    def prolog_state_contents_y_index():
+        generic_prolog_contents = StatePlatformer.generic_prolog_contents().split(',')
+        return generic_prolog_contents.index('Y')
+
+    @staticmethod
     def prolog_state_contents_is_start_index():
         generic_prolog_contents = StatePlatformer.generic_prolog_contents().split(',')
         return generic_prolog_contents.index('IS')

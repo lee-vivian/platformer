@@ -4,7 +4,6 @@ import argparse
 import utils
 
 GAME = "super_mario_bros"
-# LEVELS = ["mario-sample"]
 LEVELS = ["mario-1-1", "mario-1-2", "mario-1-3"]
 
 PROLOG_CONFIG_FORMAT_PAIRS = [
