@@ -339,34 +339,34 @@ class Solver:
         asp_valid_path = Solver.get_asp_valid_path(model_str, player_img, answer_set_filename, save)
         asp_validation_checks.append(asp_valid_path)
 
-        # Get tile_ids
-        block_tile_id = tile_ids.get('block')[0]
-        goal_tile_id = tile_ids.get('goal')[0]
-        bonus_tile_id = None if len(tile_ids.get('bonus')) == 0 else tile_ids.get('bonus')[0]
-
-        # Create assignments_dict from model_str {(tile_x, tile_y): tile_id}
-        assignment_facts = Solver.get_facts_as_list(model_str, fact_name='assignment')
-        assignments_dict = {}
-        for assignment_fact in assignment_facts:
-            tile_x, tile_y, tile_id = Solver.get_fact_contents_as_list(assignment_fact)
-            tile_x, tile_y = int(tile_x), int(tile_y)
-            assignments_dict[(tile_x, tile_y)] = tile_id
-
-        # Get reachable fact contents from model_str
-        reachable_facts = Solver.get_facts_as_list(model_str, fact_name='reachable')
-        reachable_contents = [Solver.get_fact_contents_as_list(fact) for fact in reachable_facts]
-
-        # Check that all platforms are reachable
-        ground_states_reachable = Solver.all_ground_states_reachable(assignments_dict, reachable_contents,
-                                                                     block_tile_id=block_tile_id,
-                                                                     goal_tile_id=goal_tile_id)
-        asp_validation_checks.append(ground_states_reachable)
-
-        # Check that all bonus tiles are collectable
-        if bonus_tile_id is not None:
-            bonus_states_reachable = Solver.all_bonus_states_reachable(assignments_dict, reachable_contents,
-                                                                       bonus_tile_id=bonus_tile_id)
-            asp_validation_checks.append(bonus_states_reachable)
+        # # Get tile_ids
+        # block_tile_id = tile_ids.get('block')[0]
+        # goal_tile_id = tile_ids.get('goal')[0]
+        # bonus_tile_id = None if len(tile_ids.get('bonus')) == 0 else tile_ids.get('bonus')[0]
+        #
+        # # Create assignments_dict from model_str {(tile_x, tile_y): tile_id}
+        # assignment_facts = Solver.get_facts_as_list(model_str, fact_name='assignment')
+        # assignments_dict = {}
+        # for assignment_fact in assignment_facts:
+        #     tile_x, tile_y, tile_id = Solver.get_fact_contents_as_list(assignment_fact)
+        #     tile_x, tile_y = int(tile_x), int(tile_y)
+        #     assignments_dict[(tile_x, tile_y)] = tile_id
+        #
+        # # Get reachable fact contents from model_str
+        # reachable_facts = Solver.get_facts_as_list(model_str, fact_name='reachable')
+        # reachable_contents = [Solver.get_fact_contents_as_list(fact) for fact in reachable_facts]
+        #
+        # # Check that all platforms are reachable
+        # ground_states_reachable = Solver.all_ground_states_reachable(assignments_dict, reachable_contents,
+        #                                                              block_tile_id=block_tile_id,
+        #                                                              goal_tile_id=goal_tile_id)
+        # asp_validation_checks.append(ground_states_reachable)
+        #
+        # # Check that all bonus tiles are collectable
+        # if bonus_tile_id is not None:
+        #     bonus_states_reachable = Solver.all_bonus_states_reachable(assignments_dict, reachable_contents,
+        #                                                                bonus_tile_id=bonus_tile_id)
+        #     asp_validation_checks.append(bonus_states_reachable)
 
         return all(asp_validation_checks)
 
