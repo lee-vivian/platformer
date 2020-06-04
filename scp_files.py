@@ -12,7 +12,7 @@ INSTANCE_URL = "ec2-user@ec2-3-90-45-9.compute-1.amazonaws.com"
 FILE_TYPES = ['py', 'png', 'txt', 'json']
 
 PROJECT_DIRS = ['', 'model', 'model_maze', 'model_platformer', 'images', 'level_structural_layers/super_mario_bros',
-                'solver_config', 'solver_config/widths_num_tiles']
+                'solver_config', 'solver_config/widths_num_tiles', 'solver_config/expressive_range']
 
 VALIDATE_ASP_DIRS = ['level_saved_files_block/generated_level_model_strs']
 VALIDATE_GRAPH_DIRS = ['level_saved_files_block/generated_level_assignments_dicts',
