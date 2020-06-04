@@ -1,5 +1,6 @@
 import utils
 from solver import Solver
+from run_solver import get_prolog_file_info, get_tile_ids_dictionary
 
 import os
 
@@ -10,7 +11,7 @@ PROLOG_CONFIG_FORMAT_PAIRS = [
     ("level_saved_files_block/prolog_files/%s.pl", "solver_config/widths_num_tiles/config-%s-100_num_tiles.json"),
     ("level_saved_files_block/prolog_files/%s.pl", "solver_config/widths_num_tiles/config-%s-150_num_tiles.json")
 ]
-
+PLAYER_IMG = 'block'
 CHECK_ASP_PATH = True
 CHECK_STATE_GRAPH_PATH = False
 
@@ -20,7 +21,7 @@ assignments_dict_file_format = "level_saved_files_block/generated_level_assignme
 
 def main(levels, max_sol, prolog_config_format_pairs):
 
-    # Create (prolog, config, level, sol) tuples
+    # Create (prolog_file, config_file, level, sol) tuples
     solver_runs = []
     for prolog_format, config_format in prolog_config_format_pairs:
         for level in levels:
@@ -40,10 +41,16 @@ def main(levels, max_sol, prolog_config_format_pairs):
         answer_set_filename = '_'.join([prolog_filename, config_filename, 'a%d' % sol])
 
         if CHECK_ASP_PATH:
+
+            prolog_file_info = get_prolog_file_info(prolog_file)
+            tile_ids = get_tile_ids_dictionary(prolog_file_info)
             model_str_file = model_str_file_format % answer_set_filename
+
             if os.path.exists(model_str_file):
+
                 model_str = utils.read_txt(model_str_file)
-                asp_valid = Solver.asp_is_valid(model_str, 'block', answer_set_filename, save=False)
+                asp_valid = Solver.asp_is_valid(model_str=model_str, player_img=PLAYER_IMG, answer_set_filename=answer_set_filename,
+                                                tile_ids=tile_ids, save=False)
                 status = "ASP VALID" if asp_valid else "ASP INVALID"
                 print("%s: %s" % (answer_set_filename, status))
                 asp_checked_count += 1
@@ -53,7 +60,7 @@ def main(levels, max_sol, prolog_config_format_pairs):
             assignments_dict_file = assignments_dict_file_format % answer_set_filename
             if os.path.exists(assignments_dict_file):
                 assignments_dict = utils.read_pickle(assignments_dict_file)
-                state_graph_valid_path = Solver.get_state_graph_valid_path(assignments_dict, 'block', prolog_filename,
+                state_graph_valid_path = Solver.get_state_graph_valid_path(assignments_dict, PLAYER_IMG, prolog_filename,
                                                                            answer_set_filename, save=False)
                 status = "GRAPH VALID" if state_graph_valid_path else "GRAPH INVALID"
                 print("%s: %s" % (answer_set_filename, status))

@@ -25,6 +25,14 @@ def get_prolog_file_info(prolog_file):
     return prolog_file_info
 
 
+def get_tile_ids_dictionary(prolog_file_info):
+    tile_types = ['block', 'bonus', 'one_way_platform', 'start', 'goal', 'hazard', 'wall']
+    tile_ids = {}
+    for tile_type in tile_types:
+        tile_ids[tile_type] = prolog_file_info.get('%s_tile_ids' % tile_type)
+    return tile_ids
+
+
 def check_tile_type_exists_in_prolog(tile_type, prolog_file_info, error_msg):
     if len(prolog_file_info.get('%s_tile_ids' % tile_type)) < 1:
         error_exit("tile type (%s) not found in prolog file; %s" % (tile_type, error_msg))
@@ -214,10 +222,7 @@ def main(prolog_file, config_file, max_sol, threads, print_level, save, validate
     config = get_solver_config(config, prolog_file_info)
 
     # Create tile ids dictionary
-    tile_types = ['block', 'bonus', 'one_way_platform', 'start', 'goal', 'hazard', 'wall']
-    tile_ids = {}
-    for tile_type in tile_types:
-        tile_ids[tile_type] = prolog_file_info.get('%s_tile_ids' % tile_type)
+    tile_ids = get_tile_ids_dictionary(prolog_file_info)
 
     # Create Solver object
     solver = Solver(prolog_file=prolog_file,
