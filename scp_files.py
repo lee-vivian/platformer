@@ -28,9 +28,9 @@ PROLOG_CONFIG_PAIRS = [
 
 
 def get_generated_level_filepaths(levels, max_sol, prolog_config_pairs):
-
     generated_level_filepaths = []
-    generated_level_filepath_format = "level_structural_layers/generated/%s.txt"
+    generated_levels_dir = get_directory("level_structural_layers/generated/")
+    generated_level_filepath_format = generated_levels_dir + "%s.txt"
 
     for level in levels:
         for prolog_file_format, config_file_format in prolog_config_pairs:
@@ -47,14 +47,16 @@ def get_generated_level_filepaths(levels, max_sol, prolog_config_pairs):
 
 def get_generated_level_solver_console_output(levels, max_sol, prolog_config_pairs):
     solver_console_output_filepaths = []
-    solver_console_output_filepath_format = "solver_console_output/%s/%s_a%d.txt"
+    solver_console_output_filepath_format = "solver_console_output/%s/%s_%s_a%d.txt"
 
     for level in levels:
         get_directory("solver_console_output/%s" % level)
         for prolog_file_format, config_file_format in prolog_config_pairs:
+            prolog_filename = get_basepath_filename(prolog_file_format % level, 'pl')
             config_filename = get_basepath_filename(config_file_format % level, 'json')
             for sol in range(max_sol):
-                solver_console_output_filepaths.append(solver_console_output_filepath_format % (level, config_filename, sol))
+                solver_console_output_filepaths.append(solver_console_output_filepath_format % (level, prolog_filename,
+                                                                                                config_filename, sol))
 
     return solver_console_output_filepaths
 
@@ -119,14 +121,14 @@ def transfer_files(files, push, pull):
 def pull_directories(dirs):
     directories_pulled = 0
     for directory in dirs:
-        instance_path = "%s:/home/ec2-user/platformer/%s/" % (INSTANCE_URL, directory)
-        local_path = "%s/" % directory
-        status = os.system("scp -r -i platformer.pem %s %s\n" % (instance_path, local_path))
+        local_path = get_directory(directory)
+        instance_path = "%s:/home/ec2-user/platformer/%s/*" % (INSTANCE_URL, directory)
+        status = os.system("scp -i platformer.pem %s %s\n" % (instance_path, local_path))
         directories_pulled += 1 if status == 0 else 0
     print("Dirs PULL-ed: %d" % directories_pulled)
 
 
-def main(files, dirs, file_types, push, pull, project, gen_levels, validate_asp, validate_graph):
+def main(files, dirs, file_types, push, pull, project, gen_levels):
 
     if push == pull:
         error_exit('Push and pull are mutually exclusive')
@@ -142,16 +144,22 @@ def main(files, dirs, file_types, push, pull, project, gen_levels, validate_asp,
 
     if pull:
         if gen_levels:
+
+            # Transfer level_structural_txt files
             files_to_transfer = get_generated_level_filepaths(LEVELS, MAX_SOL, PROLOG_CONFIG_PAIRS)
             success_files, failed_files = transfer_files(files_to_transfer, push=False, pull=True)
+
+            # Create combined txt file of transferred level_structural_txts
             merge_txt_files(success_files, 'combined_generated_levels.txt')
+
+            # Transfer solver_console_output files
             files_to_transfer = get_generated_level_solver_console_output(LEVELS, MAX_SOL, PROLOG_CONFIG_PAIRS)
             transfer_files(files_to_transfer, push=False, pull=True)
 
-        if validate_asp:
+            # Transfer ASP validation files
             pull_directories(VALIDATE_ASP_DIRS)
 
-        if validate_graph:
+            # Transfer state graph validation files
             pull_directories(VALIDATE_GRAPH_DIRS)
 
         files_to_transfer = files
@@ -168,9 +176,7 @@ if __name__ == "__main__":
     parser.add_argument('--pull', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--project', const=True, nargs='?', type=bool, default=False, help='Add project directories to push transfer list')
     parser.add_argument('--gen_levels', const=True, nargs='?', type=bool, default=False, help='Add generated level files to pull transfer list')
-    parser.add_argument('--validate_asp', const=True, nargs='?', type=bool, default=False, help='Add validate asp directories to pull transfer list')
-    parser.add_argument('--validate_graph', const=True, nargs='?', type=bool, default=False, help='Add validate state graph directories to pull transfer list')
     args = parser.parse_args()
     main(files=args.files, dirs=args.dirs, file_types=args.file_types, push=args.push, pull=args.pull,
-         project=args.project, gen_levels=args.gen_levels, validate_asp=args.validate_asp, validate_graph=args.validate_graph)
+         project=args.project, gen_levels=args.gen_levels)
 
