@@ -40,6 +40,16 @@ def main(levels, max_sol, prolog_config_format_pairs):
         config_filename = utils.get_basepath_filename(config_file, 'json')
         answer_set_filename = '_'.join([prolog_filename, config_filename, 'a%d' % sol])
 
+        # Determine ASP checks to perform based on config file contents
+        config_file_contents = utils.read_json(config_file)
+        config = config_file_contents['config']
+        require_all_platforms_reachable = True
+        require_all_bonus_tiles_reachable = True
+        if config.get('require_all_platforms_reachable') is not None:
+            require_all_platforms_reachable = eval(config['require_all_platforms_reachable'])
+        if config.get('require_all_bonus_tiles_reachable') is not None:
+            require_all_bonus_tiles_reachable = eval(config['require_all_bonus_tiles_reachable'])
+
         if CHECK_ASP_PATH:
 
             prolog_file_info = get_prolog_file_info(prolog_file)
@@ -50,8 +60,8 @@ def main(levels, max_sol, prolog_config_format_pairs):
 
                 model_str = utils.read_txt(model_str_file)
                 asp_valid = Solver.asp_is_valid(check_path=True,
-                                                check_onground=False if level == 'mario-1-2' else True,
-                                                check_bonus=True,
+                                                check_onground=require_all_platforms_reachable,
+                                                check_bonus=require_all_bonus_tiles_reachable,
                                                 model_str=model_str,
                                                 player_img=PLAYER_IMG,
                                                 answer_set_filename=answer_set_filename,
