@@ -346,7 +346,7 @@ class Solver:
             asp_valid_path = Solver.get_asp_valid_path(model_str, player_img, answer_set_filename, save)
             asp_validation_checks.append(asp_valid_path)
 
-            if not all[(asp_valid_path)]:
+            if not all([asp_valid_path]):
                 print("%s: VALID PATH CHECK FAILED" % answer_set_filename)
 
         if check_onground or check_bonus:
