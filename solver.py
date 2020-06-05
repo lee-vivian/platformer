@@ -276,7 +276,7 @@ class Solver:
 
     @staticmethod
     def get_facts_as_list(model_str, fact_name):
-        facts = re.findall(r'\s%s\([^\)]+\)' % fact_name, model_str)
+        facts = re.findall(r'[\s^]%s\([^\)]+\)' % fact_name, model_str)
         facts = [fact.strip() for fact in facts]
         return facts
 
