@@ -346,6 +346,9 @@ class Solver:
             asp_valid_path = Solver.get_asp_valid_path(model_str, player_img, answer_set_filename, save)
             asp_validation_checks.append(asp_valid_path)
 
+            if not all[(asp_valid_path)]:
+                print("%s: VALID PATH CHECK FAILED" % answer_set_filename)
+
         if check_onground or check_bonus:
 
             # Get tile_ids
@@ -372,12 +375,18 @@ class Solver:
                                                                              goal_tile_id=goal_tile_id)
                 asp_validation_checks.append(ground_states_reachable)
 
+                if not all([ground_states_reachable]):
+                    print("%s: ON GROUND CHECK FAILED" % answer_set_filename)
+
             # Check that all bonus tiles are collectable
             if check_bonus:
                 if bonus_tile_id is not None:
                     bonus_states_reachable = Solver.all_bonus_states_reachable(assignments_dict, reachable_contents,
                                                                                bonus_tile_id=bonus_tile_id)
                     asp_validation_checks.append(bonus_states_reachable)
+
+                    if not all([bonus_states_reachable]):
+                        print("%s: BONUS CHECK FAILED" % answer_set_filename)
 
         return all(asp_validation_checks)
 
