@@ -53,10 +53,6 @@ def main(game, levels, process, solve, trial, max_sol, threads):
                     prolog_file = prolog_file_format % level
                     prolog_filename = utils.get_basepath_filename(prolog_file, 'pl')
                     config_file = config_file_format % level
-
-                    if not os.path.exists(os.path.join(os.getcwd(), config_file)):
-                        continue
-
                     config_filename = utils.get_basepath_filename(config_file, 'json')
 
                     answer_set_filename_format = '_'.join([prolog_filename, config_filename, 'a%d'])

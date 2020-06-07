@@ -13,10 +13,7 @@ PEM_FILEPATH = "platformer.pem"
 PROJECT_FILE_TYPES = ['py', 'png', 'txt', 'json']
 
 PROJECT_DIRS = ['', 'model', 'model_maze', 'model_platformer', 'images', 'level_structural_layers/super_mario_bros',
-                'solver_config', 'solver_config/widths_num_tiles',
-                'solver_config/controllability/mario-1-1',
-                'solver_config/controllability/mario-1-2',
-                'solver_config/controllability/mario-1-3']
+                'solver_config', 'solver_config/widths_num_tiles', 'solver_config/controllability']
 
 TRIAL_DIRS = ['level_structural_layers/generated',
               'solver_console_output',
