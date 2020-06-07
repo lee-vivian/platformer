@@ -21,7 +21,7 @@ PROJECT_DIRS = ['', 'model', 'model_maze', 'model_platformer', 'images', 'level_
 TRIAL_DIRS = ['level_structural_layers/generated',
               'solver_console_output',
               'level_saved_files_block/generated_level_model_strs',
-              'level_saved_files_block/generated_level_assignments',
+              'level_saved_files_block/generated_level_assignments_dicts',
               'level_saved_files_block/id_metatile_maps']
 
 # def merge_level_txt_files(files, savefile):
