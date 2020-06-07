@@ -47,7 +47,7 @@ def get_files_to_transfer(files, dirs, file_types):
         for item in os.listdir(directory_path):
             item_path = os.path.join(directory_path, item)
             if os.path.isfile(item_path) and item.endswith(tuple(file_types)):
-                files_to_transfer.append(os.path.join(directory_path, item))
+                files_to_transfer.append(os.path.join(directory, item))
 
     return files_to_transfer
 
