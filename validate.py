@@ -92,7 +92,7 @@ def main(trial, levels, num_sol, asp, state_graph):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Validate generated levels')
-    parser.add_argument('trial', type=str, help="Trial to run: options = [widths_num_tiles, exp_range]")
+    parser.add_argument('trial', type=str, help="Trial to run: options %s" % str(list(TRIAL_CONFIG_FORMATS.keys())))
     parser.add_argument('levels', type=str, nargs='+', help="Level names")
     parser.add_argument('--num_sol', type=int, default=1, help="Number of answer sets per config to validate")
     parser.add_argument('--asp', const=True, nargs='?', type=bool, default=False, help="Validate generated level ASP model str")

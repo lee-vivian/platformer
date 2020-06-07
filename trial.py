@@ -7,15 +7,15 @@ TRIAL_CONFIG_FORMATS = {
     'widths_num_tiles': ["solver_config/widths_num_tiles/config-%s-50_num_tiles.json",
                          "solver_config/widths_num_tiles/config-%s-100_num_tiles.json",
                          "solver_config/widths_num_tiles/config-%s-150_num_tiles.json"],
-    'exp_range': ["solver_config/expressive_range/config-%s-100_bonus_1.json",
-                  "solver_config/expressive_range/config-%s-100_bonus_5.json",
-                  "solver_config/expressive_range/config-%s-100_bonus_10.json",
-                  "solver_config/expressive_range/config-%s-100_hazard_1.json",
-                  "solver_config/expressive_range/config-%s-100_hazard_5.json",
-                  "solver_config/expressive_range/config-%s-100_hazard_10.json",
-                  "solver_config/expressive_range/config-%s-100_block_250.json",
-                  "solver_config/expressive_range/config-%s-100_block_500.json",
-                  "solver_config/expressive_range/config-%s-100_block_750.json"]
+    'controllability': ["solver_config/controllability/config-%s-100_bonus_a.json",
+                        "solver_config/controllability/config-%s-100_bonus_b.json",
+                        "solver_config/controllability/config-%s-100_bonus_c.json",
+                        "solver_config/controllability/config-%s-100_hazard_a.json",
+                        "solver_config/controllability/config-%s-100_hazard_b.json",
+                        "solver_config/controllability/config-%s-100_hazard_c.json",
+                        "solver_config/controllability/config-%s-100_block_a.json",
+                        "solver_config/controllability/config-%s-100_block_b.json",
+                        "solver_config/controllability/config-%s-100_block_c.json"]
 }
 
 
@@ -53,6 +53,10 @@ def main(game, levels, process, solve, trial, max_sol, threads):
                     prolog_file = prolog_file_format % level
                     prolog_filename = utils.get_basepath_filename(prolog_file, 'pl')
                     config_file = config_file_format % level
+
+                    if not os.path.exists(os.path.join(os.getcwd(), config_file)):
+                        continue
+
                     config_filename = utils.get_basepath_filename(config_file, 'json')
 
                     answer_set_filename_format = '_'.join([prolog_filename, config_filename, 'a%d'])
@@ -97,7 +101,7 @@ if __name__ == "__main__":
     parser.add_argument('levels', type=str, nargs='+', help="Level names")
     parser.add_argument('--process', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--solve', const=True, nargs='?', type=bool, default=False)
-    parser.add_argument('--trial', type=str, help="Trial to run: options = [widths_num_tiles, exp_range]")
+    parser.add_argument('--trial', type=str, help="Trial to run: options = %s" % str(list(TRIAL_CONFIG_FORMATS.keys())))
     parser.add_argument('--max_sol', type=int, default=1, help="Max number of answer sets to return per solver config")
     parser.add_argument('--threads', type=int, default=1, help="Number of threads to run the solver on")
     args = parser.parse_args()
