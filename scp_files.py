@@ -21,20 +21,6 @@ TRIAL_DIRS = ['level_structural_layers/generated',
               'level_saved_files_block/generated_level_assignments_dicts',
               'level_saved_files_block/id_metatile_maps']
 
-# def merge_level_txt_files(files, savefile):
-#     count = 0
-#     with open(savefile, 'w') as outfile:
-#         for file in files:
-#             if os.path.exists(file):
-#                 count += 1
-#                 with open(file, 'r') as infile:
-#                     outfile.write("Level: %s\n" % file)
-#                     for line in infile:
-#                         outfile.write(line)
-#                     outfile.write("\n\n")
-#         outfile.write("\nCombined Levels: %d\n" % count)
-#     print("Saved to: %s" % savefile)
-
 
 def get_files_to_transfer(files, dirs, file_types):
     files_to_transfer = []

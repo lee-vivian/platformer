@@ -129,6 +129,21 @@ def get_basepath_filename(filepath, extension):
     return filename
 
 
+def merge_level_txt_files(files, savefile):
+    count = 0
+    with open(savefile, 'w') as outfile:
+        for file in files:
+            if os.path.exists(file):
+                count += 1
+                with open(file, 'r') as infile:
+                    outfile.write("Level: %s\n" % file)
+                    for line in infile:
+                        outfile.write(line)
+                    outfile.write("\n\n")
+        outfile.write("\nCombined Levels: %d\n" % count)
+    print("Saved to: %s" % savefile)
+
+
 def create_generated_level_path_txt(generated_levels):
     generated_level_file_format = 'level_structural_layers/generated/%s.txt'
     generated_paths_file_format = 'level_saved_files_block/generated_level_paths/%s.pickle'
