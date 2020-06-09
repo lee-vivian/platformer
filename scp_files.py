@@ -43,7 +43,7 @@ def transfer_files(files, push):
         local_path = file
         instance_path = "%s:/home/ec2-user/platformer/%s" % (INSTANCE_URL, file)
         src = local_path if push else instance_path
-        dest = instance_path if push else instance_path
+        dest = instance_path if push else local_path
         status = os.system("scp -i %s %s %s\n" % (PEM_FILEPATH, src, dest))
         if status == 0:
             success_files.append(file)
