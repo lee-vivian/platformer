@@ -61,7 +61,7 @@ def main(game_levels, save_filename, player_img):
                                                                   player_img=player_img)
 
     # Generate prolog file for the combined level constraints
-    prolog_file, runtime = gen_prolog.main(tile_constraints_file=combined_constraints_file, debug=False, print_pl=False)
+    prolog_file, runtime = gen_prolog.main(tile_constraints_file=combined_constraints_file, debug=False, print_pl=False, save=True)
 
     return prolog_file
 

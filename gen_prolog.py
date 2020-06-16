@@ -30,7 +30,7 @@ def parse_constraints_filepath(constraints_filename):
     return level_saved_files_dir, prolog_filename
 
 
-def main(tile_constraints_file, debug, print_pl):
+def main(tile_constraints_file, debug, print_pl, save):
 
     print("Generating prolog file for constraints file: %s ..." % tile_constraints_file)
     start_time = datetime.now()
@@ -164,25 +164,26 @@ def main(tile_constraints_file, debug, print_pl):
     if print_pl:
         print(prolog_statements)
 
-    # Save prolog file
-    utils.write_file(prolog_filepath, prolog_statements)
+    if save:
+        # Save prolog file
+        utils.write_file(prolog_filepath, prolog_statements)
 
-    # Update all_prolog_info file
-    all_prolog_info_filepath = utils.get_filepath("%s/prolog_files" % level_saved_files_dir, "all_prolog_info.pickle")
-    all_prolog_info_map = utils.read_pickle(all_prolog_info_filepath) if os.path.exists(all_prolog_info_filepath) else {}
+        # Update all_prolog_info file
+        all_prolog_info_filepath = utils.get_filepath("%s/prolog_files" % level_saved_files_dir, "all_prolog_info.pickle")
+        all_prolog_info_map = utils.read_pickle(all_prolog_info_filepath) if os.path.exists(all_prolog_info_filepath) else {}
 
-    all_prolog_info_map[prolog_filename] = {
-        "block_tile_ids": [block_tile_id],
-        "start_tile_ids": [start_tile_id],
-        "goal_tile_ids": [goal_tile_id],
-        "bonus_tile_ids": [] if bonus_tile_id is None else [bonus_tile_id],
-        "one_way_platform_tile_ids": one_way_platform_tile_ids,
-        "hazard_tile_ids": hazard_tile_ids,
-        "wall_tile_ids": wall_tile_ids,
-        "level_ids_map": metatile_level_ids_map
-    }
+        all_prolog_info_map[prolog_filename] = {
+            "block_tile_ids": [block_tile_id],
+            "start_tile_ids": [start_tile_id],
+            "goal_tile_ids": [goal_tile_id],
+            "bonus_tile_ids": [] if bonus_tile_id is None else [bonus_tile_id],
+            "one_way_platform_tile_ids": one_way_platform_tile_ids,
+            "hazard_tile_ids": hazard_tile_ids,
+            "wall_tile_ids": wall_tile_ids,
+            "level_ids_map": metatile_level_ids_map
+        }
 
-    utils.write_pickle(all_prolog_info_filepath, all_prolog_info_map)
+        utils.write_pickle(all_prolog_info_filepath, all_prolog_info_map)
 
     end_time = datetime.now()
     runtime = str(end_time-start_time)
@@ -196,6 +197,7 @@ if __name__ == "__main__":
     parser.add_argument('tile_constraints_file', type=str, help="File path of the tile constraints dictionary to use")
     parser.add_argument('--debug', const=True, nargs='?', type=bool, default=False, help='Allow empty tiles if no suitable assignment can be found')
     parser.add_argument('--print_pl', const=True, nargs='?', type=bool, default=False, help='Print prolog statements to console')
+    parser.add_argument('--save', const=True, nargs='?', type=bool, default=False, help='Save generated prolog file')
     args = parser.parse_args()
 
-    main(args.tile_constraints_file, args.debug, args.print_pl)
+    main(args.tile_constraints_file, args.debug, args.print_pl, args.save)

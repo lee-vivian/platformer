@@ -115,7 +115,7 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
         process_runtimes.append(('extract_constraints', runtime))
 
         import gen_prolog
-        prolog_file, runtime = gen_prolog.main(tile_constraints_file=metatile_constraints_file, debug=False, print_pl=False)
+        prolog_file, runtime = gen_prolog.main(tile_constraints_file=metatile_constraints_file, debug=False, print_pl=False, save=True)
         process_runtimes.append(('gen_prolog', runtime))
 
         # Save process script runtimes for the level
