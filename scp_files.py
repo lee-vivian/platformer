@@ -7,7 +7,7 @@ import argparse
 
 from utils import error_exit, get_directory
 
-INSTANCE_URL = "ec2-user@ec2-3-90-45-9.compute-1.amazonaws.com"
+INSTANCE_URL = "ec2-user@ec2-34-224-89-142.compute-1.amazonaws.com"
 PEM_FILEPATH = "platformer.pem"
 
 PROJECT_FILE_TYPES = ['py', 'png', 'txt', 'json']
