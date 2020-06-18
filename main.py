@@ -37,10 +37,6 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
     if environment == 'maze':
         os.environ['MAZE'] = "1"
 
-    # Make all level chars in txt layer uniform
-    print("----- Creating Uniform Txt Layer File -----")
-    Level.get_uniform_tile_chars(game, level)
-
     if dimensions or structure or summary:
         if dimensions:
             print(Level.get_level_dimensions_in_tiles(game, level))
@@ -73,6 +69,8 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
         utils.error_exit("Run 'python main.py <environment> %s %s --process'" % (game, level))
 
     if process:
+        print("----- Creating Uniform Txt Layer File -----")
+        Level.get_uniform_tile_chars(game, level)
 
         print("---- Processing Level -----")
         print("Game: %s" % game)
