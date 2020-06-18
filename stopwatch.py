@@ -21,7 +21,9 @@ class Stopwatch:
     def stop(self):
         self.stop_time = datetime.now()
         self.time = None
-        print("Total runtime: %s" % str(self.stop_time - self.start_time))
+        runtime = str(self.stop_time - self.start_time)
+        print("Total runtime: %s" % runtime)
+        return runtime
 
     def get_lap_time_str(self, process_str):
         cur_time = datetime.now()  # get current time

@@ -122,6 +122,8 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
         for process_step, runtime_str in process_runtimes:
             all_levels_process_info[process_key][process_step] = runtime_str
 
+        print(process_runtimes)
+
         print("Saving process script runtimes...")
         utils.write_pickle(all_levels_process_info_file, all_levels_process_info)
 
