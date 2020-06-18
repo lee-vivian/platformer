@@ -122,6 +122,7 @@ def main(tile_constraints_file, debug, print_pl, save):
     goal_tile_id = metatile_type_ids_map.get("goal")[0]
     hazard_tile_ids = metatile_type_ids_map.get("hazard")
     wall_tile_ids = metatile_type_ids_map.get("wall")
+    permeable_wall_tile_ids = metatile_type_ids_map.get("permeable_wall")
 
     # Get bonus tile id if exists
     bonus_tile_ids = metatile_type_ids_map.get("bonus")
@@ -179,6 +180,7 @@ def main(tile_constraints_file, debug, print_pl, save):
         "one_way_platform_tile_ids": one_way_platform_tile_ids,
         "hazard_tile_ids": hazard_tile_ids,
         "wall_tile_ids": wall_tile_ids,
+        "permeable_wall_tile_ids": permeable_wall_tile_ids,
         "level_ids_map": metatile_level_ids_map
     }
 
