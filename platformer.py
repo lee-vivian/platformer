@@ -53,6 +53,7 @@ def get_label_rect_pairs(center_x, labels):
         label_rect_pairs.append((label, label_rect))
     return label_rect_pairs
 
+
 def get_metatile_labels_at_coords(coords, tile_id, extra_info, label_font, font_color): #, graph_is_empty, font, color):
     new_labels = []
     label_text = tile_id[1:] + extra_info

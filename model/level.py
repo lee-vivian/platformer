@@ -45,6 +45,9 @@ TILE_CHARS = {
     },
     'wall': {
         'W': ['solid', 'border', 'wall']
+    },
+    'permeable_wall': {
+        '|': ['permeable', 'border', 'wall']
     }
 }
 
@@ -56,7 +59,7 @@ MAX_HEIGHT = 600
 class Level:
 
     def __init__(self, name, game, width, height, platform_coords, goal_coords, start_coord, bonus_coords,
-                 one_way_platform_coords, hazard_coords, wall_coords):
+                 one_way_platform_coords, hazard_coords, wall_coords, permeable_wall_coords):
         self.name = name
         self.game = game
         self.width = width  # in px
@@ -68,6 +71,7 @@ class Level:
         self.one_way_platform_coords = one_way_platform_coords
         self.hazard_coords = hazard_coords
         self.wall_coords = wall_coords
+        self.permeable_wall_coords = permeable_wall_coords
 
     def get_name(self):
         return self.name
@@ -102,6 +106,9 @@ class Level:
     def get_wall_coords(self):
         return list(self.wall_coords)
 
+    def get_permeable_wall_coords(self):
+        return list(self.permeable_wall_coords)
+
     def get_all_possible_coords(self):
         return Level.all_possible_coords(self.width, self.height)
 
@@ -121,16 +128,14 @@ class Level:
             'bonus': len(level_obj.get_bonus_coords()),
             'one_way_platform': len(level_obj.get_one_way_platform_coords()),
             'hazard': len(level_obj.get_hazard_coords()),
-            'wall': len(level_obj.get_wall_coords())
+            'wall': len(level_obj.get_wall_coords()),
+            'permeable_wall': len(level_obj.get_permeable_wall_coords())
         }
-
         perc_tiles_map = {}
-
         for tile_type, count in num_tiles_map.items():
             perc_tiles_map[tile_type] = int(count / total_tiles * 100)
 
         return perc_tiles_map
-
 
     @staticmethod
     def all_possible_coords(level_w, level_h):  # level_w and level_h in px
@@ -229,7 +234,6 @@ class Level:
             uniform_chars += "\n"
         write_file(filepath, uniform_chars)
 
-
     @staticmethod
     def generate_level_from_file(game, level):
         filepath = "level_structural_layers/%s/%s.txt" % (game, level)
@@ -278,4 +282,5 @@ class Level:
                      bonus_coords=tile_coords_dict['bonus'],
                      one_way_platform_coords=tile_coords_dict['one_way_platform'],
                      hazard_coords=tile_coords_dict['hazard'],
-                     wall_coords=tile_coords_dict['wall'])
+                     wall_coords=tile_coords_dict['wall'],
+                     permeable_wall_coords=tile_coords_dict['permeable_wall'])

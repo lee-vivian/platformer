@@ -6,17 +6,7 @@ import networkx as nx
 
 from utils import error_exit, read_pickle, get_filepath
 
-METATILE_TYPES = ["start", "goal", "block", "bonus", "empty", "one_way_platform", "hazard", "wall"]
-TYPE_IMG_MAP = {
-    "start": "start_tile.png",
-    "goal": "goal_tile.png",
-    "block": "block_tile.png",
-    "bonus": "bonus_tile.png",
-    "empty": "empty_tile.png",
-    "one_way_platform": "one_way_block_tile.png",
-    "hazard": "hazard_tile.png",
-    "wall": "block_tile.png"
-}
+METATILE_TYPES = ["start", "goal", "block", "bonus", "empty", "one_way_platform", "hazard", "wall", "permeable_wall"]
 
 
 class Metatile:

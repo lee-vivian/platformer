@@ -1,8 +1,5 @@
 from model.level import TILE_DIM
-from model.metatile import Metatile
 from model_platformer.state import StatePlatformer
-
-from utils import list_to_dict
 
 '''
 Player Model Object
@@ -134,7 +131,7 @@ class PlayerPlatformer:
                     if new_state.x < 0:
                         new_state.x += self.level.get_width()
                     if new_state.x >= self.level.get_width():
-                        new_state.x -= self.level.get_width();
+                        new_state.x -= self.level.get_width()
 
             if not use_kid_icarus_rules:
                 # Handle moving off the screen
