@@ -28,7 +28,7 @@ def main(game, levels, process, solve, trial, max_sol, threads):
         for level in levels:
             process_file = utils.get_filepath(process_dir, "%s.txt" % level)
             os.system("(time pypy3 main.py platformer %s %s --process) > %s 2>&1" % (game, level, process_file))
-            os.system("(time python main.py platformer %s %s --gen_prolog) > %s 2>&1" % (game, level, process_file))
+            os.system("(time python main.py platformer %s %s --gen_prolog) >> %s 2>&1" % (game, level, process_file))
             print("Saved to: %s" % process_file)
 
     if solve:

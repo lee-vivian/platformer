@@ -126,7 +126,7 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
         prolog_file, runtime = gen_prolog.main(tile_constraints_file=metatile_constraints_file, debug=False, print_pl=False, save=True)
         save_process_runtimes(process_key="%s/%s" % (game, level), process_runtimes=[('gen_prolog', runtime)])
 
-    else:
+    if not (process or gen_prolog):
         import platformer
         platformer.main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score)
 
