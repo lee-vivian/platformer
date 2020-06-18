@@ -1,6 +1,7 @@
-# from sklearn import linear_model
-# from sklearn.metrics import mean_squared_error
-# import numpy as np
+"""
+Expressive range script - FILE DEPRECATED
+"""
+
 import argparse
 
 tile_char_dict = {
