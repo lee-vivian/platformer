@@ -74,16 +74,25 @@ class Solver:
         goal_tile_id = self.tile_ids.get('goal')[0]
         one_way_tile_ids = self.tile_ids.get('one_way_platform')
         bonus_tile_id = None if len(self.tile_ids.get('bonus')) == 0 else self.tile_ids.get('bonus')[0]
+        wall_tile_id = None if len(self.tile_ids.get('wall')) == 0 else self.tile_ids.get('wall')[0]
+        permeable_wall_tile_ids = self.tile_ids.get('permeable_wall')
 
         # Add border tile rules if wall tiles exist
-        if len(self.tile_ids.get('wall')) > 0:
-            wall_tile_id = self.tile_ids.get('wall')[0]
+        if wall_tile_id is not None:
 
             # Border tiles must be wall tiles
-            tmp_prolog_statements += "assignment(X,Y,%s) :- tile(X,Y), X==(0).\n" % (wall_tile_id,)
-            tmp_prolog_statements += "assignment(X,Y,%s) :- tile(X,Y), X==(%d).\n" % (wall_tile_id, self.level_w - 1)
             tmp_prolog_statements += "assignment(X,Y,%s) :- tile(X,Y), Y==(0).\n" % (wall_tile_id,)
             tmp_prolog_statements += "assignment(X,Y,%s) :- tile(X,Y), Y==(%d).\n" % (wall_tile_id, self.level_h - 1)
+
+            if len(permeable_wall_tile_ids) == 0:
+                tmp_prolog_statements += "assignment(X,Y,%s) :- tile(X,Y), X==(0).\n" % (wall_tile_id,)
+                tmp_prolog_statements += "assignment(X,Y,%s) :- tile(X,Y), X==(%d).\n" % (wall_tile_id, self.level_w - 1)
+            else:
+                allowed_wall_tile_ids = [wall_tile_id] + permeable_wall_tile_ids
+                allowed_wall_tile_ids_str = ["ID != %s" % tile_id for tile_id in allowed_wall_tile_ids]
+                tmp_prolog_statements += ":- tile(X,Y), assignment(X,Y,ID), X==(0;%d), Y>0, Y<%d, %s.\n" % (
+                    self.level_w-1, self.level_h-1, ','.join(allowed_wall_tile_ids_str)
+                )
 
             # Non-border tiles cannot be wall tiles
             tmp_prolog_statements += ":- assignment(X,Y,ID), tile(X,Y), ID==%s, X>0, X<%d, Y>0, Y<%d.\n" % (
@@ -93,19 +102,48 @@ class Solver:
         generic_state = State.generic_prolog_contents()
 
         # Non-block and non-goal tiles on top of block tiles must have a reachable ground state in them
+        # TODO fix require_all_platforms_reachable pl rule for icarus 1
         if self.require_all_platforms_reachable:
-            tmp_prolog_statements += "tile_above_block(TX,TY) :- tile(TX,TY), assignment(TX,TY,ID1), ID1 != %s, ID1 != %s, tile(TX,TY+1), assignment(TX,TY+1,ID2), ID2 == %s.\n" % (goal_tile_id, block_tile_id, block_tile_id)
+            tmp_prolog_statements += "tile_above_block(TX,TY) :- tile(TX,TY), assignment(TX,TY,ID1), ID1 != %s, ID1 != %s, ID1 != %s, tile(TX,TY+1), assignment(TX,TY+1,ID2), ID2 == %s.\n" % \
+                                     (goal_tile_id, block_tile_id, wall_tile_id, block_tile_id)
             tmp_prolog_statements += "tile_has_reachable_ground_state(TX,TY) :- tile(TX,TY), reachable(%s), %s, TX==X/%d, TY==Y/%d.\n"  % (generic_state, State.generic_ground_reachability_expression(), TILE_DIM, TILE_DIM)
             tmp_prolog_statements += ":- tile_above_block(TX,TY), not tile_has_reachable_ground_state(TX,TY).\n"
 
         # Bonus tiles must have a reachable bonus state in the tile below them
-        if self.require_all_bonus_tiles_reachable:
+        if self.require_all_bonus_tiles_reachable and bonus_tile_id is not None:
             tmp_prolog_statements += "tile_below_bonus(TX,TY) :- tile(TX,TY), tile(TX,TY-1), assignment(TX,TY-1,%s).\n" % bonus_tile_id
             tmp_prolog_statements += "tile_has_reachable_bonus_state(TX,TY) :- tile(TX,TY), reachable(%s), %s, TX==X/%d, TY==Y/%d.\n" % (
                 generic_state, State.generic_bonus_reachability_expression(), TILE_DIM, TILE_DIM
             )
             tmp_prolog_statements += ":- tile_below_bonus(TX,TY), not tile_has_reachable_bonus_state(TX,TY).\n"
 
+        # Require start tile to be on ground (start tile must be on top of a block tile)
+        if self.require_start_on_ground:
+            start_on_ground_rule = ":- assignment(X,Y,%s), not assignment(X,Y+1,%s)." % (start_tile_id, block_tile_id)
+            tmp_prolog_statements += start_on_ground_rule + "\n"
+
+        # Require goal tile to be on ground (goal tile must be on top of a block tile)
+        if self.require_goal_on_ground:
+            goal_on_ground_rule = ":- assignment(X,Y,%s), not assignment(X,Y+1,%s)." % (goal_tile_id, block_tile_id)
+            tmp_prolog_statements += goal_on_ground_rule + "\n"
+
+        # Set start and goal tile index ranges (tile position ranges)
+        start_tile_min_x, start_tile_max_x = self.tile_position_ranges.get('start_column')
+        start_tile_min_y, start_tile_max_y = self.tile_position_ranges.get('start_row')
+        goal_tile_min_x, goal_tile_max_x = self.tile_position_ranges.get('goal_column')
+        goal_tile_min_y, goal_tile_max_y = self.tile_position_ranges.get('goal_row')
+
+        tmp_prolog_statements += ":- assignment(X,Y,%s), X < %d.\n" % (start_tile_id, start_tile_min_x)
+        tmp_prolog_statements += ":- assignment(X,Y,%s), X > %d.\n" % (start_tile_id, start_tile_max_x)
+        tmp_prolog_statements += ":- assignment(X,Y,%s), Y < %d.\n" % (start_tile_id, start_tile_min_y)
+        tmp_prolog_statements += ":- assignment(X,Y,%s), Y > %d.\n" % (start_tile_id, start_tile_max_y)
+
+        tmp_prolog_statements += ":- assignment(X,Y,%s), X < %d.\n" % (goal_tile_id, goal_tile_min_x)
+        tmp_prolog_statements += ":- assignment(X,Y,%s), X > %d.\n" % (goal_tile_id, goal_tile_max_x)
+        tmp_prolog_statements += ":- assignment(X,Y,%s), Y < %d.\n" % (goal_tile_id, goal_tile_min_y)
+        tmp_prolog_statements += ":- assignment(X,Y,%s), Y > %d.\n" % (goal_tile_id, goal_tile_max_y)
+
+        # TODO fix one_way tile facts and rules below
         # Create one_way facts for one_way_platform tile assignments
         if len(one_way_tile_ids) > 0:
             tmp_prolog_statements += "one_way_tile(X,Y) :- tile(X,Y), assignment(X,Y,ID), ID=(%s).\n" % (';'.join(one_way_tile_ids))
@@ -141,35 +179,9 @@ class Solver:
                 for x, y in tile_coords:
                     tmp_prolog_statements += "assignment(%d,%d,%s).\n" % (x, y, self.tile_ids.get(tile_type)[0])
 
-        # Require start tile to be on ground (start tile must be on top of a block tile)
-        if self.require_start_on_ground:
-            start_on_ground_rule = ":- assignment(X,Y,%s), not assignment(X,Y+1,%s)." % (start_tile_id, block_tile_id)
-            tmp_prolog_statements += start_on_ground_rule + "\n"
-
-        # Require goal tile to be on ground (goal tile must be on top of a block tile)
-        if self.require_goal_on_ground:
-            goal_on_ground_rule = ":- assignment(X,Y,%s), not assignment(X,Y+1,%s)." % (goal_tile_id, block_tile_id)
-            tmp_prolog_statements += goal_on_ground_rule + "\n"
-
         # Set range number of gaps allowed in a valid level
         min_num_gaps, max_num_gaps = self.num_gaps_range
         tmp_prolog_statements += "%d { gap_tile(X,Y) : tile(X,Y) } %d.\n" % (min_num_gaps, max_num_gaps)
-
-        # Set start and goal tile index ranges (tile position ranges)
-        start_tile_min_x, start_tile_max_x = self.tile_position_ranges.get('start_column')
-        start_tile_min_y, start_tile_max_y = self.tile_position_ranges.get('start_row')
-        goal_tile_min_x, goal_tile_max_x = self.tile_position_ranges.get('goal_column')
-        goal_tile_min_y, goal_tile_max_y = self.tile_position_ranges.get('goal_row')
-
-        tmp_prolog_statements += ":- assignment(X,Y,%s), X < %d.\n" % (start_tile_id, start_tile_min_x)
-        tmp_prolog_statements += ":- assignment(X,Y,%s), X > %d.\n" % (start_tile_id, start_tile_max_x)
-        tmp_prolog_statements += ":- assignment(X,Y,%s), Y < %d.\n" % (start_tile_id, start_tile_min_y)
-        tmp_prolog_statements += ":- assignment(X,Y,%s), Y > %d.\n" % (start_tile_id, start_tile_max_y)
-
-        tmp_prolog_statements += ":- assignment(X,Y,%s), X < %d.\n" % (goal_tile_id, goal_tile_min_x)
-        tmp_prolog_statements += ":- assignment(X,Y,%s), X > %d.\n" % (goal_tile_id, goal_tile_max_x)
-        tmp_prolog_statements += ":- assignment(X,Y,%s), Y < %d.\n" % (goal_tile_id, goal_tile_min_y)
-        tmp_prolog_statements += ":- assignment(X,Y,%s), Y > %d.\n" % (goal_tile_id, goal_tile_max_y)
 
         # Set perc level ranges (e.g. 50-100% tiles must come from level 1)
         for level, tile_perc_range in self.perc_level_ranges.items():
