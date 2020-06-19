@@ -102,10 +102,10 @@ class Solver:
         generic_state = State.generic_prolog_contents()
 
         # Non-block and non-goal tiles on top of block tiles must have a reachable ground state in them
-        # TODO fix require_all_platforms_reachable pl rule for icarus 1
         if self.require_all_platforms_reachable:
-            tmp_prolog_statements += "tile_above_block(TX,TY) :- tile(TX,TY), assignment(TX,TY,ID1), ID1 != %s, ID1 != %s, ID1 != %s, tile(TX,TY+1), assignment(TX,TY+1,ID2), ID2 == %s.\n" % \
-                                     (goal_tile_id, block_tile_id, wall_tile_id, block_tile_id)
+            reachable_platform_ids = block_tile_id if len(one_way_tile_ids) == 0 else ';'.join([block_tile_id] + one_way_tile_ids)
+            tmp_prolog_statements += "tile_above_block(TX,TY) :- tile(TX,TY), assignment(TX,TY,ID1), ID1 != %s, ID1 != %s, ID1 != %s, tile(TX,TY+1), assignment(TX,TY+1,ID2), ID2 == (%s).\n" % \
+                                     (goal_tile_id, block_tile_id, wall_tile_id, reachable_platform_ids)
             tmp_prolog_statements += "tile_has_reachable_ground_state(TX,TY) :- tile(TX,TY), reachable(%s), %s, TX==X/%d, TY==Y/%d.\n"  % (generic_state, State.generic_ground_reachability_expression(), TILE_DIM, TILE_DIM)
             tmp_prolog_statements += ":- tile_above_block(TX,TY), not tile_has_reachable_ground_state(TX,TY).\n"
 
