@@ -26,7 +26,8 @@ def get_prolog_file_info(prolog_file):
 
 
 def get_tile_ids_dictionary(prolog_file_info):
-    tile_types = ['block', 'bonus', 'one_way_platform', 'start', 'goal', 'hazard', 'wall']
+    tile_types = METATILE_TYPES.copy()
+    tile_types.remove("empty")
     tile_ids = {}
     for tile_type in tile_types:
         tile_ids[tile_type] = prolog_file_info.get('%s_tile_ids' % tile_type)

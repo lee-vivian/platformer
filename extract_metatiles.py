@@ -48,7 +48,8 @@ def get_metatile_coord_states_map(state_graph, all_possible_coords):
 
 def construct_metatile(metatile_coord, game, level, level_start_coord, level_goal_coords_dict, level_platform_coords_dict,
                        level_bonus_coords_dict, level_one_way_platform_coords_dict, level_hazard_coords_dict,
-                       level_wall_coords_dict, state_graph, metatile_coord_states_map):
+                       level_wall_coords_dict, level_permeable_wall_coords_dict,
+                       state_graph, metatile_coord_states_map):
 
     # Determine metatile type
     if metatile_coord == level_start_coord:
@@ -65,6 +66,8 @@ def construct_metatile(metatile_coord, game, level, level_start_coord, level_goa
         metatile_type = 'hazard'
     elif level_wall_coords_dict.get(metatile_coord) is not None:
         metatile_type = 'wall'
+    elif level_permeable_wall_coords_dict.get(metatile_coord) is not None:
+        metatile_type = 'permeable_wall'
     else:
         metatile_type = 'empty'
 
@@ -110,6 +113,7 @@ def extract_metatiles(state_graph_files, unique_metatiles_file, metatile_coords_
         one_way_platform_coords_dict = utils.list_to_dict(level_obj.get_one_way_platform_coords())
         hazard_coords_dict = utils.list_to_dict(level_obj.get_hazard_coords())
         wall_coords_dict = utils.list_to_dict(level_obj.get_wall_coords())
+        permeable_wall_coords_dict = utils.list_to_dict(level_obj.get_permeable_wall_coords())
 
         # Extract metatiles from level
         all_possible_coords = level_obj.get_all_possible_coords()
@@ -126,6 +130,7 @@ def extract_metatiles(state_graph_files, unique_metatiles_file, metatile_coords_
                                               level_one_way_platform_coords_dict=one_way_platform_coords_dict,
                                               level_hazard_coords_dict=hazard_coords_dict,
                                               level_wall_coords_dict=wall_coords_dict,
+                                              level_permeable_wall_coords_dict = permeable_wall_coords_dict,
                                               state_graph=state_graph,
                                               metatile_coord_states_map=metatile_coord_states_map)
 

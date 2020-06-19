@@ -148,12 +148,6 @@ def main(tile_constraints_file, debug, print_pl, save):
 
     # Add rules for placing one_way_platform tiles
     one_way_platform_tile_ids = metatile_type_ids_map.get("one_way_platform")
-    if len(one_way_platform_tile_ids) > 0:
-
-        # Forbid vertically stacking one_way_platform tiles
-        for top_tile in one_way_platform_tile_ids:
-            for bottom_tile in one_way_platform_tile_ids:
-                prolog_statements += ":- assignment(X,Y,%s), assignment(X,Y+1,%s), tile(X,Y), tile(X,Y+1).\n" % (top_tile, bottom_tile)
 
     # ASP WFC algorithm rule
     wfc_rule = ":- adj(X1,Y1,X2,Y2,DX,DY), assignment(X1,Y1,MT1), not 1 { assignment(X2,Y2,MT2) : legal(DX,DY,MT1,MT2) }."
