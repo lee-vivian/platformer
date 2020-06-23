@@ -1,0 +1,20 @@
+{
+  "config": {
+
+    "level_dimensions": {
+      "width": 16,
+      "height": 6
+    },
+
+    "tile_position_ranges": {
+      "start_row": "(8, None)",
+      "goal_row": "(None, 2)"
+    },
+
+    "require_start_on_ground": "True",
+    "require_goal_on_ground": "True",
+    "require_all_platforms_reachable": "True",
+    "require_all_bonus_tiles_reachable": "True"
+
+  }
+}

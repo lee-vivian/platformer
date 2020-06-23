@@ -9,6 +9,8 @@
       "start_row": "(195,None)",
       "goal_row": "(None,9)"
     },
+    "require_start_on_ground": "True",
+    "require_goal_on_ground": "True",
     "require_all_platforms_reachable": "False",
     "require_all_bonus_tiles_reachable": "True",
 
