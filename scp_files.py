@@ -5,7 +5,7 @@ Transfer files to or from the ec2 instance
 import os
 import argparse
 
-from utils import error_exit, get_directory
+from utils import error_exit, get_directory, get_filepath
 
 INSTANCE_URL = "ec2-user@ec2-3-92-138-153.compute-1.amazonaws.com"
 PEM_FILEPATH = "platformer.pem"
@@ -20,6 +20,23 @@ TRIAL_DIRS = ['level_structural_layers/generated',
               'level_saved_files_block/generated_level_model_strs',
               'level_saved_files_block/generated_level_assignments_dicts',
               'level_saved_files_block/id_metatile_maps']
+
+
+def get_processed_level_files(player_img, game, levels):
+    processed_files = ['all_levels_process_info.pickle', 'level_saved_files_%s/prolog_files/all_prolog_info.pickle' % player_img]
+    for level in levels:
+        processed_files += [
+            'process_console_output/%s.txt' % level,
+            'level_saved_files_%s/enumerated_state_graphs/%s/%s.gpickle' % (player_img, game, level),
+            'level_saved_files_%s/unique_metatiles/%s.pickle' % (player_img, level),
+            'level_saved_files_%s/metatile_coords_dicts/%s/%s.pickle' % (player_img, game, level),
+            'level_saved_files_%s/id_metatile_maps/%s.pickle' % (player_img, level),
+            'level_saved_files_%s/metatile_id_maps/%s.pickle' % (player_img, level),
+            'level_saved_files_%s/tile_id_coords_maps/%s/%s.pickle' % (player_img, game, level),
+            'level_saved_files_%s/metatile_num_states_dicts/%s.pickle' % (player_img, level),
+            'level_saved_files_%s/metatile_constraints/%s.pickle' % (player_img, level),
+            'level_saved_files_%s/prolog_files/%s.pl' % (player_img, level)]
+    return processed_files
 
 
 def get_files_to_transfer(files, dirs, file_types):
@@ -68,9 +85,9 @@ def pull_directories(dirs):
     print("Directories Pulled: %d" % directories_pulled)
 
 
-def main(push, pull, files, dirs, file_types, push_project, pull_trials):
+def main(push, pull, files, dirs, file_types, push_project, pull_trials, pull_processed):
 
-    if not any([push, pull, push_project, pull_trials]):
+    if not any([push, pull, push_project, pull_trials, pull_processed]):
         error_exit("Must specify a push/pull action. View options with python scp_files.py --help")
 
     if push_project:
@@ -82,7 +99,15 @@ def main(push, pull, files, dirs, file_types, push_project, pull_trials):
         pull_directories(dirs=TRIAL_DIRS)
         return
 
-    if push == pull:
+    if len(pull_processed) <= 1:
+        error_exit('--pull_processed args should be in the format <game> <level1> <level2> ...')
+    else:
+        files_to_transfer = get_processed_level_files(player_img='block', game=pull_processed[0], levels=pull_processed[1:])
+        for file in files_to_transfer:
+            get_filepath(os.path.dirname(file), os.path.basename(file))
+        transfer_files(files_to_transfer, push=False)
+
+    if push and pull:
         error_exit('Push and pull are mutually exclusive')
 
     files_to_transfer = get_files_to_transfer(files=files, dirs=dirs, file_types=file_types)
@@ -97,8 +122,9 @@ if __name__ == "__main__":
     parser.add_argument('--dirs', type=str, nargs='+', help='Directories to transfer', default=[])
     parser.add_argument('--file_types', type=str, nargs='+', help='File types to transfer', default=PROJECT_FILE_TYPES)
     parser.add_argument('--push_project', const=True, nargs='?', type=bool, default=False, help='Push project files to instance')
-    parser.add_argument('--pull_trials',const=True, nargs='?', type=bool, default=False, help='Pull generated level files from trials')
+    parser.add_argument('--pull_trials', const=True, nargs='?', type=bool, default=False, help='Pull generated level files from trials'),
+    parser.add_argument('--pull_processed', type=str, nargs='+', help='Pull processed level files, format = <game> <level1> <level2>...')
     args = parser.parse_args()
     main(push=args.push, pull=args.pull, files=args.files, dirs=args.dirs, file_types=args.file_types,
-         push_project=args.push_project, pull_trials=args.pull_trials)
+         push_project=args.push_project, pull_trials=args.pull_trials, pull_processed=args.pull_processed)
 
