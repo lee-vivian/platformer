@@ -190,7 +190,7 @@ class Level:
     @staticmethod
     def print_tile_summary(game, level):
         level_obj = Level.generate_level_from_file(game, level)
-        num_tiles_total = level_obj.get_width() * level_obj.get_height()
+        num_tiles_total = len(level_obj.get_all_possible_coords())
         num_tiles_dict = {
             'start': 1,
             'goal': len(level_obj.get_goal_coords()),
@@ -201,6 +201,8 @@ class Level:
             'wall': len(level_obj.get_wall_coords()),
             'permeable_wall': len(level_obj.get_permeable_wall_coords())
         }
+
+        num_tiles_dict['empty'] = num_tiles_total - sum(num_tiles_dict.values())
 
         print("----- Level: %s/%s -----" % (game, level))
         print("Total tiles: %d (%d%%)" % (num_tiles_total, 100))
