@@ -5,7 +5,7 @@ import utils
 
 TRIAL_CONFIG_FORMATS = {
     'widths_num_tiles': ["solver_config/widths_num_tiles/%s/config-%s-50_num_tiles.json",
-                         "solver_config/widths_num_tiles/%s.config-%s-100_num_tiles.json",
+                         "solver_config/widths_num_tiles/%s/config-%s-100_num_tiles.json",
                          "solver_config/widths_num_tiles/%s/config-%s-150_num_tiles.json"],
     'controllability': ["solver_config/controllability/%s/config-%s-100_bonus_a.json",
                         "solver_config/controllability/%s/config-%s-100_bonus_b.json",
