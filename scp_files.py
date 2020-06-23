@@ -99,13 +99,15 @@ def main(push, pull, files, dirs, file_types, push_project, pull_trials, pull_pr
         pull_directories(dirs=TRIAL_DIRS)
         return
 
-    if len(pull_processed) <= 1:
-        error_exit('--pull_processed args should be in the format <game> <level1> <level2> ...')
-    else:
-        files_to_transfer = get_processed_level_files(player_img='block', game=pull_processed[0], levels=pull_processed[1:])
-        for file in files_to_transfer:
-            get_filepath(os.path.dirname(file), os.path.basename(file))
-        transfer_files(files_to_transfer, push=False)
+    if pull_processed is not None:
+        if len(pull_processed) <= 1:
+            error_exit('--pull_processed args should be in the format <game> <level1> <level2> ...')
+        else:
+            files_to_transfer = get_processed_level_files(player_img='block', game=pull_processed[0],
+                                                          levels=pull_processed[1:])
+            for file in files_to_transfer:
+                get_filepath(os.path.dirname(file), os.path.basename(file))
+            transfer_files(files_to_transfer, push=False)
 
     if push and pull:
         error_exit('Push and pull are mutually exclusive')
