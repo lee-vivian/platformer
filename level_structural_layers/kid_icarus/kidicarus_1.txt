@@ -3,8 +3,8 @@ WWWWWWWWWWWWWWWWWW
 WXXXXXXXXXXXXXXXXW
 WXXXX---XXXXX-XXXW
 WX------------XXXW
-WX-------------DXW
-WX------X---X-!DXW
+WX--------------XW
+WX------X---X--!XW
 WX---XXXXXXXXXXXXW
 WX--XXXXXXXXXXXXXW
 WXX-X------------|
@@ -168,8 +168,8 @@ WXX------------XXW
 WXX------------XXW
 WXXXXXXXX------XXW
 WXX----XXXXX---XXW
-WXD------------XXW
-WXD--*---------XXW
+WX-------------XXW
+WX*------------XXW
 WXXXXX-------XXXXW
 WXXXXXXXXXXXXXXXXW
 WWWWWWWWWWWWWWWWWW
