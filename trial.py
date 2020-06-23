@@ -4,18 +4,18 @@ import argparse
 import utils
 
 TRIAL_CONFIG_FORMATS = {
-    'widths_num_tiles': ["solver_config/widths_num_tiles/config-%s-50_num_tiles.json",
-                         "solver_config/widths_num_tiles/config-%s-100_num_tiles.json",
-                         "solver_config/widths_num_tiles/config-%s-150_num_tiles.json"],
-    'controllability': ["solver_config/controllability/config-%s-100_bonus_a.json",
-                        "solver_config/controllability/config-%s-100_bonus_b.json",
-                        "solver_config/controllability/config-%s-100_bonus_c.json",
-                        "solver_config/controllability/config-%s-100_hazard_a.json",
-                        "solver_config/controllability/config-%s-100_hazard_b.json",
-                        "solver_config/controllability/config-%s-100_hazard_c.json",
-                        "solver_config/controllability/config-%s-100_block_a.json",
-                        "solver_config/controllability/config-%s-100_block_b.json",
-                        "solver_config/controllability/config-%s-100_block_c.json"]
+    'widths_num_tiles': ["solver_config/widths_num_tiles/%s/config-%s-50_num_tiles.json",
+                         "solver_config/widths_num_tiles/%s.config-%s-100_num_tiles.json",
+                         "solver_config/widths_num_tiles/%s/config-%s-150_num_tiles.json"],
+    'controllability': ["solver_config/controllability/%s/config-%s-100_bonus_a.json",
+                        "solver_config/controllability/%s/config-%s-100_bonus_b.json",
+                        "solver_config/controllability/%s/config-%s-100_bonus_c.json",
+                        "solver_config/controllability/%s/config-%s-100_hazard_a.json",
+                        "solver_config/controllability/%s/config-%s-100_hazard_b.json",
+                        "solver_config/controllability/%s/config-%s-100_hazard_c.json",
+                        "solver_config/controllability/%s/config-%s-100_block_a.json",
+                        "solver_config/controllability/%s/config-%s-100_block_b.json",
+                        "solver_config/controllability/%s/config-%s-100_block_c.json"]
 }
 
 
@@ -53,7 +53,7 @@ def main(game, levels, process, solve, trial, max_sol, threads):
                 for level in levels:
                     prolog_file = prolog_file_format % level
                     prolog_filename = utils.get_basepath_filename(prolog_file, 'pl')
-                    config_file = config_file_format % level
+                    config_file = config_file_format % (game, level)
                     config_filename = utils.get_basepath_filename(config_file, 'json')
 
                     answer_set_filename_format = '_'.join([prolog_filename, config_filename, 'a%d'])

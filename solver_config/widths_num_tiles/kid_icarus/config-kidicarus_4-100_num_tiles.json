@@ -1,0 +1,23 @@
+{
+  "config": {
+
+    "level_dimensions": {
+      "width": 18,
+      "height": 161
+    },
+    "tile_position_ranges": {
+      "start_row": "(151,None)",
+      "goal_row": "(None,9)"
+    },
+    "require_all_platforms_reachable": "False",
+    "require_all_bonus_tiles_reachable": "True",
+
+    "num_tile_ranges": {
+      "block": "(238,358)",
+      "bonus": "(2,2)",
+      "one_way_platform": "(180,270)",
+      "hazard": "(3,5)"
+    }
+
+  }
+}

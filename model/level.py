@@ -189,20 +189,18 @@ class Level:
 
     @staticmethod
     def print_tile_summary(game, level):
-        filepath = "level_structural_layers/%s/%s.txt" % (game, level)
-        num_tiles_total = 0
-        num_tiles_dict = {}
-        for tile_type in TILE_CHARS.keys():
-            num_tiles_dict[tile_type] = 0
-
-        f = open(filepath, 'r')
-        for line in f:
-            for char in line.rstrip():  # for each char in the line
-                for tile_type in TILE_CHARS.keys():  # test each tile type for match
-                    if TILE_CHARS[tile_type].get(char) is not None:
-                        num_tiles_dict[tile_type] += 1
-                        num_tiles_total += 1
-        f.close()
+        level_obj = Level.generate_level_from_file(game, level)
+        num_tiles_total = level_obj.get_width() * level_obj.get_height()
+        num_tiles_dict = {
+            'start': 1,
+            'goal': len(level_obj.get_goal_coords()),
+            'block': len(level_obj.get_platform_coords()),
+            'bonus': len(level_obj.get_bonus_coords()),
+            'one_way_platform': len(level_obj.get_one_way_platform_coords()),
+            'hazard': len(level_obj.get_hazard_coords()),
+            'wall': len(level_obj.get_wall_coords()),
+            'permeable_wall': len(level_obj.get_permeable_wall_coords())
+        }
 
         print("----- Level: %s/%s -----" % (game, level))
         print("Total tiles: %d (%d%%)" % (num_tiles_total, 100))
