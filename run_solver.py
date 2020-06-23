@@ -176,8 +176,8 @@ def get_solver_config(config, prolog_file_info):
         num_gaps_range = (min_gaps, max_gaps)
 
     # ----- SPECIFY IF ALL PLATFORM OR BONUS TILES MUST BE REACHABLE -----
-    require_all_platforms_reachable = True
-    require_all_bonus_tiles_reachable = True
+    require_all_platforms_reachable = False
+    require_all_bonus_tiles_reachable = False
     if config.get('require_all_platforms_reachable') is not None:
         require_all_platforms_reachable = eval(config['require_all_platforms_reachable'])
     if config.get('require_all_bonus_tiles_reachable') is not None:

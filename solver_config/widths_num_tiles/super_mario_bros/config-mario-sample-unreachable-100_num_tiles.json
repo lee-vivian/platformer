@@ -1,0 +1,25 @@
+{
+  "config": {
+
+    "level_dimensions": {
+      "width": 30,
+      "height": 13
+    },
+    "tile_position_ranges": {
+      "start_column": "(None, 0+4)",
+      "goal_column": "(30-5, None)"
+    },
+    "require_all_platforms_reachable": "False",
+    "require_all_bonus_tiles_reachable": "True",
+
+    "num_tile_ranges": {
+      "block": "(41,61)",
+      "bonus": "(2,4)",
+      "hazard": "(3,5)"
+    },
+
+    "force_tile_type": {
+      "block": "[(2,2)]"
+    }
+  }
+}

@@ -6,11 +6,6 @@
       "height": 17
     },
 
-    "tile_position_ranges": {
-      "start_row": "(8, None)",
-      "goal_row": "(None, 2)"
-    },
-
     "require_start_on_ground": "True",
     "require_goal_on_ground": "True",
     "require_all_platforms_reachable": "True",
