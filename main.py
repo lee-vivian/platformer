@@ -29,7 +29,7 @@ def save_process_runtimes(process_key, process_runtimes):
 
 
 def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score,
-         process, gen_prolog, dimensions, structure, summary, runtime):
+         process, gen_prolog, dimensions, structure, summary, runtime, prolog):
 
     # Set environment variable
     if environment not in ENVIRONMENTS:
@@ -66,7 +66,26 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
                 print(json.dumps(process_runtimes, indent=2))
                 exit(0)
 
-        utils.error_exit("Run 'python main.py <environment> %s %s --process'" % (game, level))
+        utils.error_exit("Run 'pypy3 main.py <environment> %s %s --process'" % (game, level))
+
+    if prolog:
+        import json
+
+        all_prolog_info_file = utils.get_filepath("level_saved_files_block/prolog_files", "all_prolog_info.pickle")
+        if not os.path.exists(all_prolog_info_file):
+            utils.error_exit("%s file not found" % all_prolog_info_file)
+        all_prolog_info = utils.read_pickle(all_prolog_info_file)
+
+        prolog_exists = all_prolog_info.get(level)
+        if prolog_exists:
+            print("----- Prolog Info -----")
+            print("Game: %s" % game)
+            print("Level: %s" % level)
+            for key, item in prolog_exists.items():
+                print("%s: %s" % (key, str(item)))
+            exit(0)
+
+        utils.error_exit("Run 'python main.py <environment> %s %s --gen_prolog'" % (game, level))
 
     if process:
         print("----- Creating Uniform Txt Layer File -----")
@@ -146,8 +165,9 @@ if __name__ == "__main__":
     parser.add_argument('--structure', const=True, nargs='?', type=bool, help="Print level txt structural layer", default=False)
     parser.add_argument('--summary', const=True, nargs='?', type=bool, help="Print level tile summmary stats", default=False)
     parser.add_argument('--runtime', const=True, nargs='?', type=bool, help="Print process script runtimes", default=False)
+    parser.add_argument('--prolog', const=True, nargs='?', type=bool, help="Print prolog dictionary info for level", default=False)
     args = parser.parse_args()
 
     main(args.environment, args.game, args.level, args.player_img,
          args.use_graph, args.draw_all_labels, args.draw_dup_labels, args.draw_path, args.show_score,
-         args.process, args.gen_prolog, args.dimensions, args.structure, args.summary, args.runtime)
+         args.process, args.gen_prolog, args.dimensions, args.structure, args.summary, args.runtime, args.prolog)
