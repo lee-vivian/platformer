@@ -77,14 +77,16 @@ class Solver:
         wall_tile_id = None if len(self.tile_ids.get('wall')) == 0 else self.tile_ids.get('wall')[0]
         permeable_wall_tile_ids = self.tile_ids.get('permeable_wall')
 
+        level_has_permeable_wall_tiles = len(permeable_wall_tile_ids) > 0
+
         # Add border tile rules if wall tiles exist
-        if wall_tile_id is not None:
+        if wall_tile_id is not None or level_has_permeable_wall_tiles:
 
             # Border tiles must be wall tiles
             tmp_prolog_statements += "assignment(X,Y,%s) :- tile(X,Y), Y==(0).\n" % (wall_tile_id,)
             tmp_prolog_statements += "assignment(X,Y,%s) :- tile(X,Y), Y==(%d).\n" % (wall_tile_id, self.level_h - 1)
 
-            if len(permeable_wall_tile_ids) == 0:
+            if not level_has_permeable_wall_tiles:
                 tmp_prolog_statements += "assignment(X,Y,%s) :- tile(X,Y), X==(0).\n" % (wall_tile_id,)
                 tmp_prolog_statements += "assignment(X,Y,%s) :- tile(X,Y), X==(%d).\n" % (wall_tile_id, self.level_w - 1)
             else:
@@ -94,9 +96,14 @@ class Solver:
                     self.level_w-1, self.level_h-1, ','.join(allowed_wall_tile_ids_str)
                 )
 
-            # Non-border tiles cannot be wall tiles
+            # Non-border tiles cannot be wall tiles or permeable_wall tiles
             tmp_prolog_statements += ":- assignment(X,Y,ID), tile(X,Y), ID==%s, X>0, X<%d, Y>0, Y<%d.\n" % (
                 wall_tile_id, self.level_w - 1, self.level_h - 1)
+
+            if level_has_permeable_wall_tiles:
+                tmp_prolog_statements += ":- assignment(X,Y,ID), tile(X,Y), ID==(%s), X>0, X<%d, Y>0, Y<%d.\n" % (
+                    ';'.join(permeable_wall_tile_ids), self.level_w - 1, self.level_h - 1
+                )
 
         # Add rules for enforcing reachable states
         generic_state = State.generic_prolog_contents()
