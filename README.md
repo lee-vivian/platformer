@@ -36,7 +36,7 @@ Run "python3 main.py --help" for a full list of options available (includes draw
 ### IIIa. Processing a new level individually (Creating metatile constraints file from a single level)
 - Save level structural txt file in "level_structural_layers/**game**/**level**.txt" (see txt file format in [TheVGLC](https://github.com/TheVGLC/TheVGLC) for examples)  
   
-- Run "python main.py **environment** **game** **level** --process"
+- Run "python main.py **environment** **game** **level** --process --gen_prolog"
 
 ### IIIb: Creating combined metatile constraints file from multiple levels  
 
@@ -55,7 +55,9 @@ Run "python3 main.py --help" for a full list of options available (includes draw
 - Run clingo solver
   - Run "python run_solver.py **prolog_filepath** **config_filepath** --max_sol **num_levels_to_generate** 
   --threads **num_threads_to_use**"
-  - Add "--save" to save generated levels and/or "--print" to print the txt structure of generated levels to console
+  - Add "--save" to save generated levels
+  - Add "--print_level" to print the txt structure of generated levels to the console
+  - Add "--validate" to validate the generated level (ensure playability and reachability constraints are met)
   - Run "python run_solver.py --help" for a full list of options available
 
 ### V. Putting It All Together with an Example (single training level)
@@ -64,7 +66,7 @@ Steps to generate 5 NxM sized levels from the level "example_level" in a platfor
 
 1. Run the commands in Step I (setting up the repository)  
 2. Save the level structural layer in the path: "level_structural_layers/example_game/example_level.txt"  
-3. Run "python main.py platformer example_game example_level --process"  
+3. Run "python main.py platformer example_game example_level --process --gen_prolog"  
 4. Make a copy of *config_basic_template.json* and save it as *config_example_level.json*
 5. Open *config_example_level.json* and set width and height to N and M, respectively. Save and close the file.
 6. Run "python run_solver.py level_saved_files_block/prolog_files/example_level.pl config_example_level.json --max_sol 5 --print_level --save --validate"
