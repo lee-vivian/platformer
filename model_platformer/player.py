@@ -42,27 +42,18 @@ class PlayerPlatformer:
     def get_hit_bonus_coord(self):
         return self.state.hit_bonus_coord
 
-    #def collide(self, x, y, tile_coords):
-    #    for tile_coord in tile_coords:
-    #        x_overlap = tile_coord[0] < (x + self.half_player_w) and (tile_coord[0] + TILE_DIM) > (x - self.half_player_w)
-    #        y_overlap = tile_coord[1] < (y + self.half_player_h) and (tile_coord[1] + TILE_DIM) > (y - self.half_player_h)
-    #        if x_overlap and y_overlap:
-    #            return tile_coord
-    #    return None
-
     def collide(self, x, y, tile_coords):
         ret = None
         for tile_coord in tile_coords:
             x_overlap = tile_coord[0] < (x + self.half_player_w) and (tile_coord[0] + TILE_DIM) > (x - self.half_player_w)
             y_overlap = tile_coord[1] < (y + self.half_player_h) and (tile_coord[1] + TILE_DIM) > (y - self.half_player_h)
             if x_overlap and y_overlap:
-                if ret == None:
+                if ret is None:
                     ret = tile_coord
                 else:
                     if (x - (tile_coord[0] + TILE_DIM//2))**2 + (y - (tile_coord[1] + TILE_DIM//2))**2 < (x - (ret[0] + TILE_DIM//2))**2 + (y - (ret[1] + TILE_DIM//2))**2:
                         ret = tile_coord
         return ret
-
 
     def next_state(self, state, action):
         new_state = state.clone()
@@ -122,9 +113,9 @@ class PlayerPlatformer:
                 # check if wrap would collide on other side
                 if tile_collision_coord is None:
                     if new_state.x <= min_x:
-                        tile_collision_coord = self.collide(new_state.x + self.level.get_width(), new_state.y, self.level.get_platform_coords() + self.level.get_bonus_coords())
+                        tile_collision_coord = self.collide(new_state.x + self.level.get_width(), new_state.y, self.level.get_platform_coords() + self.level.get_bonus_coords() + self.level.get_wall_coords())
                     if new_state.x >= max_x:
-                        tile_collision_coord = self.collide(new_state.x - self.level.get_width(), new_state.y, self.level.get_platform_coords() + self.level.get_bonus_coords())
+                        tile_collision_coord = self.collide(new_state.x - self.level.get_width(), new_state.y, self.level.get_platform_coords() + self.level.get_bonus_coords() + self.level.get_wall_coords())
 
                 # handle wrap
                 if tile_collision_coord is None:
