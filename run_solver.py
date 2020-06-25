@@ -78,6 +78,11 @@ def get_solver_config(config, prolog_file_info):
             check_tile_type_exists_in_prolog(tile_type, prolog_file_info, 'cannot force tile type (%s: %s)' % (tile_type, coord_strs))
             forced_tiles[tile_type] = eval(coord_strs)
 
+    # ----- SOFT CONSTRAINTS -----
+    soft_constraints = {}
+    if config.get('soft_constraints') is not None:
+        soft_constraints = config.get('soft_constraints')
+
     # ----- SPECIFY NUM TILE RANGES (for a certain type) -----
     num_tile_ranges = {}
     lo, hi = 0, level_w * level_h
@@ -186,7 +191,8 @@ def get_solver_config(config, prolog_file_info):
     return {
         'level_w': level_w,                                     # int
         'level_h': level_h,                                     # int
-        'forced_tiles': forced_tiles,                           # {type: list-of-tile-coords}
+        'forced_tiles': forced_tiles,                           # {type: list-of-tile-coords}\
+        'soft_constraints': soft_constraints,                   # {constraint_type: constraint_value}
         'num_tile_ranges': num_tile_ranges,                     # { type: (min, max) }
         'perc_tile_ranges': perc_tile_ranges,                   # { type: (min, max) }
         'perc_level_ranges': perc_level_ranges,                 # { level: (min, max) }
