@@ -79,9 +79,14 @@ def get_solver_config(config, prolog_file_info):
             forced_tiles[tile_type] = eval(coord_strs)
 
     # ----- SOFT CONSTRAINTS -----
-    soft_constraints = {}
+    soft_constraints = {
+        "minimize_tile_type": None,
+        "maximize_tile_type": None,
+        "num_tile_ranges": False
+    }
     if config.get('soft_constraints') is not None:
-        soft_constraints = config.get('soft_constraints')
+        for constraint_key, constraint_value in config.get('soft_constraints').items():
+            soft_constraints[constraint_key] = eval(constraint_value)
 
     # ----- SPECIFY NUM TILE RANGES (for a certain type) -----
     num_tile_ranges = {}
