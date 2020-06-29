@@ -110,19 +110,23 @@ class PlayerPlatformer:
 
             # kid icarus wrap
             if use_kid_icarus_rules:
+                min_x = 0 + int(TILE_DIM * 1.5)
+                max_x = self.level.get_width() - int(TILE_DIM * 1.5)
+                kid_icarus_level_width = int(self.level.get_width() - 2 * TILE_DIM)
+
                 # check if wrap would collide on other side
                 if tile_collision_coord is None:
                     if new_state.x <= min_x:
-                        tile_collision_coord = self.collide(new_state.x + self.level.get_width(), new_state.y, self.level.get_platform_coords() + self.level.get_bonus_coords() + self.level.get_wall_coords())
+                        tile_collision_coord = self.collide(new_state.x + kid_icarus_level_width, new_state.y, self.level.get_platform_coords() + self.level.get_bonus_coords() + self.level.get_wall_coords())
                     if new_state.x >= max_x:
-                        tile_collision_coord = self.collide(new_state.x - self.level.get_width(), new_state.y, self.level.get_platform_coords() + self.level.get_bonus_coords() + self.level.get_wall_coords())
+                        tile_collision_coord = self.collide(new_state.x - kid_icarus_level_width, new_state.y, self.level.get_platform_coords() + self.level.get_bonus_coords() + self.level.get_wall_coords())
 
                 # handle wrap
                 if tile_collision_coord is None:
-                    if new_state.x < 0:
-                        new_state.x += self.level.get_width()
-                    if new_state.x >= self.level.get_width():
-                        new_state.x -= self.level.get_width()
+                    if new_state.x < TILE_DIM:
+                        new_state.x += kid_icarus_level_width
+                    if new_state.x >= self.level.get_width() - TILE_DIM:
+                        new_state.x -= kid_icarus_level_width
 
             if not use_kid_icarus_rules:
                 # Handle moving off the screen
