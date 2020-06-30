@@ -147,18 +147,19 @@ class Solver:
             tmp_prolog_statements += ":- tile_below_bonus(TX,TY), not tile_has_reachable_bonus_state(TX,TY).\n"
 
         # ----- ADD START/GOAL ON_GROUND RULES -----
-        allowed_ground_tile_ids = [start_tile_id]
+
+        allowed_ground_tile_ids = [block_tile_id]
         if level_has_one_way_tiles:
             allowed_ground_tile_ids += one_way_tile_ids
-        allowed_ground_tile_ids_str = ["ID != %s" % tile_id for tile_id in allowed_ground_tile_ids]
+        allowed_ground_tile_ids_str = ','.join(["ID != %s" % tile_id for tile_id in allowed_ground_tile_ids])
 
         if self.require_start_on_ground:
-            start_on_ground_rule = ":- assignment(X,Y,%s), not assignment(X,Y+1,ID), %s." % (start_tile_id, allowed_ground_tile_ids_str)
-            tmp_prolog_statements += start_on_ground_rule + "\n"
+            tmp_prolog_statements += ":- tile(X,Y), tile(X,Y+1), assignment(X,Y,%s), assignment(X,Y+1,ID), " \
+                                     "metatile(ID), %s.\n" % (start_tile_id, allowed_ground_tile_ids_str)
 
         if self.require_goal_on_ground:
-            goal_on_ground_rule = ":- assignment(X,Y,%s), not assignment(X,Y+1,ID), %s." % (goal_tile_id, allowed_ground_tile_ids_str)
-            tmp_prolog_statements += goal_on_ground_rule + "\n"
+            tmp_prolog_statements += ":- tile(X,Y), tile(X,Y+1), assignment(X,Y,%s), assignment(X,Y+1,ID), " \
+                                     "metatile(ID), %s.\n" % (goal_tile_id, allowed_ground_tile_ids_str)
 
         # ----- SET START/GOAL TILE INDEX POSITION RANGES
         start_tile_min_x, start_tile_max_x = self.tile_position_ranges.get('start_column')
