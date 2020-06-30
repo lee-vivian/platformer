@@ -113,8 +113,7 @@ class Solver:
                 tmp_prolog_statements += "assignment(X,Y,%s) :- tile(X,Y), X==(0).\n" % (wall_tile_id,)
                 tmp_prolog_statements += "assignment(X,Y,%s) :- tile(X,Y), X==(%d).\n" % (wall_tile_id, self.level_w - 1)
             else:
-                allowed_wall_tile_ids = [wall_tile_id] + permeable_wall_tile_ids
-                allowed_wall_tile_ids_str = ["ID != %s" % tile_id for tile_id in allowed_wall_tile_ids]
+                allowed_wall_tile_ids_str = ["ID != %s" % tile_id for tile_id in permeable_wall_tile_ids]
                 tmp_prolog_statements += ":- tile(X,Y), assignment(X,Y,ID), X==(0;%d), Y>0, Y<%d, %s.\n" % (
                     self.level_w-1, self.level_h-1, ','.join(allowed_wall_tile_ids_str)
                 )
@@ -148,12 +147,17 @@ class Solver:
             tmp_prolog_statements += ":- tile_below_bonus(TX,TY), not tile_has_reachable_bonus_state(TX,TY).\n"
 
         # ----- ADD START/GOAL ON_GROUND RULES -----
+        allowed_ground_tile_ids = [start_tile_id]
+        if level_has_one_way_tiles:
+            allowed_ground_tile_ids += one_way_tile_ids
+        allowed_ground_tile_ids_str = ["ID != %s" % tile_id for tile_id in allowed_ground_tile_ids]
+
         if self.require_start_on_ground:
-            start_on_ground_rule = ":- assignment(X,Y,%s), not assignment(X,Y+1,%s)." % (start_tile_id, block_tile_id)
+            start_on_ground_rule = ":- assignment(X,Y,%s), not assignment(X,Y+1,ID), %s." % (start_tile_id, allowed_ground_tile_ids_str)
             tmp_prolog_statements += start_on_ground_rule + "\n"
 
         if self.require_goal_on_ground:
-            goal_on_ground_rule = ":- assignment(X,Y,%s), not assignment(X,Y+1,%s)." % (goal_tile_id, block_tile_id)
+            goal_on_ground_rule = ":- assignment(X,Y,%s), not assignment(X,Y+1,ID), %s." % (goal_tile_id, allowed_ground_tile_ids_str)
             tmp_prolog_statements += goal_on_ground_rule + "\n"
 
         # ----- SET START/GOAL TILE INDEX POSITION RANGES
@@ -174,12 +178,14 @@ class Solver:
 
         # ----- GET SOFT CONSTRAINT RULES -----
         use_soft_constraints = any(self.soft_constraints.values())
-        minimize_tile_type = self.soft_constraints.get('minimize_tile_type')
-        maximize_tile_type = self.soft_constraints.get('maximize_tile_type')
         soft_num_tile_ranges = self.soft_constraints.get('num_tile_ranges')
 
-        # TODO remove line after testing optimization constraint
-        tmp_prolog_statements += "#maximize{ block_tile(X,Y) : tile(X,Y) }.\n"
+        if use_soft_constraints:
+            minimize_tile_types = self.soft_constraints.get('minimize_tile_type')
+            maximize_tile_types = self.soft_constraints.get('maximize_tile_type')
+
+        # # TODO remove line after testing optimization constraint
+        # tmp_prolog_statements += "#maximize{ block_tile(X,Y) : tile(X,Y) }.\n"
 
         # ----- ENFORCE SPECIFIED NUM_TILE_RANGES -----
         for tile_type, tile_range in self.num_tile_ranges.items():
