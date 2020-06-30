@@ -163,22 +163,28 @@ class PlayerPlatformer:
 
             # kid icarus wrap
             if use_kid_icarus_rules:
+                min_x = 0 + int(TILE_DIM * 1.5)
+                max_x = self.level.get_width() - int(TILE_DIM * 1.5)
+                kid_icarus_level_width = int(self.level.get_width() - 2 * TILE_DIM)
+
                 # check if wrap would collide on other side
                 if block_tile_collision_coord is None:
                     if new_state.x <= min_x:
-                        block_tile_collision_coord = self.collide(new_state.x + self.level.get_width(), new_state.y, self.level.get_platform_coords())
+                        block_tile_collision_coord = self.collide(new_state.x + kid_icarus_level_width, new_state.y, self.level.get_platform_coords() + self.level.get_wall_coords())
                     if new_state.x >= max_x:
-                        block_tile_collision_coord = self.collide(new_state.x - self.level.get_width(), new_state.y, self.level.get_platform_coords())
+                        block_tile_collision_coord = self.collide(new_state.x - kid_icarus_level_width, new_state.y, self.level.get_platform_coords() + self.level.get_wall_coords())
+
                 if bonus_tile_collision_coord is None:
                     if new_state.x <= min_x:
-                        bonus_tile_collision_coord = self.collide(new_state.x + self.level.get_width(), new_state.y, self.level.get_bonus_coords())
+                        bonus_tile_collision_coord = self.collide(new_state.x + kid_icarus_level_width, new_state.y, self.level.get_bonus_coords())
                     if new_state.x >= max_x:
-                        bonus_tile_collision_coord = self.collide(new_state.x - self.level.get_width(), new_state.y, self.level.get_bonus_coords())
+                        bonus_tile_collision_coord = self.collide(new_state.x - kid_icarus_level_width, new_state.y, self.level.get_bonus_coords())
+
                 if one_way_platform_tile_collision_coord is None:
                     if new_state.x <= min_x:
-                        one_way_platform_tile_collision_coord = self.collide(new_state.x + self.level.get_width(), new_state.y, self.level.get_one_way_platform_coords())
+                        one_way_platform_tile_collision_coord = self.collide(new_state.x + kid_icarus_level_width, new_state.y, self.level.get_one_way_platform_coords())
                     if new_state.x >= max_x:
-                        one_way_platform_tile_collision_coord = self.collide(new_state.x - self.level.get_width(), new_state.y, self.level.get_one_way_platform_coords())
+                        one_way_platform_tile_collision_coord = self.collide(new_state.x - kid_icarus_level_width, new_state.y, self.level.get_one_way_platform_coords())
 
             hit_one_way_platform_tile_from_above = one_way_platform_tile_collision_coord is not None and new_state.movey > 0 and old_y + self.half_player_h <= one_way_platform_tile_collision_coord[1]
             collide = block_tile_collision_coord is not None or bonus_tile_collision_coord is not None or hit_one_way_platform_tile_from_above
