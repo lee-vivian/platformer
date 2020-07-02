@@ -80,9 +80,9 @@ def get_solver_config(config, prolog_file_info):
 
     # ----- SOFT CONSTRAINTS -----
     soft_constraints = {
-        "minimize_tile_type": None,
-        "maximize_tile_type": None,
-        "num_tile_ranges": False
+        "num_tile_ranges": False,
+        "perc_tile_ranges": False,
+        "perc_level_ranges": False
     }
     if config.get('soft_constraints') is not None:
         for constraint_key, constraint_value in config.get('soft_constraints').items():
@@ -91,9 +91,6 @@ def get_solver_config(config, prolog_file_info):
     # ----- SPECIFY NUM TILE RANGES (for a certain type) -----
     num_tile_ranges = {}
     lo, hi = 0, level_w * level_h
-    for tile_type in METATILE_TYPES:
-        num_tile_ranges[tile_type] = (lo, hi)
-
     if config.get('num_tile_ranges') is not None:
         for tile_type, range_str in config['num_tile_ranges'].items():
             check_tile_type_exists_in_prolog(tile_type, prolog_file_info, 'cannot force num tile range %s' % range_str)
