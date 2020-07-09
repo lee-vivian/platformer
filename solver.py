@@ -176,7 +176,8 @@ class Solver:
         tmp_prolog_statements += ":- assignment(X,Y,%s), Y > %d.\n" % (goal_tile_id, goal_tile_max_y)
 
         # ----- GET SOFT CONSTRAINT RULES -----
-        use_soft_constraints = any(self.soft_constraints.values())
+        use_soft_constraints = False
+        # use_soft_constraints = any(self.soft_constraints.values())
 
         # ----- ENFORCE NUM_TILE_RANGES -----
 
@@ -232,21 +233,21 @@ class Solver:
                                                                          int(tile_perc_range[1] / 100 * num_total_tiles))
 
         # ----- ENFORCE PERC_LEVEL_RANGES -----
-        if use_soft_constraints and self.soft_constraints.get('perc_level_ranges'):
-            pass  # TODO implement
-        else:
-            # Create level_assignment facts to track which tiles came from which training levels
-            for level, tile_ids in self.level_ids_map.items():
-                tmp_prolog_statements += "level_assignment(%s,X,Y) :- tile(X,Y), assignment(X,Y,ID), ID==(%s).\n" % (
-                    level, ';'.join(tile_ids))
-
-            # Set perc level ranges (e.g. 50-100% tiles must come from level 1)
-            for level, tile_perc_range in self.perc_level_ranges.items():
-                min_tiles = int(tile_perc_range[0] / 100 * num_total_tiles)
-                max_tiles = int(tile_perc_range[1] / 100 * num_total_tiles)
-                level_perc_range_rule = "%d { level_assignment(L,X,Y) : tile(X,Y), L==(%s) } %d.\n" % (
-                    min_tiles, level, max_tiles)
-                tmp_prolog_statements += level_perc_range_rule
+        # if use_soft_constraints and self.soft_constraints.get('perc_level_ranges'):
+        #     pass  # TODO implement
+        # else:
+        #     # Create level_assignment facts to track which tiles came from which training levels
+        #     for level, tile_ids in self.level_ids_map.items():
+        #         tmp_prolog_statements += "level_assignment(\"%s\",X,Y) :- tile(X,Y), assignment(X,Y,ID), ID==(%s).\n" % (
+        #             level, ';'.join(tile_ids))
+        #
+        #     # Set perc level ranges (e.g. 50-100% tiles must come from level 1)
+        #     for level, tile_perc_range in self.perc_level_ranges.items():
+        #         min_tiles = int(tile_perc_range[0] / 100 * num_total_tiles)
+        #         max_tiles = int(tile_perc_range[1] / 100 * num_total_tiles)
+        #         level_perc_range_rule = "%d { level_assignment(\"L\",X,Y) : tile(X,Y), L==(%s) } %d.\n" % (
+        #             min_tiles, level, max_tiles)
+        #         tmp_prolog_statements += level_perc_range_rule
 
         # # Force specified tile coords to be certain tile types
         # for tile_type, tile_coords in self.forced_tiles.items():
@@ -275,7 +276,6 @@ class Solver:
         for seed in seeds:
             prg = clingo.Control([])
             prg.configuration.solve.models = 1  # get one solution per seed
-            # prg.configuration.solve.opt_mode = 'optN'  # compute optimum, then enumerate optimal models
             prg.configuration.solve.parallel_mode = threads  # number of threads to use for solving
             prg.configuration.solver.sign_def = 'rnd'  # turn off default sign heuristic and switch to random signs
             prg.configuration.solver.seed = seed  # seed to use for solving
