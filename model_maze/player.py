@@ -25,13 +25,16 @@ class PlayerMaze:
         start_x, start_y = self.level.get_start_coord()
         start_x += self.half_player_w
         start_y += self.half_player_h
-        return StateMaze(x=start_x, y=start_y, is_start=True, goal_reached=False, hit_bonus_coord=None)
+        return StateMaze(x=start_x, y=start_y, is_start=True, goal_reached=False, hit_bonus_coord='')
 
     def reset(self):
         self.state = self.get_start_state()
 
     def get_hit_bonus_coord(self):
         return self.state.hit_bonus_coord
+
+    def goal_reached(self):
+        return self.state.goal_reached
 
     def collide(self, x, y, tile_coords):
         for tile_coord in tile_coords:
@@ -60,6 +63,8 @@ class PlayerMaze:
         elif action.direction == ActionMaze.WEST:
             dx = -TILE_DIM
 
+        new_state.hit_bonus_coord = ''
+
         block_tile_collision_coord = self.collide(new_state.x + dx, new_state.y + dy, self.level.get_platform_coords())
         bonus_tile_collision_coord = self.collide(new_state.x + dx, new_state.y + dy, self.level.get_bonus_coords())
         move_off_screen = not (min_x <= new_state.x + dx <= max_x) or not (min_y <= new_state.y + dy <= max_y)
@@ -68,7 +73,16 @@ class PlayerMaze:
             new_state.x += dx
             new_state.y += dy
 
-        new_state.hit_bonus_coord = bonus_tile_collision_coord
+        if bonus_tile_collision_coord is not None:
+            if new_state.y > bonus_tile_collision_coord[1]:
+                new_state.hit_bonus_coord = 'N'
+            elif new_state.y < bonus_tile_collision_coord[1]:
+                new_state.hit_bonus_coord = 'S'
+            elif new_state.x < bonus_tile_collision_coord[0]:
+                new_state.hit_bonus_coord = 'E'
+            else:
+                new_state.hit_bonus_coord = 'W'
+
         new_state.is_start = False
         new_state.goal_reached = self.collide(new_state.x, new_state.y, self.level.get_goal_coords())
 

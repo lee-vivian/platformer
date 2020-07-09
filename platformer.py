@@ -208,15 +208,25 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
 
         if hit_bonus_coord is not '':
             hit_bonus_coord_x = player_model.state.x // TILE_DIM
-            hit_bonus_coord_y = player_model.state.y // TILE_DIM - 1
-            if hit_bonus_coord == 'N':
-                pass
-            elif hit_bonus_coord == 'NE':
-                hit_bonus_coord_x += 1
-            elif hit_bonus_coord == 'NW':
-                hit_bonus_coord_x -= 1
-            else:
+            hit_bonus_coord_y = player_model.state.y // TILE_DIM
+
+            legal_bonus_directions = ['N', 'E', 'S', 'W'] if os.getenv('MAZE') else ['N', 'NE', 'NW']
+            legal_bonus_directions = dict.fromkeys(legal_bonus_directions, 1)
+            direction_adjustments = {'N': (0, -1),
+                                     'E': (1, 0),
+                                     'W': (-1, 0),
+                                     'S': (0, 1),
+                                     'NE': (1, -1),
+                                     'NW': (-1, -1)}
+
+            if legal_bonus_directions.get(hit_bonus_coord) is None:
+                print("HIT BONUS COORD: ", hit_bonus_coord)
                 error_exit("unrecognized hit bonus coord")
+
+            if direction_adjustments.get(hit_bonus_coord) is not None:
+                dx, dy = direction_adjustments.get(hit_bonus_coord)
+                hit_bonus_coord_x += dx
+                hit_bonus_coord_y += dy
 
             hit_bonus_coord_xy = (hit_bonus_coord_x * TILE_DIM, hit_bonus_coord_y * TILE_DIM)
 
@@ -279,7 +289,7 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
             ]
             label_rect_pairs = get_label_rect_pairs(center_x=WORLD_X/2, labels=labels)
 
-        elif player_model.is_dead():
+        elif not os.getenv('MAZE') and player_model.is_dead():
             labels = [
                 ("Game Over", 50, COLORS.get('RED')),
                 ("Score: %d" % score, 30, COLORS.get('YELLOW')),
