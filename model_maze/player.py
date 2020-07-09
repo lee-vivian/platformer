@@ -65,7 +65,8 @@ class PlayerMaze:
 
         new_state.hit_bonus_coord = ''
 
-        block_tile_collision_coord = self.collide(new_state.x + dx, new_state.y + dy, self.level.get_platform_coords())
+        block_tile_collision_coord = self.collide(new_state.x + dx, new_state.y + dy,
+                                                  self.level.get_platform_coords() + self.level.get_wall_coords())
         bonus_tile_collision_coord = self.collide(new_state.x + dx, new_state.y + dy, self.level.get_bonus_coords())
         move_off_screen = not (min_x <= new_state.x + dx <= max_x) or not (min_y <= new_state.y + dy <= max_y)
 
