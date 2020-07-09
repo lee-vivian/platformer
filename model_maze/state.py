@@ -21,7 +21,7 @@ class StateMaze:
         string += "'y': " + str(self.y) + ", "
         string += "'is_start': " + str(self.is_start) + ", "
         string += "'goal_reached': " + str(self.goal_reached) + ", "
-        string += "'hit_bonus_coord': " + str(self.hit_bonus_coord)
+        string += "'hit_bonus_coord': '" + str(self.hit_bonus_coord) + "', "
         string += "}"
         return string
 
@@ -49,3 +49,40 @@ class StateMaze:
         index_str = "" if index is None else str(index)
         generic_prolog_contents = [item + index_str for item in generic_prolog_contents]
         return ','.join(generic_prolog_contents)
+
+    @staticmethod
+    def generic_bonus_reachability_expression():
+        return "HBC != \"\""
+
+    @staticmethod
+    def generic_start_reachability_expression():
+        return "IS == 1"
+
+    @staticmethod
+    def generic_goal_reachability_expression():
+        return "GR == 1"
+
+    @staticmethod
+    def prolog_state_contents_x_index():
+        generic_prolog_contents = StateMaze.generic_prolog_contents().split(',')
+        return generic_prolog_contents.index('X')
+
+    @staticmethod
+    def prolog_state_contents_y_index():
+        generic_prolog_contents = StateMaze.generic_prolog_contents().split(',')
+        return generic_prolog_contents.index('Y')
+
+    @staticmethod
+    def prolog_state_contents_is_start_index():
+        generic_prolog_contents = StateMaze.generic_prolog_contents().split(',')
+        return generic_prolog_contents.index('IS')
+
+    @staticmethod
+    def prolog_state_contents_goal_reached_index():
+        generic_prolog_contents = StateMaze.generic_prolog_contents().split(',')
+        return generic_prolog_contents.index('GR')
+
+    @staticmethod
+    def prolog_state_contents_hit_bonus_coord_index():
+        generic_prolog_contents = StateMaze.generic_prolog_contents().split(',')
+        return generic_prolog_contents.index('HBC')

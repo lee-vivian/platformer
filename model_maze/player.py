@@ -84,7 +84,7 @@ class PlayerMaze:
                 new_state.hit_bonus_coord = 'W'
 
         new_state.is_start = False
-        new_state.goal_reached = self.collide(new_state.x, new_state.y, self.level.get_goal_coords())
+        new_state.goal_reached = self.collide(new_state.x, new_state.y, self.level.get_goal_coords()) is not None
 
         return new_state
 
