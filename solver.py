@@ -95,11 +95,6 @@ class Solver:
         tmp_prolog_statements += "non_empty_tile(X,Y) :- tile(X,Y), assignment(X,Y,ID), ID==(%s).\n" % (
             ';'.join(non_empty_tile_ids))
 
-        # Create one_way tile facts
-        if level_has_one_way_tiles:
-            tmp_prolog_statements += "one_way_tile(X,Y) :- tile(X,Y), assignment(X,Y,ID), ID==(%s).\n" % (
-                ';'.join(one_way_tile_ids))
-
         # ----- ADD BORDER TILE RULES -----
         if level_has_wall_tiles or level_has_permeable_wall_tiles:
 
@@ -201,8 +196,9 @@ class Solver:
                     tmp_prolog_statements += "%d { non_empty_tile(X,Y) : tile(X,Y) } %d.\n" % (
                         min_non_empty, max_non_empty)
                 elif tile_type == 'one_way_platform':
-                    tmp_prolog_statements += "%d { one_way_tile(X,Y) : tile(X,Y) } %d.\n" % (
-                        tile_range[0], tile_range[1])
+                    error_exit("enforcing one_way_platform num_tile_ranges is not supported yet")
+                    # tmp_prolog_statements += "%d { one_way_tile(X,Y) : tile(X,Y) } %d.\n" % (
+                    #     tile_range[0], tile_range[1])
                 else:
                     tile_ids = self.tile_ids.get(tile_type)
                     if len(tile_ids) > 0:
@@ -222,9 +218,10 @@ class Solver:
                     min_perc_non_empty / 100 * num_total_tiles,
                     max_perc_non_empty / 100 * num_total_tiles)
                 elif tile_type == 'one_way_platform':
-                    tmp_prolog_statements += "%d { one_way_tile(X,Y) : tile(X,Y) } %d.\n" % (
-                    int(tile_perc_range[0] / 100 * num_total_tiles),
-                    int(tile_perc_range[1] / 100 * num_total_tiles))
+                    error_exit("enforcing one_way_platform perc_tile_ranges is not supported yet")
+                    # tmp_prolog_statements += "%d { one_way_tile(X,Y) : tile(X,Y) } %d.\n" % (
+                    # int(tile_perc_range[0] / 100 * num_total_tiles),
+                    # int(tile_perc_range[1] / 100 * num_total_tiles))
                 else:
                     tile_ids = self.tile_ids.get(tile_type)
                     if len(tile_ids) > 0:

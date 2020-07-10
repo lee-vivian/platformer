@@ -7,6 +7,13 @@ from model.metatile import METATILE_TYPES
 from stopwatch import Stopwatch
 import utils
 
+from extract_constraints import TOP, LEFT, RIGHT, BOTTOM, TOP_LEFT, BOTTOM_LEFT, TOP_RIGHT, BOTTOM_RIGHT
+
+DIRECTION_MAP = {
+    "TOP": TOP, "LEFT": LEFT, "RIGHT": RIGHT, "BOTTOM": BOTTOM,
+    "TOP_LEFT": TOP_LEFT, "BOTTOM_LEFT": BOTTOM_LEFT, "TOP_RIGHT": TOP_RIGHT, "BOTTOM_RIGHT": BOTTOM_RIGHT
+}
+
 # Acknowledgements and References:
 # - Legal adjacency rules based on NPCDev groundcollapse
 # - WFC in ASP implementation: based on Karth, I., & Smith, A. M. (2017). WaveFunctionCollapse is constraint solving
@@ -63,6 +70,12 @@ def main(tile_constraints_file, debug, print_pl, save):
     for t in METATILE_TYPES:
         metatile_type_ids_map[t] = []
 
+    # Create {metatile_type: {direction: set(metatile_types)}} map
+    tile_type_adjacent_types_map = {}
+    empty_adjacencies_dict = dict.fromkeys(DIRECTION_MAP.keys(), set())
+    for t in METATILE_TYPES:
+        tile_type_adjacent_types_map[t] = empty_adjacencies_dict.copy()
+
     # Create {level: tile_ids} map
     metatile_level_ids_map = {}
 
@@ -79,6 +92,18 @@ def main(tile_constraints_file, debug, print_pl, save):
 
         # Populate {metatile_type: tile_ids} map
         metatile_type = tile_constraints.get('type')
+
+        # Create metatile type(tile_id) fact
+        prolog_statements += "%s(%s).\n" % (metatile_type, tile_id)
+
+        # Add legal tile_type neighbors
+        metatile_adjacencies = tile_constraints.get('adjacent')
+        for direction, neighbor_tile_ids in metatile_adjacencies.items():
+            for neighbor_tile_id in neighbor_tile_ids:
+                neighbor_tile_type = tile_id_constraints_dict[neighbor_tile_id]['type']
+                tile_type_adjacent_types_map[metatile_type][direction].add(neighbor_tile_type)
+
+        # Update {metatile_type: [tile_ids]} map
         metatile_type_ids_map[metatile_type].append(tile_id)
 
         # Populate {level: tile_ids} map
@@ -103,7 +128,7 @@ def main(tile_constraints_file, debug, print_pl, save):
             link_rule = "link(%s,%s) :- assignment(TX,TY,%s)." % (src_state_contents, dest_state_contents, tile_id)
             prolog_statements += state_rule + "\n" + link_rule + "\n"
 
-        # Create legal tile placement rules based on valid adjacent tiles
+        # Create legal tile placement rules based on valid adjacent tiles TODO update legal prolog facts to use metatile types instead of tile_ids
         for direction, adjacent_tiles in tile_constraints.get("adjacent").items():  # for each adjacent dir
             dx, dy = direction
 
@@ -149,10 +174,10 @@ def main(tile_constraints_file, debug, print_pl, save):
     # Goal states must be reachable
     prolog_statements += ":- state(%s), not reachable(%s), %s.\n" % (generic_state, generic_state, State.generic_goal_reachability_expression())
 
-    # Add rules for placing one_way_platform tiles
+    # Get one_way_platform tile_ids
     one_way_platform_tile_ids = metatile_type_ids_map.get("one_way_platform")
 
-    # ASP WFC algorithm rule
+    # ASP WFC algorithm rule  TODO update wfc rule
     wfc_rule = ":- adj(X1,Y1,X2,Y2,DX,DY), assignment(X1,Y1,MT1), not 1 { assignment(X2,Y2,MT2) : legal(DX,DY,MT1,MT2) }."
     prolog_statements += wfc_rule + "\n"
 
