@@ -7,18 +7,18 @@ from model.metatile import METATILE_TYPES
 from stopwatch import Stopwatch
 import utils
 
-from extract_constraints import TOP, LEFT, RIGHT, BOTTOM, TOP_LEFT, BOTTOM_LEFT, TOP_RIGHT, BOTTOM_RIGHT
-
-DIRECTION_MAP = {
-    "TOP": TOP, "LEFT": LEFT, "RIGHT": RIGHT, "BOTTOM": BOTTOM,
-    "TOP_LEFT": TOP_LEFT, "BOTTOM_LEFT": BOTTOM_LEFT, "TOP_RIGHT": TOP_RIGHT, "BOTTOM_RIGHT": BOTTOM_RIGHT
-}
+from extract_constraints import DIRECTIONS
 
 # Acknowledgements and References:
 # - Legal adjacency rules based on NPCDev groundcollapse
 # - WFC in ASP implementation: based on Karth, I., & Smith, A. M. (2017). WaveFunctionCollapse is constraint solving
 #   in the wild. Proceedings of the 12th International Conference on the Foundations of Digital Games, 68. ACM.
 
+
+EMPTY_TYPES = dict.fromkeys(["start", "empty", "permeable_wall"], 1)
+WFC_TYPES = {}
+for t in METATILE_TYPES:
+    WFC_TYPES[t] = t if EMPTY_TYPES.get(t) is None else "empty"
 
 if os.getenv('MAZE'):
     print('***** USING MAZE RULES *****')
@@ -70,10 +70,10 @@ def main(tile_constraints_file, debug, print_pl, save):
     for t in METATILE_TYPES:
         metatile_type_ids_map[t] = []
 
-    # Create {metatile_type: {direction: set(metatile_types)}} map
+    # Create {wfc_type: {direction: set(neighbor_wfc_types)}} map
     tile_type_adjacent_types_map = {}
-    empty_adjacencies_dict = dict.fromkeys(DIRECTION_MAP.keys(), set())
-    for t in METATILE_TYPES:
+    empty_adjacencies_dict = dict.fromkeys(DIRECTIONS, set())
+    for t in set(WFC_TYPES.values()):
         tile_type_adjacent_types_map[t] = empty_adjacencies_dict.copy()
 
     # Create {level: tile_ids} map
@@ -92,19 +92,18 @@ def main(tile_constraints_file, debug, print_pl, save):
 
         # Populate {metatile_type: tile_ids} map
         metatile_type = tile_constraints.get('type')
+        metatile_type_ids_map[metatile_type].append(tile_id)
 
-        # Create metatile type(tile_id) fact
-        prolog_statements += "%s(%s).\n" % (metatile_type, tile_id)
+        # Update legal wfc tile_type neighbors
+        wfc_type = WFC_TYPES.get(metatile_type)
+        prolog_statements += ""
+        prolog_statements += "wfc(%s, %s).\n" % (wfc_type, tile_id)
 
-        # Add legal tile_type neighbors
         metatile_adjacencies = tile_constraints.get('adjacent')
         for direction, neighbor_tile_ids in metatile_adjacencies.items():
             for neighbor_tile_id in neighbor_tile_ids:
-                neighbor_tile_type = tile_id_constraints_dict[neighbor_tile_id]['type']
-                tile_type_adjacent_types_map[metatile_type][direction].add(neighbor_tile_type)
-
-        # Update {metatile_type: [tile_ids]} map
-        metatile_type_ids_map[metatile_type].append(tile_id)
+                neighbor_wfc_tile_type = WFC_TYPES.get(tile_id_constraints_dict[neighbor_tile_id]['type'])
+                tile_type_adjacent_types_map[wfc_type][direction].add(neighbor_wfc_tile_type)
 
         # Populate {level: tile_ids} map
         metatile_levels = tile_constraints.get('levels')
@@ -128,21 +127,15 @@ def main(tile_constraints_file, debug, print_pl, save):
             link_rule = "link(%s,%s) :- assignment(TX,TY,%s)." % (src_state_contents, dest_state_contents, tile_id)
             prolog_statements += state_rule + "\n" + link_rule + "\n"
 
-        # Create legal tile placement rules based on valid adjacent tiles TODO update legal prolog facts to use metatile types instead of tile_ids
-        for direction, adjacent_tiles in tile_constraints.get("adjacent").items():  # for each adjacent dir
-            dx, dy = direction
+    # Add rule for valid links - src and dest states must coexist
+    prolog_statements += ":- link(%s,%s), state(%s), not state(%s).\n" % (generic_src_state, generic_dest_state, generic_src_state, generic_dest_state)
+    prolog_statements += ":- link(%s,%s), not state(%s), state(%s).\n" % (generic_src_state, generic_dest_state, generic_src_state, generic_dest_state)
 
-            for adjacent_id in adjacent_tiles:  # for each adjacent metatile
-                legal_statement = "legal(DX, DY, MT1, MT2) :- DX == %d, DY == %d, metatile(MT1), metatile(MT2), " \
-                                  "MT1 == %s, MT2 == %s." % (dx, dy, tile_id, adjacent_id)
-                prolog_statements += legal_statement + "\n"
-
-    # Add rule for valid links
-    dest_exists_rule = ":- link(A,B), state(A), not state(B), A==(%s), B==(%s).\n" % (generic_src_state, generic_dest_state)
-    prolog_statements += dest_exists_rule
-
-    src_exists_rule = ":- link(A,B), not state(A), state(B), A==(%s), B==(%s).\n" % (generic_src_state, generic_dest_state)
-    prolog_statements += src_exists_rule
+    # Create legal adjacency prolog facts: legal(dx, dy, wfc_type, neighbor_wfc_type)
+    for wfc_type, adjacency_dict in tile_type_adjacent_types_map.items():
+        for direction, neighbor_wfc_types in adjacency_dict.items():
+            for neighbor_wfc_type in neighbor_wfc_types:
+                prolog_statements += "legal(%d,%d,%s,%s).\n" % (direction[0], direction[1], wfc_type, neighbor_wfc_type)
 
     # Get block, start, and goal tile_ids
     block_tile_id = metatile_type_ids_map.get("block")[0]
@@ -177,8 +170,8 @@ def main(tile_constraints_file, debug, print_pl, save):
     # Get one_way_platform tile_ids
     one_way_platform_tile_ids = metatile_type_ids_map.get("one_way_platform")
 
-    # ASP WFC algorithm rule  TODO update wfc rule
-    wfc_rule = ":- adj(X1,Y1,X2,Y2,DX,DY), assignment(X1,Y1,MT1), not 1 { assignment(X2,Y2,MT2) : legal(DX,DY,MT1,MT2) }."
+    # ASP WFC algorithm rule
+    wfc_rule = ":- adj(X1,Y1,X2,Y2,DX,DY), assignment(X1,Y1,MT1), assignment(X2,Y2,MT2), wfc(T1,MT1), wfc(T2,MT2), not legal(DX,DY,T1,T2)."
     prolog_statements += wfc_rule + "\n"
 
     # Remove duplicate prolog statements

@@ -108,9 +108,6 @@ def get_solver_config(config, prolog_file_info):
     # ----- SPECIFY PERCENT TILE RANGES (for a certain type) -----
     perc_tile_ranges = {}
     lo, hi = 0, 100
-    for tile_type in METATILE_TYPES:
-        perc_tile_ranges[tile_type] = (lo, hi)
-
     if config.get('perc_tile_ranges') is not None:
         for tile_type, range_str in config['perc_tile_ranges'].items():
             check_tile_type_exists_in_prolog(tile_type, prolog_file_info, 'cannot force perc tile range %s' % range_str)
