@@ -113,8 +113,11 @@ def main(tile_constraints_file, debug, print_pl, save):
                 prolog_statements += legal_statement + "\n"
 
     # Add rule for valid links
-    link_exists_rule = ":- link(%s,%s), state(%s), not state(%s).\n" % (generic_src_state, generic_dest_state, generic_src_state, generic_dest_state)
-    prolog_statements += link_exists_rule
+    dest_exists_rule = ":- link(A,B), state(A), not state(B), A==(%s), B==(%s).\n" % (generic_src_state, generic_dest_state)
+    prolog_statements += dest_exists_rule
+
+    src_exists_rule = ":- link(A,B), not state(A), state(B), A==(%s), B==(%s).\n" % (generic_src_state, generic_dest_state)
+    prolog_statements += src_exists_rule
 
     # Get block, start, and goal tile_ids
     block_tile_id = metatile_type_ids_map.get("block")[0]
