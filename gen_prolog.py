@@ -14,12 +14,6 @@ from extract_constraints import DIRECTIONS
 # - WFC in ASP implementation: based on Karth, I., & Smith, A. M. (2017). WaveFunctionCollapse is constraint solving
 #   in the wild. Proceedings of the 12th International Conference on the Foundations of Digital Games, 68. ACM.
 
-
-EMPTY_TYPES = dict.fromkeys(["start", "empty", "permeable_wall"], 1)
-WFC_TYPES = {}
-for t in METATILE_TYPES:
-    WFC_TYPES[t] = t if EMPTY_TYPES.get(t) is None else "empty"
-
 if os.getenv('MAZE'):
     print('***** USING MAZE RULES *****')
     from model_maze.state import StateMaze as State
@@ -72,9 +66,7 @@ def main(tile_constraints_file, debug, print_pl, save):
 
     # Create {wfc_type: {direction: set(neighbor_wfc_types)}} map
     tile_type_adjacent_types_map = {}
-    empty_adjacencies_dict = dict.fromkeys(DIRECTIONS, set())
-    for t in set(WFC_TYPES.values()):
-        tile_type_adjacent_types_map[t] = empty_adjacencies_dict.copy()
+    empty_types_map = utils.list_to_dict(["start", "goal", "permeable_wall"])
 
     # Create {level: tile_ids} map
     metatile_level_ids_map = {}
@@ -94,16 +86,25 @@ def main(tile_constraints_file, debug, print_pl, save):
         metatile_type = tile_constraints.get('type')
         metatile_type_ids_map[metatile_type].append(tile_id)
 
-        # Update legal wfc tile_type neighbors
-        wfc_type = WFC_TYPES.get(metatile_type)
-        prolog_statements += ""
+        # Get wfc type of the current metatile
+        wfc_type = metatile_type if empty_types_map.get(metatile_type) is None else "empty"
         prolog_statements += "wfc(%s, %s).\n" % (wfc_type, tile_id)
 
+        # Update legal wfc tile_type neighbors
         metatile_adjacencies = tile_constraints.get('adjacent')
         for direction, neighbor_tile_ids in metatile_adjacencies.items():
             for neighbor_tile_id in neighbor_tile_ids:
-                neighbor_wfc_tile_type = WFC_TYPES.get(tile_id_constraints_dict[neighbor_tile_id]['type'])
-                tile_type_adjacent_types_map[wfc_type][direction].add(neighbor_wfc_tile_type)
+
+                neighbor_type = tile_id_constraints_dict.get(neighbor_tile_id).get('type')
+                neighbor_wfc_type = neighbor_type if empty_types_map.get(neighbor_type) is None else "empty"
+
+                if tile_type_adjacent_types_map.get(wfc_type) is None:
+                    tile_type_adjacent_types_map[wfc_type] = {}
+
+                if tile_type_adjacent_types_map[wfc_type].get(direction) is None:
+                    tile_type_adjacent_types_map[wfc_type][direction] = set()
+
+                tile_type_adjacent_types_map[wfc_type][direction].add(neighbor_wfc_type)
 
         # Populate {level: tile_ids} map
         metatile_levels = tile_constraints.get('levels')
@@ -123,8 +124,8 @@ def main(tile_constraints_file, debug, print_pl, save):
             dest_state = State.from_str(edge[1])
             dest_state_contents = dest_state.to_prolog_contents()
 
-            state_rule = "state(%s) :- assignment(TX,TY,%s)." % (src_state_contents, tile_id)
-            link_rule = "link(%s,%s) :- assignment(TX,TY,%s)." % (src_state_contents, dest_state_contents, tile_id)
+            state_rule = "state(%s) :- assignment(TX,TY,%s), tile(TX,TY)." % (src_state_contents, tile_id)
+            link_rule = "link(%s,%s) :- assignment(TX,TY,%s), tile(TX,TY)." % (src_state_contents, dest_state_contents, tile_id)
             prolog_statements += state_rule + "\n" + link_rule + "\n"
 
     # Add rule for valid links - src and dest states must coexist
