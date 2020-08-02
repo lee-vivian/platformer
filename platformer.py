@@ -10,13 +10,14 @@ import os
 import sys
 import networkx as nx
 import argparse
+import re
 
 from view.player import Player as PlayerView
 from view.tile import Tile
 from view.camera import Camera
 from model.level import TILE_DIM, MAX_WIDTH, MAX_HEIGHT
 from model.level import Level
-from utils import read_pickle, error_exit, shortest_path_xy
+from utils import read_pickle, error_exit, shortest_path_xy, read_txt
 
 COLORS = {
     'YELLOW': (255, 255, 100),
@@ -63,6 +64,20 @@ def get_metatile_labels_at_coords(coords, tile_id, extra_info, label_font, font_
     return new_labels
 
 
+def setup_training_labels(assignment_facts):
+    metatile_labels = []
+    font_color = COLORS.get('YELLOW')
+    label_padding = (8, 12)
+    label_font = pygame.font.SysFont('Comic Sans MS', 20)
+
+    for assignment in assignment_facts:
+        match = re.match(r"assignment\((\d+),(\d+),(t\d+)\)", assignment)
+        x, y, tile_id = int(match.group(1)), int(match.group(2)), match.group(3)
+        metatile_labels += get_metatile_labels_at_coords(coords=[(x * TILE_DIM, y * TILE_DIM)], tile_id=tile_id, extra_info="",
+                                                         label_font=label_font, font_color=font_color)
+    return metatile_labels, font_color, label_padding
+
+
 def setup_metatile_labels(game, level, player_img, draw_all_labels, draw_dup_labels):
     metatile_labels = []
     font_color = COLORS.get('YELLOW')
@@ -88,7 +103,8 @@ def get_sprites(coords, img):
     return sprites
 
 
-def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score):
+def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score, draw_reachable,
+         draw_training_labels):
 
     # Create the Level
     level_obj = Level.generate_level_from_file(game, level)
@@ -143,6 +159,12 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
         metatile_labels, font_color, label_padding = \
             setup_metatile_labels(game, level, player_img, draw_all_labels, draw_dup_labels)
 
+    # Setup drawing training level metatile labels
+    if draw_training_labels is not None:
+        model_str = read_txt(draw_training_labels)
+        assignment_facts = re.findall(r"assignment\(\d+,\d+,t\d+\)", model_str)
+        metatile_labels, font_color, label_padding = setup_training_labels(assignment_facts)
+
     # Setup drawing solution path
     if draw_path:
         path_font_color = COLORS.get('GREEN')
@@ -163,6 +185,19 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
 
         else:
             error_exit("No enumerated state graph available to draw solution path")
+
+    if draw_reachable is not None:
+        path_font_color = COLORS.get('GREEN')
+        start_font_color = COLORS.get('BLUE')
+        goal_font_color = COLORS.get('RED')
+
+        model_str = read_txt(draw_reachable)
+        reachable_facts = re.findall(r"reachable\(\d+,\d+,", model_str)
+        reachable_coords = []
+        for reachable in reachable_facts:
+            match = re.match(r"reachable\((\d+),(\d+),", reachable)
+            x, y = int(match.group(1)), int(match.group(2))
+            reachable_coords.append((x,y))
 
     # Input handling
     input_handler = Inputs()
@@ -253,7 +288,7 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
             world.blit(e.image, camera.apply(e))
 
         # Draw metatile labels
-        if draw_all_labels or draw_dup_labels:
+        if draw_all_labels or draw_dup_labels or draw_training_labels:
             for coord in level_obj.get_all_possible_coords():  # draw metatile border outlines
                 tile_rect = pygame.Rect(coord[0], coord[1], TILE_DIM, TILE_DIM)
                 tile_rect = camera.apply_to_rect(tile_rect)  # adjust based on camera
@@ -274,6 +309,14 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
                 else:
                     color = path_font_color
                 coord = eval(coord)
+                path_component = pygame.Rect(coord[0], coord[1], 2, 2)
+                path_component = camera.apply_to_rect(path_component)
+                pygame.draw.rect(world, color, path_component, 1)
+
+        # Draw level reachable coords
+        if draw_reachable:
+            for coord in reachable_coords:
+                color = path_font_color
                 path_component = pygame.Rect(coord[0], coord[1], 2, 2)
                 path_component = camera.apply_to_rect(path_component)
                 pygame.draw.rect(world, color, path_component, 1)
@@ -318,7 +361,9 @@ if __name__ == "__main__":
     parser.add_argument('--draw_dup_labels', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_path', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--show_score', const=True, nargs='?', type=bool, default=False)
+    parser.add_argument('--draw_reachable', type=str, default=None, help="Filepath of solver model str solution for generated level")
+    parser.add_argument('--draw_training_labels', type=str, default=None, help="Filepath of solver model str solution for generated level")
     args = parser.parse_args()
 
     main(args.game, args.level, args.player_img, args.use_graph, args.draw_all_labels, args.draw_dup_labels,
-         args.draw_path, args.show_score)
+         args.draw_path, args.show_score, args.draw_reachable, args.draw_training_labels)

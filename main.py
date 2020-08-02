@@ -29,7 +29,7 @@ def save_process_runtimes(process_key, process_runtimes):
 
 
 def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score,
-         process, gen_prolog, dimensions, structure, summary, runtime, prolog):
+         draw_reachable, draw_training_labels, process, gen_prolog, dimensions, structure, summary, runtime, prolog):
 
     # Set environment variable
     if environment not in ENVIRONMENTS:
@@ -145,7 +145,8 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
 
     if not (process or gen_prolog):
         import platformer
-        platformer.main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score)
+        platformer.main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score,
+                        draw_reachable, draw_training_labels)
 
 
 if __name__ == "__main__":
@@ -157,8 +158,10 @@ if __name__ == "__main__":
     parser.add_argument('--use_graph', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_all_labels', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_dup_labels', const=True, nargs='?', type=bool, default=False)
-    parser.add_argument('--draw_path', const=True, nargs='?', type=bool, default=False)
-    parser.add_argument('--show_score', const=True, nargs='?', type=bool, default=False)
+    parser.add_argument('--draw_path', const=True, nargs='?', type=bool, default=False, help="Filepath of solver model str solution for generated level")
+    parser.add_argument('--show_score', const=True, nargs='?', type=bool, default=False, help="Filepath of solver model str solution for generated level")
+    parser.add_argument('--draw_reachable', type=str, default=None)
+    parser.add_argument('--draw_training_labels', type=str, default=None)
     parser.add_argument('--process', const=True, nargs='?', type=bool, help="Run process scripts", default=False)
     parser.add_argument('--gen_prolog', const=True, nargs='?', type=bool, help="Generate prolog rules", default=False)
     parser.add_argument('--dimensions', const=True, nargs='?', type=bool, help="Get level dimensions in tiles (width, height)", default=False)
@@ -170,4 +173,5 @@ if __name__ == "__main__":
 
     main(args.environment, args.game, args.level, args.player_img,
          args.use_graph, args.draw_all_labels, args.draw_dup_labels, args.draw_path, args.show_score,
+         args.draw_reachable, args.draw_training_labels,
          args.process, args.gen_prolog, args.dimensions, args.structure, args.summary, args.runtime, args.prolog)
