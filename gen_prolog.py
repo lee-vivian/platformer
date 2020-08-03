@@ -7,7 +7,6 @@ from model.metatile import METATILE_TYPES
 from stopwatch import Stopwatch
 import utils
 
-from extract_constraints import DIRECTIONS
 
 # Acknowledgements and References:
 # - Legal adjacency rules based on NPCDev groundcollapse
@@ -64,8 +63,8 @@ def main(tile_constraints_file, debug, print_pl, save):
     for t in METATILE_TYPES:
         metatile_type_ids_map[t] = []
 
-    # Create {wfc_type: {direction: set(neighbor_wfc_types)}} map
-    tile_type_adjacent_types_map = {}
+    # Create {tile_id: {direction: set(neighbor_wfc_types)}} map
+    tile_id_adjacent_types_map = {}
     empty_types_map = utils.list_to_dict(["start", "goal", "permeable_wall"])
 
     # Create {level: tile_ids} map
@@ -98,13 +97,13 @@ def main(tile_constraints_file, debug, print_pl, save):
                 neighbor_type = tile_id_constraints_dict.get(neighbor_tile_id).get('type')
                 neighbor_wfc_type = neighbor_type if empty_types_map.get(neighbor_type) is None else "empty"
 
-                if tile_type_adjacent_types_map.get(wfc_type) is None:
-                    tile_type_adjacent_types_map[wfc_type] = {}
+                if tile_id_adjacent_types_map.get(tile_id) is None:
+                    tile_id_adjacent_types_map[tile_id] = {}
 
-                if tile_type_adjacent_types_map[wfc_type].get(direction) is None:
-                    tile_type_adjacent_types_map[wfc_type][direction] = set()
+                if tile_id_adjacent_types_map[tile_id].get(direction) is None:
+                    tile_id_adjacent_types_map[tile_id][direction] = set()
 
-                tile_type_adjacent_types_map[wfc_type][direction].add(neighbor_wfc_type)
+                tile_id_adjacent_types_map[tile_id][direction].add(neighbor_wfc_type)
 
         # Populate {level: tile_ids} map
         metatile_levels = tile_constraints.get('levels')
@@ -123,20 +122,21 @@ def main(tile_constraints_file, debug, print_pl, save):
             src_state_contents = src_state.to_prolog_contents()
             dest_state = State.from_str(edge[1])
             dest_state_contents = dest_state.to_prolog_contents()
+            prolog_statements += "state(%s) :- assignment(TX,TY,%s), tile(TX,TY).\n" % (src_state_contents, tile_id)
+            prolog_statements += "linkout(%s,%s) :- assignment(TX,TY,%s), tile(TX,TY).\n" % (src_state_contents, dest_state_contents, tile_id)
+            prolog_statements += "linkin(%s,%s) :- assignment(TX,TY,%s), tile(TX,TY).\n" % (src_state_contents, dest_state_contents, tile_id)
 
-            state_rule = "state(%s) :- assignment(TX,TY,%s), tile(TX,TY)." % (src_state_contents, tile_id)
-            link_rule = "link(%s,%s) :- assignment(TX,TY,%s), tile(TX,TY)." % (src_state_contents, dest_state_contents, tile_id)
-            prolog_statements += state_rule + "\n" + link_rule + "\n"
+    # Add rule for valid links
+    prolog_statements += ":- linkout(%s,%s), state(%s), not state(%s).\n" % (generic_src_state, generic_dest_state, generic_src_state, generic_dest_state)
+    prolog_statements += ":- linkout(%s,%s), not linkin(%s,%s), state(%s).\n" % (generic_src_state, generic_dest_state, generic_src_state, generic_dest_state, generic_src_state)
+    prolog_statements += ":- linkin(%s,%s), state(%s), not state(%s).\n" % (generic_dest_state, generic_src_state, generic_src_state, generic_dest_state)
+    prolog_statements += ":- linkin(%s,%s), not linkout(%s,%s), state(%s).\n" % (generic_dest_state, generic_src_state, generic_dest_state, generic_src_state, generic_src_state)
 
-    # Add rule for valid links - src and dest states must coexist
-    prolog_statements += ":- link(%s,%s), state(%s), not state(%s).\n" % (generic_src_state, generic_dest_state, generic_src_state, generic_dest_state)
-    prolog_statements += ":- link(%s,%s), not state(%s), state(%s).\n" % (generic_src_state, generic_dest_state, generic_src_state, generic_dest_state)
-
-    # Create legal adjacency prolog facts: legal(dx, dy, wfc_type, neighbor_wfc_type)
-    for wfc_type, adjacency_dict in tile_type_adjacent_types_map.items():
+    # Create legal adjacency prolog facts: legal(dx, dy, tile_id, neighbor_wfc_type)
+    for tile_id, adjacency_dict in tile_id_adjacent_types_map.items():
         for direction, neighbor_wfc_types in adjacency_dict.items():
             for neighbor_wfc_type in neighbor_wfc_types:
-                prolog_statements += "legal(%d,%d,%s,%s).\n" % (direction[0], direction[1], wfc_type, neighbor_wfc_type)
+                prolog_statements += "legal(%s,%s,%s,%s).\n" % (direction[0], direction[1], tile_id, neighbor_wfc_type)
 
     # Get block, start, and goal tile_ids
     block_tile_id = metatile_type_ids_map.get("block")[0]
@@ -157,8 +157,9 @@ def main(tile_constraints_file, debug, print_pl, save):
     prolog_statements += "limit(%s, 1, 1).\n" % goal_tile_id
 
     # Add state reachable rule
-    state_reachable_rule = "reachable(%s) :- link(%s,%s), state(%s), state(%s), reachable(%s)." % (
-        generic_dest_state, generic_src_state, generic_dest_state, generic_src_state, generic_dest_state, generic_src_state
+    state_reachable_rule = "reachable(%s) :- linkin(%s,%s), linkout(%s,%s), state(%s), state(%s), reachable(%s)." % (
+        generic_dest_state, generic_src_state, generic_dest_state, generic_src_state, generic_dest_state,
+        generic_src_state, generic_dest_state, generic_src_state
     )
     prolog_statements += state_reachable_rule + "\n"
 
@@ -172,7 +173,7 @@ def main(tile_constraints_file, debug, print_pl, save):
     one_way_platform_tile_ids = metatile_type_ids_map.get("one_way_platform")
 
     # ASP WFC algorithm rule
-    wfc_rule = ":- adj(X1,Y1,X2,Y2,DX,DY), assignment(X1,Y1,MT1), assignment(X2,Y2,MT2), wfc(T1,MT1), wfc(T2,MT2), not legal(DX,DY,T1,T2)."
+    wfc_rule = ":- adj(X1,Y1,X2,Y2,DX,DY), assignment(X1,Y1,MT1), assignment(X2,Y2,MT2), wfc(T1,MT1), wfc(T2,MT2), not legal(DX,DY,MT1,T2)."
     prolog_statements += wfc_rule + "\n"
 
     # Remove duplicate prolog statements
