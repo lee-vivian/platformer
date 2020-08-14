@@ -24,7 +24,8 @@ COLORS = {
     'DARK_GRAY': (23, 23, 23),
     'GREEN': (48, 179, 55),
     'BLUE': (60, 145, 230),
-    'RED': (237, 33, 14)
+    'RED': (237, 33, 14),
+    'WHITE': (255, 255, 255)
 }
 
 # game specifics
@@ -104,7 +105,7 @@ def get_sprites(coords, img):
 
 
 def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score, draw_reachable,
-         draw_training_labels, draw_enum_reachable):
+         draw_unreachable, draw_training_labels, draw_enum_reachable):
 
     # Create the Level
     level_obj = Level.generate_level_from_file(game, level)
@@ -167,9 +168,6 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
 
     # Setup drawing solution path
     if draw_path:
-        path_font_color = COLORS.get('GREEN')
-        start_font_color = COLORS.get('BLUE')
-        goal_font_color = COLORS.get('RED')
 
         if generated_level_path_coords is not None:
             path_coords = generated_level_path_coords
@@ -187,25 +185,37 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
             error_exit("No enumerated state graph available to draw solution path")
 
     if draw_reachable is not None:
-        path_font_color = COLORS.get('GREEN')
-        start_font_color = COLORS.get('BLUE')
-        goal_font_color = COLORS.get('RED')
-
         model_str = read_txt(draw_reachable)
         reachable_facts = re.findall(r"reachable\(\d+,\d+,", model_str)
-        reachable_coords = []
+        reachable_coords = {}
         for reachable in reachable_facts:
             match = re.match(r"reachable\((\d+),(\d+),", reachable)
             x, y = int(match.group(1)), int(match.group(2))
-            reachable_coords.append((x,y))
+            reachable_coords[(x,y)] = 1
+
+    if draw_unreachable is not None:
+        model_str = read_txt(draw_unreachable)
+        reachable_facts = re.findall(r"reachable\(\d+,\d+,", model_str)
+        reachable_coords = {}
+        for reachable in reachable_facts:
+            match = re.match(r"reachable\((\d+),(\d+),", reachable)
+            x, y = int(match.group(1)), int(match.group(2))
+            reachable_coords[(x, y)] = 1
+
+        state_facts = re.findall(r"state\(\d+,\d+,", model_str)
+        unreachable_state_coords = []
+        for state in state_facts:
+            match = re.match(r"state\((\d+),(\d+),", state)
+            state_coord = (int(match.group(1)), int(match.group(2)))
+            if reachable_coords.get(state_coord) is None:
+                unreachable_state_coords.append(state_coord)
 
     if draw_enum_reachable and os.path.exists(state_graph_file):
-        path_font_color = COLORS.get('GREEN')
         reachable_nodes = nx.read_gpickle(state_graph_file).nodes
-        reachable_coords = []
+        reachable_coords = {}
         for node in reachable_nodes:
             state_dict = eval(node)
-            reachable_coords.append((state_dict['x'], state_dict['y']))
+            reachable_coords[(state_dict['x'], state_dict['y'])] = 1
 
     # Input handling
     input_handler = Inputs()
@@ -311,11 +321,11 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
         if draw_path:
             for coord in path_coords:
                 if coord == start_coord:
-                    color = start_font_color
+                    color = COLORS.get('BLUE')
                 elif coord == goal_coord:
-                    color = goal_font_color
+                    color = COLORS.get('RED')
                 else:
-                    color = path_font_color
+                    color = COLORS.get('GREEN')
                 coord = eval(coord)
                 path_component = pygame.Rect(coord[0], coord[1], 2, 2)
                 path_component = camera.apply_to_rect(path_component)
@@ -323,8 +333,16 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
 
         # Draw level reachable coords
         if draw_reachable or draw_enum_reachable:
-            for coord in reachable_coords:
-                color = path_font_color
+            for coord in reachable_coords.keys():
+                color = COLORS.get('GREEN')
+                path_component = pygame.Rect(coord[0], coord[1], 2, 2)
+                path_component = camera.apply_to_rect(path_component)
+                pygame.draw.rect(world, color, path_component, 1)
+
+        # Draw level unreachable state coords
+        if draw_unreachable:
+            for coord in unreachable_state_coords:
+                color = COLORS.get('RED')
                 path_component = pygame.Rect(coord[0], coord[1], 2, 2)
                 path_component = camera.apply_to_rect(path_component)
                 pygame.draw.rect(world, color, path_component, 1)
@@ -370,9 +388,11 @@ if __name__ == "__main__":
     parser.add_argument('--draw_path', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--show_score', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_reachable', type=str, default=None, help="Filepath of solver model str solution for generated level")
+    parser.add_argumnet('--draw_unreachable', type=str, default=None, help="Filepath of solver model str solution for generated level")
     parser.add_argument('--draw_training_labels', type=str, default=None, help="Filepath of solver model str solution for generated level")
     parser.add_argument('--draw_enum_reachable', const=True, nargs='?', type=bool, help="Draw reachable states from enumerated state graph", default=False)
     args = parser.parse_args()
 
     main(args.game, args.level, args.player_img, args.use_graph, args.draw_all_labels, args.draw_dup_labels,
-         args.draw_path, args.show_score, args.draw_reachable, args.draw_training_labels, args.draw_enum_reachable)
+         args.draw_path, args.show_score, args.draw_reachable, args.draw_unreachable,
+         args.draw_training_labels, args.draw_enum_reachable)
