@@ -7,6 +7,7 @@ import re
 import networkx as nx
 import random
 from datetime import datetime
+import time
 
 from model.level import TILE_DIM, TILE_CHARS
 from model.metatile import Metatile
@@ -44,6 +45,7 @@ class Solver:
         self.asp_valid_levels_count = 0
         self.state_graph_valid_levels_count = 0
         self.stopwatch = Stopwatch()
+        self.start_time = str(time.time())
 
     @staticmethod
     def parse_prolog_filepath(prolog_filepath):
@@ -56,7 +58,7 @@ class Solver:
         self.answer_set_count += 1
 
     def get_cur_answer_set_filename(self, prolog_filename):
-        filename_components = [prolog_filename, self.config_filename, "a%d" % self.answer_set_count]
+        filename_components = [prolog_filename, self.config_filename, "a%d" % self.answer_set_count, self.start_time]
         return "_".join(filename_components)
 
     def init_tmp_prolog_statements(self):
