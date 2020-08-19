@@ -78,32 +78,14 @@ def get_solver_config(config, prolog_file_info):
             check_tile_type_exists_in_prolog(tile_type, prolog_file_info, 'cannot force tile type (%s: %s)' % (tile_type, coord_strs))
             forced_tiles[tile_type] = eval(coord_strs)
 
-    # ----- SOFT CONSTRAINTS -----
-    soft_constraints = {
-        "num_tile_ranges": False,
-        "perc_tile_ranges": False,
-        "perc_level_ranges": False
-    }
-    if config.get('soft_constraints') is not None:
-        for constraint_key, constraint_value in config.get('soft_constraints').items():
-            soft_constraints[constraint_key] = eval(constraint_value)
-
-    # ----- SPECIFY NUM TILE RANGES (for a certain type) -----
-    num_tile_ranges = {}
-    lo, hi = 0, level_w * level_h
-    if config.get('num_tile_ranges') is not None:
-        for tile_type, range_str in config['num_tile_ranges'].items():
-            check_tile_type_exists_in_prolog(tile_type, prolog_file_info, 'cannot force num tile range %s' % range_str)
-            min_tiles, max_tiles = eval(range_str)
-            num_tile_ranges[tile_type] = setup_tile_freq_range(tile_type, min_tiles, max_tiles, lo, hi)
-
-        # Check if total min tiles > total tiles
-        min_total = 0
-        for tile_type, tile_range in num_tile_ranges.items():
-            min_total += tile_range[0]
-        if min_total > level_w * level_h:
-            error_exit("Sum of min tiles (%d) in specified num_tile_ranges cannot exceed the total number of tiles "
-                       "available in the generated level (%d)" % (min_total, level_w*level_h))
+    # ----- SPECIFY NUM TILES (for a certain type) -----
+    num_tiles = {}
+    if config.get('num_tiles') is not None:
+        for tile_type, target_count_str in config['num_tiles'].items():
+            target_count = eval(target_count_str)
+            if target_count is not None:
+                check_tile_type_exists_in_prolog(tile_type, prolog_file_info, 'tile type %s does not exist in the training level' % tile_type)
+                num_tiles[tile_type] = target_count
 
     # ----- SPECIFY PERCENT TILE RANGES (for a certain type) -----
     perc_tile_ranges = {}
@@ -190,9 +172,8 @@ def get_solver_config(config, prolog_file_info):
     return {
         'level_w': level_w,                                     # int
         'level_h': level_h,                                     # int
-        'forced_tiles': forced_tiles,                           # {type: list-of-tile-coords}\
-        'soft_constraints': soft_constraints,                   # {constraint_type: constraint_value}
-        'num_tile_ranges': num_tile_ranges,                     # { type: (min, max) }
+        'forced_tiles': forced_tiles,                           # {type: list-of-tile-coords}
+        'num_tiles': num_tiles,                                 # { type: target_count }
         'perc_tile_ranges': perc_tile_ranges,                   # { type: (min, max) }
         'perc_level_ranges': perc_level_ranges,                 # { level: (min, max) }
         'tile_position_ranges': tile_position_ranges,           # { position: (min, max) }

@@ -24,8 +24,7 @@ class Solver:
         self.level_w = config.get('level_w')
         self.level_h = config.get('level_h')
         self.forced_tiles = config.get('forced_tiles')                          # { type: list-of-tile-coords }
-        self.soft_constraints = config.get('soft_constraints')                  # { constraint_type: constraint_value }
-        self.num_tile_ranges = config.get('num_tile_ranges')                    # { type: (min, max) }
+        self.num_tiles = config.get('num_tiles')                                # { type: target_count }
         self.perc_tile_ranges = config.get('perc_tile_ranges')                  # { type: (min, max) }
         self.perc_level_ranges = config.get('perc_level_ranges')                # { level: (min, max) }
         self.tile_position_ranges = config.get('tile_position_ranges')          # { position: (min, max) }
@@ -65,7 +64,6 @@ class Solver:
         tmp_prolog_statements = ""
         tmp_prolog_statements += "dim_width(0..%d).\n" % (self.level_w - 1)
         tmp_prolog_statements += "dim_height(0..%d).\n" % (self.level_h - 1)
-        num_total_tiles = int(self.level_w * self.level_h)
 
         # ---- CREATE TILE FACTS ----
         create_tiles_statement = "tile(TX,TY) :- dim_width(TX), dim_height(TY)."
@@ -74,52 +72,48 @@ class Solver:
         # ----- GET TILE IDS FOR TILE TYPES -----
         start_tile_id = self.tile_ids.get('start')[0]
         goal_tile_id = self.tile_ids.get('goal')[0]
-        block_tile_id = self.tile_ids.get('block')[0]
 
-        hazard_tile_id = None if len(self.tile_ids.get('hazard')) == 0 else self.tile_ids.get('hazard')[0]
-        one_way_tile_ids = self.tile_ids.get('one_way_platform')
-        permeable_wall_tile_ids = self.tile_ids.get('permeable_wall')
-        wall_tile_id = None if len(self.tile_ids.get('wall')) == 0 else self.tile_ids.get('wall')[0]
-        bonus_tile_id = None if len(self.tile_ids.get('bonus')) == 0 else self.tile_ids.get('bonus')[0]
+        prolog_tile_ids = {
+            'block': ';'.join(self.tile_ids.get('block')),
+            'bonus': ';'.join(self.tile_ids.get('bonus')),
+            'hazard': ';'.join(self.tile_ids.get('hazard')),
+            'wall': ';'.join(self.tile_ids.get('wall')),
+            'one_way_platform': ';'.join(self.tile_ids.get('one_way_platform')),
+            'permeable_wall': ';'.join(self.tile_ids.get('permeable_wall'))
+        }
 
-        level_has_hazard_tiles = hazard_tile_id is not None
-        level_has_one_way_tiles = len(one_way_tile_ids) > 0
-        level_has_permeable_wall_tiles = len(permeable_wall_tile_ids) > 0
-        level_has_bonus_tiles = bonus_tile_id is not None
-        level_has_wall_tiles = wall_tile_id is not None
-
-        # ----- CREATE TILE TYPE FACTS -----
-
-        # Create non_empty_tile facts
-        non_empty_tile_ids = []
-        for tile_type, tile_ids in self.tile_ids.items():
-            non_empty_tile_ids += tile_ids
-        tmp_prolog_statements += "non_empty_tile(X,Y) :- tile(X,Y), assignment(X,Y,ID), ID==(%s).\n" % (
-            ';'.join(non_empty_tile_ids))
+        level_has_tile_type = {
+            'block': prolog_tile_ids.get('block') != '',
+            'bonus': prolog_tile_ids.get('bonus') != '',
+            'hazard': prolog_tile_ids.get('hazard') != '',
+            'wall': prolog_tile_ids.get('wall') != '',
+            'one_way_platform': prolog_tile_ids.get('one_way_platform') != '',
+            'permeable_wall': prolog_tile_ids.get('permeable_wall') != ''
+        }
 
         # ----- ADD BORDER TILE RULES -----
-        if level_has_wall_tiles or level_has_permeable_wall_tiles:
+        if level_has_tile_type.get('wall') or level_has_tile_type.get('permeable_wall'):
 
             # Border tiles must be wall tiles
-            tmp_prolog_statements += "assignment(X,Y,%s) :- tile(X,Y), Y==(0).\n" % (wall_tile_id,)
-            tmp_prolog_statements += "assignment(X,Y,%s) :- tile(X,Y), Y==(%d).\n" % (wall_tile_id, self.level_h - 1)
+            tmp_prolog_statements += "assignment(X,Y,MT) :- tile(X,Y), Y==(0), MT==(%s).\n" % (prolog_tile_ids.get('wall'))
+            tmp_prolog_statements += "assignment(X,Y,MT) :- tile(X,Y), Y==(%d), MT==(%s).\n" % (self.level_h - 1, prolog_tile_ids.get('wall'))
 
-            if not level_has_permeable_wall_tiles:
-                tmp_prolog_statements += "assignment(X,Y,%s) :- tile(X,Y), X==(0).\n" % (wall_tile_id,)
-                tmp_prolog_statements += "assignment(X,Y,%s) :- tile(X,Y), X==(%d).\n" % (wall_tile_id, self.level_w - 1)
+            if not level_has_tile_type.get('permeable_wall'):
+                tmp_prolog_statements += "assignment(X,Y,MT) :- tile(X,Y), X==(0), MT==(%s).\n" % (prolog_tile_ids.get('wall'))
+                tmp_prolog_statements += "assignment(X,Y,MT) :- tile(X,Y), X==(%d), MT==(%s).\n" % (self.level_w - 1, prolog_tile_ids.get('wall'))
             else:
-                allowed_wall_tile_ids_str = ["ID != %s" % tile_id for tile_id in permeable_wall_tile_ids]
+                allowed_wall_tile_ids_str = ["ID != %s" % tile_id for tile_id in self.tile_ids.get("permeable_wall")]
                 tmp_prolog_statements += ":- tile(X,Y), assignment(X,Y,ID), X==(0;%d), Y>0, Y<%d, %s.\n" % (
                     self.level_w-1, self.level_h-1, ','.join(allowed_wall_tile_ids_str)
                 )
 
             # Non-border tiles cannot be wall tiles or permeable_wall tiles
-            tmp_prolog_statements += ":- assignment(X,Y,ID), tile(X,Y), ID==%s, X>0, X<%d, Y>0, Y<%d.\n" % (
-                wall_tile_id, self.level_w - 1, self.level_h - 1)
+            tmp_prolog_statements += ":- assignment(X,Y,ID), tile(X,Y), ID==(%s), X>0, X<%d, Y>0, Y<%d.\n" % (
+                prolog_tile_ids.get('wall'), self.level_w - 1, self.level_h - 1)
 
-            if level_has_permeable_wall_tiles:
+            if level_has_tile_type.get('permeable_wall'):
                 tmp_prolog_statements += ":- assignment(X,Y,ID), tile(X,Y), ID==(%s), X>0, X<%d, Y>0, Y<%d.\n" % (
-                    ';'.join(permeable_wall_tile_ids), self.level_w - 1, self.level_h - 1
+                    prolog_tile_ids.get('permeable_wall'), self.level_w - 1, self.level_h - 1
                 )
 
         # ----- ADD REACHABILITY RULES -----
@@ -127,15 +121,18 @@ class Solver:
 
         # Non-block and non-goal tiles on top of block tiles must have a reachable ground state in them
         if self.require_all_platforms_reachable:
-            reachable_platform_ids = block_tile_id if level_has_one_way_tiles else ';'.join([block_tile_id] + one_way_tile_ids)
+
+            reachable_platform_ids = prolog_tile_ids.get('block') if not level_has_tile_type.get('one_way_platform') \
+                else ';'.join([prolog_tile_ids.get('block'), prolog_tile_ids.get('one_way_platform')])
+
             tmp_prolog_statements += "tile_above_block(TX,TY) :- tile(TX,TY), assignment(TX,TY,ID1), ID1 != %s, ID1 != %s, ID1 != %s, tile(TX,TY+1), assignment(TX,TY+1,ID2), ID2 == (%s).\n" % \
-                                     (goal_tile_id, block_tile_id, wall_tile_id, reachable_platform_ids)
+                                     (goal_tile_id, prolog_tile_ids.get('block'), prolog_tile_ids.get('wall'), reachable_platform_ids)
             tmp_prolog_statements += "tile_has_reachable_ground_state(TX,TY) :- tile(TX,TY), reachable(%s), %s, TX==X/%d, TY==Y/%d.\n"  % (generic_state, State.generic_ground_reachability_expression(), TILE_DIM, TILE_DIM)
             tmp_prolog_statements += ":- tile_above_block(TX,TY), not tile_has_reachable_ground_state(TX,TY).\n"
 
         # Bonus tiles must have a reachable bonus state in the tile below them
-        if self.require_all_bonus_tiles_reachable and level_has_bonus_tiles:
-            tmp_prolog_statements += "tile_below_bonus(TX,TY) :- tile(TX,TY), tile(TX,TY-1), assignment(TX,TY-1,%s).\n" % bonus_tile_id
+        if self.require_all_bonus_tiles_reachable and level_has_tile_type.get('bonus'):
+            tmp_prolog_statements += "tile_below_bonus(TX,TY) :- tile(TX,TY), tile(TX,TY-1), assignment(TX,TY-1,%s).\n" % prolog_tile_ids.get('bonus')
             tmp_prolog_statements += "tile_has_reachable_bonus_state(TX,TY) :- tile(TX,TY), reachable(%s), %s, TX==X/%d, TY==Y/%d.\n" % (
                 generic_state, State.generic_bonus_reachability_expression(), TILE_DIM, TILE_DIM
             )
@@ -143,9 +140,10 @@ class Solver:
 
         # ----- ADD START/GOAL ON_GROUND RULES -----
 
-        allowed_ground_tile_ids = [block_tile_id]
-        if level_has_one_way_tiles:
-            allowed_ground_tile_ids += one_way_tile_ids
+        allowed_ground_tile_ids = self.tile_ids.get('block')
+        if level_has_tile_type.get('one_way_platform'):
+            allowed_ground_tile_ids += self.tile_ids.get('one_way_platform')
+
         allowed_ground_tile_ids_str = ','.join(["ID != %s" % tile_id for tile_id in allowed_ground_tile_ids])
 
         if self.require_start_on_ground:
@@ -172,64 +170,21 @@ class Solver:
         tmp_prolog_statements += ":- assignment(X,Y,%s), Y < %d.\n" % (goal_tile_id, goal_tile_min_y)
         tmp_prolog_statements += ":- assignment(X,Y,%s), Y > %d.\n" % (goal_tile_id, goal_tile_max_y)
 
-        # ----- GET SOFT CONSTRAINT RULES -----
-        use_soft_constraints = False
-        # use_soft_constraints = any(self.soft_constraints.values())
+        # ----- SET UP NUM_TILE TARGET COUNTS -----
+        if len(self.num_tiles) > 0:
 
-        # ----- ENFORCE NUM_TILE_RANGES -----
+            tmp_prolog_statements += "total_penalty(T) :- T = #sum { P : penalty(P) }.\n"
+            tmp_prolog_statements += "#minimize { T, T : total_penalty(T) }.\n"
 
-        if use_soft_constraints and self.soft_constraints.get('num_tile_ranges'):
-            pass  # TODO implement
-            # for tile_type, tile_range in self.num_tile_ranges.items():
-            #     tile_ids = self.tile_ids.get(tile_type)
-            #     if tile_ids is not None and len(tile_ids) > 0:
-            #         target_count = int((tile_range[0] + tile_range[1]) / 2)
-            #         tmp_prolog_statements += "target(%s,%d).\n" % (tile_type, target_count)
-            #         tmp_prolog_statements += "actual(%s,A) :- A = #count { assignment(X,Y,MT) : metatile(MT), " \
-            #                                  "MT==(%s), tile(X,Y) }.\n" % (tile_type, ';'.join(tile_ids))
-            # tmp_prolog_statements += "#minimize { |A-E|, T : target(T,E), actual(T,A) }.\n"
+            for tile_type, target_count in self.num_tiles.items():
 
-        else:
-            for tile_type, tile_range in self.num_tile_ranges.items():
-                if tile_type == 'empty':
-                    min_empty, max_empty = tile_range
-                    min_non_empty = num_total_tiles - max_empty
-                    max_non_empty = num_total_tiles - min_empty
-                    tmp_prolog_statements += "%d { non_empty_tile(X,Y) : tile(X,Y) } %d.\n" % (
-                        min_non_empty, max_non_empty)
-                elif tile_type == 'one_way_platform':
-                    error_exit("enforcing one_way_platform num_tile_ranges is not supported yet")
-                    # tmp_prolog_statements += "%d { one_way_tile(X,Y) : tile(X,Y) } %d.\n" % (
-                    #     tile_range[0], tile_range[1])
-                else:
-                    tile_ids = self.tile_ids.get(tile_type)
-                    if len(tile_ids) > 0:
-                        tmp_prolog_statements += "limit(%s,%d,%d).\n" % (self.tile_ids.get(tile_type)[0],
-                                                                         tile_range[0], tile_range[1])
+                if target_count is not None and level_has_tile_type.get(tile_type):
+                    range_threshold = int(target_count * 0.20)  # stay within 20% range of target count
 
-        # ----- ENFORCE PERC_TILE_RANGES -----
-        if use_soft_constraints and self.soft_constraints.get('perc_tile_ranges'):
-            pass  # TODO implement
-        else:
-            for tile_type, tile_perc_range in self.perc_tile_ranges.items():
-                if tile_type == 'empty':
-                    min_perc_empty, max_perc_empty = tile_perc_range
-                    min_perc_non_empty = 100 - max_perc_empty
-                    max_perc_non_empty = 100 - min_perc_empty
-                    tmp_prolog_statements += "%d { non_empty_tile(X,Y) : tile(X,Y) } %d.\n" % (
-                    min_perc_non_empty / 100 * num_total_tiles,
-                    max_perc_non_empty / 100 * num_total_tiles)
-                elif tile_type == 'one_way_platform':
-                    error_exit("enforcing one_way_platform perc_tile_ranges is not supported yet")
-                    # tmp_prolog_statements += "%d { one_way_tile(X,Y) : tile(X,Y) } %d.\n" % (
-                    # int(tile_perc_range[0] / 100 * num_total_tiles),
-                    # int(tile_perc_range[1] / 100 * num_total_tiles))
-                else:
-                    tile_ids = self.tile_ids.get(tile_type)
-                    if len(tile_ids) > 0:
-                        tmp_prolog_statements += "limit(%s,%d,%d).\n" % (self.tile_ids.get(tile_type)[0],
-                                                                         int(tile_perc_range[0] / 100 * num_total_tiles),
-                                                                         int(tile_perc_range[1] / 100 * num_total_tiles))
+                    tmp_prolog_statements += "%s_count(C) :- C = #count { assignment(X,Y,MT) : metatile(MT), " \
+                                             "tile(X,Y), MT==(%s) }.\n" % (tile_type, prolog_tile_ids.get("%s" % tile_type))
+                    tmp_prolog_statements += "penalty(P) :- P = #max { 0; |%d - C|-%d : %s_count(C) }.\n" % \
+                                             (target_count, range_threshold, tile_type)
 
         # ----- ENFORCE PERC_LEVEL_RANGES -----
         # if use_soft_constraints and self.soft_constraints.get('perc_level_ranges'):
@@ -265,6 +220,7 @@ class Solver:
 
         # ----- REMOVE DUPLICATE PROLOG LINES -----
         self.tmp_prolog_statements = get_unique_lines(tmp_prolog_statements)
+
         return True
 
     def solve(self, max_sol, threads):
