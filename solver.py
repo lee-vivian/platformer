@@ -59,7 +59,7 @@ class Solver:
     def get_cur_answer_set_filename(self, player_img, prolog_filename):
         generated_level_model_str_dir = "level_saved_files_%s/generated_level_model_strs/" % player_img
         answer_set_filename = "_".join([prolog_filename, self.config_filename, "r%d", "a%d" % self.answer_set_count])
-        answer_set_filepath = get_filepath(generated_level_model_str_dir, answer_set_filename)
+        answer_set_filepath = get_filepath(generated_level_model_str_dir, "%s.txt" % answer_set_filename)
 
         run_idx = 0
         while os.path.exists(answer_set_filepath % run_idx):
