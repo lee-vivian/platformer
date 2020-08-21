@@ -105,7 +105,7 @@ def get_sprites(coords, img):
 
 
 def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score, draw_reachable,
-         draw_unreachable, draw_training_labels, draw_enum_reachable):
+         draw_unreachable, draw_training_labels, draw_enum_reachable, draw_links):
 
     # Create the Level
     level_obj = Level.generate_level_from_file(game, level)
@@ -165,6 +165,15 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
         model_str = read_txt(draw_training_labels)
         assignment_facts = re.findall(r"assignment\(\d+,\d+,t\d+\)", model_str)
         metatile_labels, font_color, label_padding = setup_training_labels(assignment_facts)
+
+    if draw_links is not None:
+        model_str = read_txt(draw_links)
+        linkout_facts = re.findall(r"linkout\(\d+,\d+,\d+,\d+,\d+,\d+,\d+,\"[A-Z]*\",\d+,\d+,\d+,", model_str)
+        link_coords = {}
+        for linkout in linkout_facts:
+            match = re.match(r"linkout\((\d+),(\d+),\d+,\d+,\d+,\d+,\d+,\"[A-Z]*\",\d+,(\d+),(\d+),", linkout)
+            x1, y1, x2, y2 = int(match.group(1)), int(match.group(2)), int(match.group(3)), int(match.group(4))
+            link_coords[(x1,y1,x2,y2)] = 1
 
     # Setup drawing solution path
     if draw_path:
@@ -331,6 +340,13 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
                 path_component = camera.apply_to_rect(path_component)
                 pygame.draw.rect(world, color, path_component, 1)
 
+        # Draw level links
+        if draw_links:
+            for x1, y1, x2, y2 in link_coords.keys():
+                color = COLORS.get('YELLOW')
+                new_x1, new_y1, new_x2, new_y2 = camera.apply_to_line(x1, y1, x2, y2)
+                pygame.draw.line(world, color, (new_x1, new_y1), (new_x2, new_y2))
+
         # Draw level reachable coords
         if draw_reachable or draw_enum_reachable:
             for coord in reachable_coords.keys():
@@ -388,11 +404,12 @@ if __name__ == "__main__":
     parser.add_argument('--draw_path', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--show_score', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_reachable', type=str, default=None, help="Filepath of solver model str solution for generated level")
-    parser.add_argumnet('--draw_unreachable', type=str, default=None, help="Filepath of solver model str solution for generated level")
+    parser.add_argument('--draw_unreachable', type=str, default=None, help="Filepath of solver model str solution for generated level")
     parser.add_argument('--draw_training_labels', type=str, default=None, help="Filepath of solver model str solution for generated level")
     parser.add_argument('--draw_enum_reachable', const=True, nargs='?', type=bool, help="Draw reachable states from enumerated state graph", default=False)
+    parser.add_argument('--draw_links', type=str, default=None, help="Filepath of solver model str solution for generated level")
     args = parser.parse_args()
 
     main(args.game, args.level, args.player_img, args.use_graph, args.draw_all_labels, args.draw_dup_labels,
          args.draw_path, args.show_score, args.draw_reachable, args.draw_unreachable,
-         args.draw_training_labels, args.draw_enum_reachable)
+         args.draw_training_labels, args.draw_enum_reachable, args.draw_links)
