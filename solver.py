@@ -24,7 +24,7 @@ class Solver:
         self.level_w = config.get('level_w')
         self.level_h = config.get('level_h')
         self.forced_tiles = config.get('forced_tiles')                          # { type: list-of-tile-coords }
-        self.soft_constraints = config.get('soft_constraints')                  # { constraint_type: constraint_value }
+        self.num_tiles = config.get('num_tiles')                                # { type: target }
         self.num_tile_ranges = config.get('num_tile_ranges')                    # { type: (min, max) }
         self.perc_tile_ranges = config.get('perc_tile_ranges')                  # { type: (min, max) }
         self.perc_level_ranges = config.get('perc_level_ranges')                # { level: (min, max) }
@@ -172,81 +172,73 @@ class Solver:
         tmp_prolog_statements += ":- assignment(X,Y,%s), Y < %d.\n" % (goal_tile_id, goal_tile_min_y)
         tmp_prolog_statements += ":- assignment(X,Y,%s), Y > %d.\n" % (goal_tile_id, goal_tile_max_y)
 
-        # ----- GET SOFT CONSTRAINT RULES -----
-        use_soft_constraints = False
-        # use_soft_constraints = any(self.soft_constraints.values())
+        # ----- SETTING TARGET NUM_TILES PER TYPE -----
+        if len(self.num_tiles) > 0:
+
+            tmp_prolog_statements += "total_penalty(T) :- T = #sum { P : penalty(P) }.\n"
+            tmp_prolog_statements += "#minimize { T, T : total_penalty(T) }.\n"
+
+            for tile_type, target_count in self.num_tiles.items():
+
+                target_leeway = int(target_count * 0.20)  # stay within 20% range of target count
+
+                if tile_type == 'hazard':
+                    # tmp_prolog_statements += "hazard(X,Y) :- assignment(X,Y,MT), tile(X,Y), MT==(%s).\n" % hazard_tile_id
+                    tmp_prolog_statements += "hazard_count(C) :- C = #count { X,Y : assignment(X,Y,MT), MT==(%s) }.\n" % hazard_tile_id
+                    tmp_prolog_statements += "penalty(P) :- P = #max { 0; |%d-C|-%d : hazard_count(C) }.\n" % (target_count, target_leeway)
 
         # ----- ENFORCE NUM_TILE_RANGES -----
-
-        if use_soft_constraints and self.soft_constraints.get('num_tile_ranges'):
-            pass  # TODO implement
-            # for tile_type, tile_range in self.num_tile_ranges.items():
-            #     tile_ids = self.tile_ids.get(tile_type)
-            #     if tile_ids is not None and len(tile_ids) > 0:
-            #         target_count = int((tile_range[0] + tile_range[1]) / 2)
-            #         tmp_prolog_statements += "target(%s,%d).\n" % (tile_type, target_count)
-            #         tmp_prolog_statements += "actual(%s,A) :- A = #count { assignment(X,Y,MT) : metatile(MT), " \
-            #                                  "MT==(%s), tile(X,Y) }.\n" % (tile_type, ';'.join(tile_ids))
-            # tmp_prolog_statements += "#minimize { |A-E|, T : target(T,E), actual(T,A) }.\n"
-
-        else:
-            for tile_type, tile_range in self.num_tile_ranges.items():
-                if tile_type == 'empty':
-                    min_empty, max_empty = tile_range
-                    min_non_empty = num_total_tiles - max_empty
-                    max_non_empty = num_total_tiles - min_empty
-                    tmp_prolog_statements += "%d { non_empty_tile(X,Y) : tile(X,Y) } %d.\n" % (
-                        min_non_empty, max_non_empty)
-                elif tile_type == 'one_way_platform':
-                    error_exit("enforcing one_way_platform num_tile_ranges is not supported yet")
-                    # tmp_prolog_statements += "%d { one_way_tile(X,Y) : tile(X,Y) } %d.\n" % (
-                    #     tile_range[0], tile_range[1])
-                else:
-                    tile_ids = self.tile_ids.get(tile_type)
-                    if len(tile_ids) > 0:
-                        tmp_prolog_statements += "limit(%s,%d,%d).\n" % (self.tile_ids.get(tile_type)[0],
-                                                                         tile_range[0], tile_range[1])
+        for tile_type, tile_range in self.num_tile_ranges.items():
+            if tile_type == 'empty':
+                min_empty, max_empty = tile_range
+                min_non_empty = num_total_tiles - max_empty
+                max_non_empty = num_total_tiles - min_empty
+                tmp_prolog_statements += "%d { non_empty_tile(X,Y) : tile(X,Y) } %d.\n" % (
+                    min_non_empty, max_non_empty)
+            elif tile_type == 'one_way_platform':
+                error_exit("enforcing one_way_platform num_tile_ranges is not supported yet")
+                # tmp_prolog_statements += "%d { one_way_tile(X,Y) : tile(X,Y) } %d.\n" % (
+                #     tile_range[0], tile_range[1])
+            else:
+                tile_ids = self.tile_ids.get(tile_type)
+                if len(tile_ids) > 0:
+                    tmp_prolog_statements += "limit(%s,%d,%d).\n" % (self.tile_ids.get(tile_type)[0],
+                                                                     tile_range[0], tile_range[1])
 
         # ----- ENFORCE PERC_TILE_RANGES -----
-        if use_soft_constraints and self.soft_constraints.get('perc_tile_ranges'):
-            pass  # TODO implement
-        else:
-            for tile_type, tile_perc_range in self.perc_tile_ranges.items():
-                if tile_type == 'empty':
-                    min_perc_empty, max_perc_empty = tile_perc_range
-                    min_perc_non_empty = 100 - max_perc_empty
-                    max_perc_non_empty = 100 - min_perc_empty
-                    tmp_prolog_statements += "%d { non_empty_tile(X,Y) : tile(X,Y) } %d.\n" % (
-                    min_perc_non_empty / 100 * num_total_tiles,
-                    max_perc_non_empty / 100 * num_total_tiles)
-                elif tile_type == 'one_way_platform':
-                    error_exit("enforcing one_way_platform perc_tile_ranges is not supported yet")
-                    # tmp_prolog_statements += "%d { one_way_tile(X,Y) : tile(X,Y) } %d.\n" % (
-                    # int(tile_perc_range[0] / 100 * num_total_tiles),
-                    # int(tile_perc_range[1] / 100 * num_total_tiles))
-                else:
-                    tile_ids = self.tile_ids.get(tile_type)
-                    if len(tile_ids) > 0:
-                        tmp_prolog_statements += "limit(%s,%d,%d).\n" % (self.tile_ids.get(tile_type)[0],
-                                                                         int(tile_perc_range[0] / 100 * num_total_tiles),
-                                                                         int(tile_perc_range[1] / 100 * num_total_tiles))
+        for tile_type, tile_perc_range in self.perc_tile_ranges.items():
+            if tile_type == 'empty':
+                min_perc_empty, max_perc_empty = tile_perc_range
+                min_perc_non_empty = 100 - max_perc_empty
+                max_perc_non_empty = 100 - min_perc_empty
+                tmp_prolog_statements += "%d { non_empty_tile(X,Y) : tile(X,Y) } %d.\n" % (
+                min_perc_non_empty / 100 * num_total_tiles,
+                max_perc_non_empty / 100 * num_total_tiles)
+            elif tile_type == 'one_way_platform':
+                error_exit("enforcing one_way_platform perc_tile_ranges is not supported yet")
+                # tmp_prolog_statements += "%d { one_way_tile(X,Y) : tile(X,Y) } %d.\n" % (
+                # int(tile_perc_range[0] / 100 * num_total_tiles),
+                # int(tile_perc_range[1] / 100 * num_total_tiles))
+            else:
+                tile_ids = self.tile_ids.get(tile_type)
+                if len(tile_ids) > 0:
+                    tmp_prolog_statements += "limit(%s,%d,%d).\n" % (self.tile_ids.get(tile_type)[0],
+                                                                     int(tile_perc_range[0] / 100 * num_total_tiles),
+                                                                     int(tile_perc_range[1] / 100 * num_total_tiles))
 
         # ----- ENFORCE PERC_LEVEL_RANGES -----
-        # if use_soft_constraints and self.soft_constraints.get('perc_level_ranges'):
-        #     pass  # TODO implement
-        # else:
-        #     # Create level_assignment facts to track which tiles came from which training levels
-        #     for level, tile_ids in self.level_ids_map.items():
-        #         tmp_prolog_statements += "level_assignment(\"%s\",X,Y) :- tile(X,Y), assignment(X,Y,ID), ID==(%s).\n" % (
-        #             level, ';'.join(tile_ids))
+        # # Create level_assignment facts to track which tiles came from which training levels
+        # for level, tile_ids in self.level_ids_map.items():
+        #     tmp_prolog_statements += "level_assignment(\"%s\",X,Y) :- tile(X,Y), assignment(X,Y,ID), ID==(%s).\n" % (
+        #         level, ';'.join(tile_ids))
         #
-        #     # Set perc level ranges (e.g. 50-100% tiles must come from level 1)
-        #     for level, tile_perc_range in self.perc_level_ranges.items():
-        #         min_tiles = int(tile_perc_range[0] / 100 * num_total_tiles)
-        #         max_tiles = int(tile_perc_range[1] / 100 * num_total_tiles)
-        #         level_perc_range_rule = "%d { level_assignment(\"L\",X,Y) : tile(X,Y), L==(%s) } %d.\n" % (
-        #             min_tiles, level, max_tiles)
-        #         tmp_prolog_statements += level_perc_range_rule
+        # # Set perc level ranges (e.g. 50-100% tiles must come from level 1)
+        # for level, tile_perc_range in self.perc_level_ranges.items():
+        #     min_tiles = int(tile_perc_range[0] / 100 * num_total_tiles)
+        #     max_tiles = int(tile_perc_range[1] / 100 * num_total_tiles)
+        #     level_perc_range_rule = "%d { level_assignment(\"L\",X,Y) : tile(X,Y), L==(%s) } %d.\n" % (
+        #         min_tiles, level, max_tiles)
+        #     tmp_prolog_statements += level_perc_range_rule
 
         # # Force specified tile coords to be certain tile types
         # for tile_type, tile_coords in self.forced_tiles.items():
