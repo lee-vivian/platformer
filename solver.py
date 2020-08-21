@@ -4,10 +4,10 @@ Solver Object
 
 import clingo
 import re
+import os
 import networkx as nx
 import random
 from datetime import datetime
-import time
 
 from model.level import TILE_DIM, TILE_CHARS
 from model.metatile import Metatile
@@ -45,7 +45,6 @@ class Solver:
         self.asp_valid_levels_count = 0
         self.state_graph_valid_levels_count = 0
         self.stopwatch = Stopwatch()
-        self.start_time = str(time.time())
 
     @staticmethod
     def parse_prolog_filepath(prolog_filepath):
@@ -57,9 +56,16 @@ class Solver:
     def increment_answer_set_count(self):
         self.answer_set_count += 1
 
-    def get_cur_answer_set_filename(self, prolog_filename):
-        filename_components = [prolog_filename, self.config_filename, "a%d" % self.answer_set_count, self.start_time]
-        return "_".join(filename_components)
+    def get_cur_answer_set_filename(self, player_img, prolog_filename):
+        generated_level_model_str_dir = "level_saved_files_%s/generated_level_model_strs/" % player_img
+        answer_set_filename = "_".join([prolog_filename, self.config_filename, "r%d", "a%d" % self.answer_set_count])
+        answer_set_filepath = get_filepath(generated_level_model_str_dir, answer_set_filename)
+
+        run_idx = 0
+        while os.path.exists(answer_set_filepath % run_idx):
+            run_idx += 1
+
+        return answer_set_filename % run_idx
 
     def init_tmp_prolog_statements(self):
         tmp_prolog_statements = ""
@@ -266,7 +272,7 @@ class Solver:
 
         for seed in seeds:
             prg = clingo.Control([])
-            prg.configuration.solve.models = 1  # get one solution per seed
+            prg.configuration.solve.models = 0  # get one solution per seed
             prg.configuration.solve.parallel_mode = threads  # number of threads to use for solving
             prg.configuration.solver.sign_def = 'rnd'  # turn off default sign heuristic and switch to random signs
             prg.configuration.solver.seed = seed  # seed to use for solving
@@ -327,7 +333,7 @@ class Solver:
 
     def process_answer_set(self, model_str):
         player_img, prolog_filename = Solver.parse_prolog_filepath(self.prolog_file)
-        answer_set_filename = self.get_cur_answer_set_filename(prolog_filename)
+        answer_set_filename = self.get_cur_answer_set_filename(player_img, prolog_filename)
 
         # Create assignments dictionary {(tile_x, tile_y): tile_id}
         assignments_dict = Solver.create_assignments_dict(model_str)
