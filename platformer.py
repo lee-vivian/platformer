@@ -25,7 +25,8 @@ COLORS = {
     'GREEN': (48, 179, 55),
     'BLUE': (60, 145, 230),
     'RED': (237, 33, 14),
-    'WHITE': (255, 255, 255)
+    'WHITE': (255, 255, 255),
+    'SLATE_GRAY': (47,79,79)
 }
 
 GENERATED_LEVEL_MODEL_STR_FILEPATH = "level_saved_files_%s/generated_level_model_strs/%s.txt"
@@ -106,8 +107,8 @@ def get_sprites(coords, img):
     return sprites
 
 
-def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score, draw_reachable,
-         draw_unreachable, draw_training_labels, draw_enum_reachable, draw_links):
+def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score,
+         draw_enum_reachable, draw_reachable, draw_unreachable, draw_training_labels, draw_links):
 
     # Create the Level
     level_obj = Level.generate_level_from_file(game, level)
@@ -163,13 +164,13 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
             setup_metatile_labels(game, level, player_img, draw_all_labels, draw_dup_labels)
 
     # Setup drawing training level metatile labels
-    if draw_training_labels is not None:
-        model_str = read_txt(draw_training_labels)
+    if draw_training_labels:
+        model_str = read_txt(GENERATED_LEVEL_MODEL_STR_FILEPATH % (player_img, level))
         assignment_facts = re.findall(r"assignment\(\d+,\d+,t\d+\)", model_str)
         metatile_labels, font_color, label_padding = setup_training_labels(assignment_facts)
 
-    if draw_links is not None:
-        model_str = read_txt(draw_links)
+    if draw_links:
+        model_str = read_txt(GENERATED_LEVEL_MODEL_STR_FILEPATH % (player_img, level))
         linkout_facts = re.findall(r"linkout\(\d+,\d+,\d+,\d+,\d+,\d+,\d+,\"[A-Z]*\",\d+,\d+,\d+,", model_str)
         link_coords = {}
         for linkout in linkout_facts:
@@ -195,8 +196,8 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
         else:
             error_exit("No enumerated state graph available to draw solution path")
 
-    if draw_reachable is not None:
-        model_str = read_txt(draw_reachable)
+    if draw_reachable:
+        model_str = read_txt(GENERATED_LEVEL_MODEL_STR_FILEPATH % (player_img, level))
         reachable_facts = re.findall(r"reachable\(\d+,\d+,", model_str)
         reachable_coords = {}
         for reachable in reachable_facts:
@@ -204,8 +205,8 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
             x, y = int(match.group(1)), int(match.group(2))
             reachable_coords[(x,y)] = 1
 
-    if draw_unreachable is not None:
-        model_str = read_txt(draw_unreachable)
+    if draw_unreachable:
+        model_str = read_txt(GENERATED_LEVEL_MODEL_STR_FILEPATH % (player_img, level))
         reachable_facts = re.findall(r"reachable\(\d+,\d+,", model_str)
         reachable_coords = {}
         for reachable in reachable_facts:
@@ -345,7 +346,7 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
         # Draw level links
         if draw_links:
             for x1, y1, x2, y2 in link_coords.keys():
-                color = COLORS.get('YELLOW')
+                color = COLORS.get('SLATE_GRAY')
                 new_x1, new_y1, new_x2, new_y2 = camera.apply_to_line(x1, y1, x2, y2)
                 pygame.draw.line(world, color, (new_x1, new_y1), (new_x2, new_y2))
 
@@ -353,17 +354,15 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
         if draw_reachable or draw_enum_reachable:
             for coord in reachable_coords.keys():
                 color = COLORS.get('GREEN')
-                path_component = pygame.Rect(coord[0], coord[1], 2, 2)
-                path_component = camera.apply_to_rect(path_component)
-                pygame.draw.rect(world, color, path_component, 1)
+                center_coord = camera.apply_to_coord(coord)
+                pygame.draw.circle(world, color, center_coord, 2)
 
         # Draw level unreachable state coords
         if draw_unreachable:
             for coord in unreachable_state_coords:
                 color = COLORS.get('RED')
-                path_component = pygame.Rect(coord[0], coord[1], 2, 2)
-                path_component = camera.apply_to_rect(path_component)
-                pygame.draw.rect(world, color, path_component, 1)
+                center_coord = camera.apply_to_coord(coord)
+                pygame.draw.circle(world, color, center_coord, 2)
 
         # Draw text labels
         label_rect_pairs = []
@@ -413,5 +412,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args.game, args.level, args.player_img, args.use_graph, args.draw_all_labels, args.draw_dup_labels,
-         args.draw_path, args.show_score, args.draw_enum_reachable, args.draw_reachable, args.draw_unreachable,
-         args.draw_training_labels, args.draw_links)
+         args.draw_path, args.show_score, args.draw_enum_reachable,
+         args.draw_reachable, args.draw_unreachable, args.draw_training_labels, args.draw_links)
