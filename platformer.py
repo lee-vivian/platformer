@@ -28,6 +28,8 @@ COLORS = {
     'WHITE': (255, 255, 255)
 }
 
+GENERATED_LEVEL_MODEL_STR_FILEPATH = "level_saved_files_%s/generated_level_model_strs/%s.txt"
+
 # game specifics
 if os.getenv('MAZE'):
     print('***** USING MAZE RULES *****')
@@ -403,13 +405,13 @@ if __name__ == "__main__":
     parser.add_argument('--draw_dup_labels', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_path', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--show_score', const=True, nargs='?', type=bool, default=False)
-    parser.add_argument('--draw_reachable', type=str, default=None, help="Filepath of solver model str solution for generated level")
-    parser.add_argument('--draw_unreachable', type=str, default=None, help="Filepath of solver model str solution for generated level")
-    parser.add_argument('--draw_training_labels', type=str, default=None, help="Filepath of solver model str solution for generated level")
     parser.add_argument('--draw_enum_reachable', const=True, nargs='?', type=bool, help="Draw reachable states from enumerated state graph", default=False)
-    parser.add_argument('--draw_links', type=str, default=None, help="Filepath of solver model str solution for generated level")
+    parser.add_argument('--draw_reachable', const=True, nargs='?', type=bool, default=False)
+    parser.add_argument('--draw_unreachable', const=True, nargs='?', type=bool, default=False)
+    parser.add_argument('--draw_training_labels', const=True, nargs='?', type=bool, default=False)
+    parser.add_argument('--draw_links', const=True, nargs='?', type=bool, default=False)
     args = parser.parse_args()
 
     main(args.game, args.level, args.player_img, args.use_graph, args.draw_all_labels, args.draw_dup_labels,
-         args.draw_path, args.show_score, args.draw_reachable, args.draw_unreachable,
-         args.draw_training_labels, args.draw_enum_reachable, args.draw_links)
+         args.draw_path, args.show_score, args.draw_enum_reachable, args.draw_reachable, args.draw_unreachable,
+         args.draw_training_labels, args.draw_links)
