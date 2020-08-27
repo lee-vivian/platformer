@@ -108,7 +108,7 @@ def get_sprites(coords, img):
 
 
 def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score,
-         draw_enum_reachable, draw_reachable, draw_unreachable, draw_training_labels, draw_links):
+         draw_enum_reachable, draw_reachable, draw_unreachable, draw_training_labels, draw_links, draw_unique_links):
 
     # Create the Level
     level_obj = Level.generate_level_from_file(game, level)
@@ -177,6 +177,23 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
             match = re.match(r"linkout\((\d+),(\d+),\d+,\d+,\d+,\d+,\d+,\"[A-Z]*\",\d+,(\d+),(\d+),", linkout)
             x1, y1, x2, y2 = int(match.group(1)), int(match.group(2)), int(match.group(3)), int(match.group(4))
             link_coords[(x1,y1,x2,y2)] = 1
+
+    if draw_unique_links:
+        model_str = read_txt(GENERATED_LEVEL_MODEL_STR_FILEPATH % (player_img, level))
+        linkout_facts = re.findall(r"linkout\(\d+,\d+,\d+,\d+,\d+,\d+,\d+,\"[A-Z]*\",\d+,\d+,\d+,", model_str)
+        linkin_facts = re.findall(r"linkin\(\d+,\d+,\d+,\d+,\d+,\d+,\d+,\"[A-Z]*\",\d+,\d+,\d+,", model_str)
+
+        linkout_coords = {}
+        for linkout in linkout_facts:
+            match = re.match(r"linkout\((\d+),(\d+),\d+,\d+,\d+,\d+,\d+,\"[A-Z]*\",\d+,(\d+),(\d+),", linkout)
+            x1, y1, x2, y2 = int(match.group(1)), int(match.group(2)), int(match.group(3)), int(match.group(4))
+            linkout_coords[(x1,y1,x2,y2)] = 1
+
+        linkin_coords = {}
+        for linkin in linkin_facts:
+            match = re.match(r"linkin\((\d+),(\d+),\d+,\d+,\d+,\d+,\d+,\"[A-Z]*\",\d+,(\d+),(\d+),", linkin)
+            x1, y1, x2, y2 = int(match.group(1)), int(match.group(2)), int(match.group(3)), int(match.group(4))
+            linkin_coords[(x1,y1,x2,y2)] = 1
 
     # Setup drawing solution path
     if draw_path:
@@ -345,10 +362,34 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
 
         # Draw level links
         if draw_links:
+            color = COLORS.get('SLATE_GRAY')
             for x1, y1, x2, y2 in link_coords.keys():
-                color = COLORS.get('SLATE_GRAY')
                 new_x1, new_y1, new_x2, new_y2 = camera.apply_to_line(x1, y1, x2, y2)
                 pygame.draw.line(world, color, (new_x1, new_y1), (new_x2, new_y2))
+
+        if draw_unique_links:
+
+            # unique_linkout = 0
+            # unique_linkin = 0
+
+            # Draw unique linkout links (does not have matching linkin link)
+            color = COLORS.get('RED')
+            for x1, y1, x2, y2 in linkout_coords.keys():
+                if linkin_coords.get((x1, y1, x2, y2)) is None:
+                    # unique_linkout += 1
+                    new_x1, new_y1, new_x2, new_y2 = camera.apply_to_line(x1, y1, x2, y2)
+                    pygame.draw.line(world, color, (new_x1, new_y1), (new_x2, new_y2))
+
+            # Draw unique linkin links (does not have matching linkout link)
+            color = COLORS.get('GREEN')
+            for x1, y1, x2, y2 in linkin_coords.keys():
+                if linkout_coords.get((x1, y1, x2, y2)) is None:
+                    # unique_linkin += 1
+                    new_x1, new_y1, new_x2, new_y2 = camera.apply_to_line(x1, y1, x2, y2)
+                    pygame.draw.line(world, color, (new_x1, new_y1), (new_x2, new_y2))
+
+            # print("UNIQUE LINKOUT: %d" % unique_linkout)
+            # print("UNIQUE LINKIN: %d" % unique_linkin)
 
         # Draw level reachable coords
         if draw_reachable or draw_enum_reachable:
@@ -409,8 +450,9 @@ if __name__ == "__main__":
     parser.add_argument('--draw_unreachable', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_training_labels', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_links', const=True, nargs='?', type=bool, default=False)
+    parser.add_argument('--draw_unique_links', const=True, nargs='?', type=bool, default=False)
     args = parser.parse_args()
 
     main(args.game, args.level, args.player_img, args.use_graph, args.draw_all_labels, args.draw_dup_labels,
          args.draw_path, args.show_score, args.draw_enum_reachable,
-         args.draw_reachable, args.draw_unreachable, args.draw_training_labels, args.draw_links)
+         args.draw_reachable, args.draw_unreachable, args.draw_training_labels, args.draw_links, args.draw_unique_links)
