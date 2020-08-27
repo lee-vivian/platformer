@@ -189,9 +189,16 @@ class Solver:
                 target_leeway = int(target_count * 0.20)  # stay within 20% range of target count
 
                 if tile_type == 'hazard':
-                    # tmp_prolog_statements += "hazard(X,Y) :- assignment(X,Y,MT), tile(X,Y), MT==(%s).\n" % hazard_tile_id
                     tmp_prolog_statements += "hazard_count(C) :- C = #count { X,Y : assignment(X,Y,MT), MT==(%s) }.\n" % hazard_tile_id
                     tmp_prolog_statements += "penalty(P) :- P = #max { 0; |%d-C|-%d : hazard_count(C) }.\n" % (target_count, target_leeway)
+
+                if tile_type == 'block':
+                    tmp_prolog_statements += "block_count(C) :- C = #count { X,Y : assignment(X,Y,MT), MT==(%s) }.\n" % block_tile_id
+                    tmp_prolog_statements += "penalty(P) :- P = #max { 0; |%d-C|-%d : block_count(C) }.\n" % (target_count, target_leeway)
+
+                if tile_type == 'bonus':
+                    tmp_prolog_statements += "bonus_count(C) :- C = #count { X,Y : assignment(X,Y,MT), MT==(%s) }.\n" % bonus_tile_id
+                    tmp_prolog_statements += "penalty(P) :- P = #max { 0; |%d-C|-%d : bonus_count(C) }.\n" % (target_count, target_leeway)
 
         # ----- ENFORCE NUM_TILE_RANGES -----
         for tile_type, tile_range in self.num_tile_ranges.items():
