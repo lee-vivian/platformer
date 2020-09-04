@@ -129,8 +129,11 @@ def main(tile_constraints_file, debug, print_pl, save):
     # Add rule for valid links
     prolog_statements += ":- linkout(%s,%s), state(%s), not state(%s).\n" % (generic_src_state, generic_dest_state, generic_src_state, generic_dest_state)
     prolog_statements += ":- linkout(%s,%s), not linkin(%s,%s), state(%s).\n" % (generic_src_state, generic_dest_state, generic_src_state, generic_dest_state, generic_src_state)
-    prolog_statements += ":- linkin(%s,%s), state(%s), not state(%s).\n" % (generic_dest_state, generic_src_state, generic_src_state, generic_dest_state)
-    prolog_statements += ":- linkin(%s,%s), not linkout(%s,%s), state(%s).\n" % (generic_dest_state, generic_src_state, generic_dest_state, generic_src_state, generic_src_state)
+    # prolog_statements += ":- linkin(%s,%s), state(%s), not state(%s).\n" % (generic_dest_state, generic_src_state, generic_src_state, generic_dest_state)
+    # prolog_statements += ":- linkin(%s,%s), not linkout(%s,%s), state(%s).\n" % (generic_dest_state, generic_src_state, generic_dest_state, generic_src_state, generic_src_state)
+
+    prolog_statements += ":- linkin(%s,%s), state(%s), not state(%s).\n" % (generic_src_state, generic_dest_state, generic_dest_state, generic_src_state)
+    prolog_statements += ":- linkin(%s,%s), not linkout(%s,%s), state(%s).\n" % (generic_src_state, generic_dest_state, generic_src_state, generic_dest_state, generic_dest_state)
 
     # Create legal adjacency prolog facts: legal(dx, dy, tile_id, neighbor_wfc_type)
     for tile_id, adjacency_dict in tile_id_adjacent_types_map.items():
