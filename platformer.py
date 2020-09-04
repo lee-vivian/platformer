@@ -108,7 +108,8 @@ def get_sprites(coords, img):
 
 
 def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score,
-         draw_enum_reachable, draw_reachable, draw_unreachable, draw_training_labels, draw_links, draw_unique_links):
+         draw_enum_reachable, draw_reachable, draw_unreachable, draw_training_labels, draw_links, draw_unique_links,
+         draw_unlinked_reachable):
 
     # Create the Level
     level_obj = Level.generate_level_from_file(game, level)
@@ -171,27 +172,27 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
 
     if draw_links:
         model_str = read_txt(GENERATED_LEVEL_MODEL_STR_FILEPATH % (player_img, level))
-        linkout_facts = re.findall(r"linkout\(\d+,\d+,\d+,\d+,\d+,\d+,\d+,\"[A-Z]*\",\d+,\d+,\d+,", model_str)
+        linkout_facts = re.findall(r"linkout\(\d+,\d+,[-]?\d+,[-]?\d+,\d,\d,\d,\"[A-Z]*\",\d,\d+,\d+,", model_str)
         link_coords = {}
         for linkout in linkout_facts:
-            match = re.match(r"linkout\((\d+),(\d+),\d+,\d+,\d+,\d+,\d+,\"[A-Z]*\",\d+,(\d+),(\d+),", linkout)
+            match = re.match(r"linkout\((\d+),(\d+),[-]?\d+,[-]?\d+,\d,\d,\d,\"[A-Z]*\",\d,(\d+),(\d+),", linkout)
             x1, y1, x2, y2 = int(match.group(1)), int(match.group(2)), int(match.group(3)), int(match.group(4))
             link_coords[(x1,y1,x2,y2)] = 1
 
     if draw_unique_links:
         model_str = read_txt(GENERATED_LEVEL_MODEL_STR_FILEPATH % (player_img, level))
-        linkout_facts = re.findall(r"linkout\(\d+,\d+,\d+,\d+,\d+,\d+,\d+,\"[A-Z]*\",\d+,\d+,\d+,", model_str)
-        linkin_facts = re.findall(r"linkin\(\d+,\d+,\d+,\d+,\d+,\d+,\d+,\"[A-Z]*\",\d+,\d+,\d+,", model_str)
+        linkout_facts = re.findall(r"linkout\(\d+,\d+,[-]?\d+,[-]?\d+,\d,\d,\d,\"[A-Z]*\",\d,\d+,\d+,", model_str)
+        linkin_facts = re.findall(r"linkin\(\d+,\d+,[-]?\d+,[-]?\d+,\d,\d,\d,\"[A-Z]*\",\d,\d+,\d+,", model_str)
 
         linkout_coords = {}
         for linkout in linkout_facts:
-            match = re.match(r"linkout\((\d+),(\d+),\d+,\d+,\d+,\d+,\d+,\"[A-Z]*\",\d+,(\d+),(\d+),", linkout)
+            match = re.match(r"linkout\((\d+),(\d+),[-]?\d+,[-]?\d+,\d,\d,\d,\"[A-Z]*\",\d,(\d+),(\d+),", linkout)
             x1, y1, x2, y2 = int(match.group(1)), int(match.group(2)), int(match.group(3)), int(match.group(4))
             linkout_coords[(x1,y1,x2,y2)] = 1
 
         linkin_coords = {}
         for linkin in linkin_facts:
-            match = re.match(r"linkin\((\d+),(\d+),\d+,\d+,\d+,\d+,\d+,\"[A-Z]*\",\d+,(\d+),(\d+),", linkin)
+            match = re.match(r"linkin\((\d+),(\d+),[-]?\d+,[-]?\d+,\d,\d,\d,\"[A-Z]*\",\d,(\d+),(\d+),", linkin)
             x1, y1, x2, y2 = int(match.group(1)), int(match.group(2)), int(match.group(3)), int(match.group(4))
             linkin_coords[(x1,y1,x2,y2)] = 1
 
@@ -238,6 +239,40 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
             state_coord = (int(match.group(1)), int(match.group(2)))
             if reachable_coords.get(state_coord) is None:
                 unreachable_state_coords.append(state_coord)
+
+    if draw_unlinked_reachable:
+        model_str = read_txt(GENERATED_LEVEL_MODEL_STR_FILEPATH % (player_img, level))
+
+        reachable_facts = re.findall(r"reachable\(\d+,\d+,", model_str)
+        reachable_coords = {}
+        for reachable in reachable_facts:
+            match = re.match(r"reachable\((\d+),(\d+),", reachable)
+            x, y = int(match.group(1)), int(match.group(2))
+            reachable_coords[(x, y)] = 1
+
+        unlinked_coords = {}
+        linked_coords = {}
+        linkout_facts = re.findall(r"linkout\(\d+,\d+,[-]?\d+,[-]?\d+,\d,\d,\d,\"[A-Z]*\",\d,\d+,\d+,", model_str)
+        linkin_facts = re.findall(r"linkin\(\d+,\d+,[-]?\d+,[-]?\d+,\d,\d,\d,\"[A-Z]*\",\d,\d+,\d+,", model_str)
+
+        for linkout in linkout_facts:
+            match = re.match(r"linkout\((\d+),(\d+),[-]?\d+,[-]?\d+,\d,\d,\d,\"[A-Z]*\",\d,(\d+),(\d+),", linkout)
+            x1, y1, x2, y2 = int(match.group(1)), int(match.group(2)), int(match.group(3)), int(match.group(4))
+            linked_coords[(x1, y1)] = 1
+            linked_coords[(x2, y2)] = 1
+
+        for linkin in linkin_facts:
+            match = re.match(r"linkin\((\d+),(\d+),[-]?\d+,[-]?\d+,\d,\d,\d,\"[A-Z]*\",\d,(\d+),(\d+),", linkin)
+            x1, y1, x2, y2 = int(match.group(1)), int(match.group(2)), int(match.group(3)), int(match.group(4))
+            linked_coords[(x1, y1)] = 1
+            linked_coords[(x2, y2)] = 1
+
+        for coord in reachable_coords.keys():
+            if linked_coords.get(coord) is None:
+                unlinked_coords[coord] = 1
+
+        print("LINKOUT: %d" % len(linkout_facts))
+        print("LINKIN: %d" % len(linkin_facts))
 
     if draw_enum_reachable and os.path.exists(state_graph_file):
         reachable_nodes = nx.read_gpickle(state_graph_file).nodes
@@ -394,16 +429,20 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
         # Draw level reachable coords
         if draw_reachable or draw_enum_reachable:
             for coord in reachable_coords.keys():
-                color = COLORS.get('GREEN')
                 center_coord = camera.apply_to_coord(coord)
-                pygame.draw.circle(world, color, center_coord, 2)
+                pygame.draw.circle(world, COLORS.get('GREEN'), center_coord, 2)
 
         # Draw level unreachable state coords
         if draw_unreachable:
             for coord in unreachable_state_coords:
-                color = COLORS.get('RED')
                 center_coord = camera.apply_to_coord(coord)
-                pygame.draw.circle(world, color, center_coord, 2)
+                pygame.draw.circle(world, COLORS.get('RED'), center_coord, 2)
+
+        # Draw reachable states that do not have associated links
+        if draw_unlinked_reachable:
+            for coord in unlinked_coords:
+                center_coord = camera.apply_to_coord(coord)
+                pygame.draw.circle(world, COLORS.get('WHITE'), center_coord, 2)
 
         # Draw text labels
         label_rect_pairs = []
@@ -451,8 +490,10 @@ if __name__ == "__main__":
     parser.add_argument('--draw_training_labels', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_links', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_unique_links', const=True, nargs='?', type=bool, default=False)
+    parser.add_argument('--draw_unlinked_reachable', const=True, nargs='?', type=bool, default=False)
     args = parser.parse_args()
 
     main(args.game, args.level, args.player_img, args.use_graph, args.draw_all_labels, args.draw_dup_labels,
          args.draw_path, args.show_score, args.draw_enum_reachable,
-         args.draw_reachable, args.draw_unreachable, args.draw_training_labels, args.draw_links, args.draw_unique_links)
+         args.draw_reachable, args.draw_unreachable, args.draw_training_labels, args.draw_links, args.draw_unique_links,
+         args.draw_unlinked_reachable)
