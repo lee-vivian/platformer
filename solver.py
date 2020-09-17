@@ -42,6 +42,7 @@ class Solver:
         self.tmp_prolog_statements = ""
         self.init_tmp_prolog_statements()  # create tmp prolog statements
         self.answer_set_count = 0
+        self.run_idx = 0
         self.asp_valid_levels_count = 0
         self.state_graph_valid_levels_count = 0
         self.stopwatch = Stopwatch()
@@ -61,11 +62,10 @@ class Solver:
         answer_set_filename = "_".join([prolog_filename, self.config_filename, "r%d", "a%d" % self.answer_set_count])
         answer_set_filepath = get_filepath(generated_level_model_str_dir, "%s.txt" % answer_set_filename)
 
-        run_idx = 0
-        while os.path.exists(answer_set_filepath % run_idx):
-            run_idx += 1
+        while os.path.exists(answer_set_filepath % self.run_idx):
+            self.run_idx += 1
 
-        return answer_set_filename % run_idx
+        return answer_set_filename % self.run_idx
 
     def init_tmp_prolog_statements(self):
         tmp_prolog_statements = ""
@@ -181,8 +181,10 @@ class Solver:
         # ----- SETTING TARGET NUM_TILES PER TYPE -----
         if len(self.num_tiles) > 0:
 
-            tmp_prolog_statements += "total_penalty(T) :- T = #sum { P : penalty(P) }.\n"
-            tmp_prolog_statements += "#minimize { T, T : total_penalty(T) }.\n"
+            # tmp_prolog_statements += "total_penalty(T) :- T = #sum { P : penalty(P) }.\n"
+            # tmp_prolog_statements += "#minimize { T, T : total_penalty(T) }.\n"
+
+            priority = len(self.num_tiles)
 
             for tile_type, target_count in self.num_tiles.items():
 
@@ -190,15 +192,20 @@ class Solver:
 
                 if tile_type == 'hazard':
                     tmp_prolog_statements += "hazard_count(C) :- C = #count { X,Y : assignment(X,Y,MT), MT==(%s) }.\n" % hazard_tile_id
-                    tmp_prolog_statements += "penalty(P) :- P = #max { 0; |%d-C|-%d : hazard_count(C) }.\n" % (target_count, target_leeway)
+                    tmp_prolog_statements += "hazard_penalty(P) :- P = #max { 0; |%d-C|-%d : hazard_count(C) }.\n" % (target_count, target_leeway)
+                    tmp_prolog_statements += "#minimize { P@%d, P : hazard_penalty(P) }.\n" % priority
 
                 if tile_type == 'block':
                     tmp_prolog_statements += "block_count(C) :- C = #count { X,Y : assignment(X,Y,MT), MT==(%s) }.\n" % block_tile_id
-                    tmp_prolog_statements += "penalty(P) :- P = #max { 0; |%d-C|-%d : block_count(C) }.\n" % (target_count, target_leeway)
+                    tmp_prolog_statements += "block_penalty(P) :- P = #max { 0; |%d-C|-%d : block_count(C) }.\n" % (target_count, target_leeway)
+                    tmp_prolog_statements += "#minimize { P@%d, P : block_penalty(P) }.\n" % priority
 
                 if tile_type == 'bonus':
                     tmp_prolog_statements += "bonus_count(C) :- C = #count { X,Y : assignment(X,Y,MT), MT==(%s) }.\n" % bonus_tile_id
-                    tmp_prolog_statements += "penalty(P) :- P = #max { 0; |%d-C|-%d : bonus_count(C) }.\n" % (target_count, target_leeway)
+                    tmp_prolog_statements += "bonus_penalty(P) :- P = #max { 0; |%d-C|-%d : bonus_count(C) }.\n" % (target_count, target_leeway)
+                    tmp_prolog_statements += "#minimize { P@%d, P : bonus_penalty(P) }.\n" % priority
+
+                priority -= 1
 
         # ----- ENFORCE NUM_TILE_RANGES -----
         for tile_type, tile_range in self.num_tile_ranges.items():
@@ -300,7 +307,7 @@ class Solver:
         print("SEEDS: %s" % str(seeds))
 
         for seed in seeds:
-            prg.configuration.solve.models = 1  # get one solution per seed
+            prg.configuration.solve.models = 0  # get one solution per seed
             prg.configuration.solver.seed = seed  # seed to use for solving
             prg.configuration.solver.rand_freq = 0.3  # frequency of solver making random decisions
 
@@ -601,3 +608,4 @@ class Solver:
             print('State graph validated levels: %d' % self.state_graph_valid_levels_count)
 
         return True
+
