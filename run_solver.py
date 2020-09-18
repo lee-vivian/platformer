@@ -78,15 +78,14 @@ def get_solver_config(config, prolog_file_info):
             check_tile_type_exists_in_prolog(tile_type, prolog_file_info, 'cannot force tile type (%s: %s)' % (tile_type, coord_strs))
             forced_tiles[tile_type] = eval(coord_strs)
 
-    # ----- SOFT CONSTRAINTS -----
-    soft_constraints = {
-        "num_tile_ranges": False,
-        "perc_tile_ranges": False,
-        "perc_level_ranges": False
-    }
-    if config.get('soft_constraints') is not None:
-        for constraint_key, constraint_value in config.get('soft_constraints').items():
-            soft_constraints[constraint_key] = eval(constraint_value)
+    # ----- SPECIFY TARGET NUM TILES (for a certain type) -----
+    num_tiles = {}
+    if config.get('num_tiles') is not None:
+        for tile_type, target_str in config['num_tiles'].items():
+            target = eval(target_str)
+            if target is not None:
+                check_tile_type_exists_in_prolog(tile_type, prolog_file_info, 'cannot specify target count %d' % target)
+                num_tiles[tile_type] = target
 
     # ----- SPECIFY NUM TILE RANGES (for a certain type) -----
     num_tile_ranges = {}
@@ -108,9 +107,6 @@ def get_solver_config(config, prolog_file_info):
     # ----- SPECIFY PERCENT TILE RANGES (for a certain type) -----
     perc_tile_ranges = {}
     lo, hi = 0, 100
-    for tile_type in METATILE_TYPES:
-        perc_tile_ranges[tile_type] = (lo, hi)
-
     if config.get('perc_tile_ranges') is not None:
         for tile_type, range_str in config['perc_tile_ranges'].items():
             check_tile_type_exists_in_prolog(tile_type, prolog_file_info, 'cannot force perc tile range %s' % range_str)
@@ -193,8 +189,8 @@ def get_solver_config(config, prolog_file_info):
     return {
         'level_w': level_w,                                     # int
         'level_h': level_h,                                     # int
-        'forced_tiles': forced_tiles,                           # {type: list-of-tile-coords}\
-        'soft_constraints': soft_constraints,                   # {constraint_type: constraint_value}
+        'forced_tiles': forced_tiles,                           # { type: list-of-tile-coords}
+        'num_tiles': num_tiles,                                 # { type: target }
         'num_tile_ranges': num_tile_ranges,                     # { type: (min, max) }
         'perc_tile_ranges': perc_tile_ranges,                   # { type: (min, max) }
         'perc_level_ranges': perc_level_ranges,                 # { level: (min, max) }
