@@ -1,0 +1,17 @@
+Rules,Config,Bonus Tiles,Hazard Tiles
+new,max bon-max haz,6,0
+new,max haz-max bon,0,20
+new,min bon-min haz,0,0
+new,min haz-min bon,0,0
+new,max bon-min haz,6,0
+new,min haz-max bon,6,0
+new,min bon-max haz,0,19
+new,max haz-min bon,3,8
+old,max bon-max haz,3,7
+old,max haz-max bon,0,16
+old,min bon-min haz,0,0
+old,min haz-min bon,0,0
+old,max bon-min haz,3,5
+old,min haz-max bon,0,0
+old,min bon-max haz,0,16
+old,max haz-min bon,0,16
