@@ -23,7 +23,9 @@ COLORS = {
     'DARK_GRAY': (23, 23, 23),
     'GREEN': (48, 179, 55),
     'BLUE': (60, 145, 230),
-    'RED': (237, 33, 14)
+    'RED': (237, 33, 14),
+    'WHITE': (255, 255, 255),
+    'SLATE_GRAY': (47,79,79)
 }
 
 # game specifics
@@ -88,7 +90,7 @@ def get_sprites(coords, img):
     return sprites
 
 
-def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score):
+def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score, draw_states, draw_links):
 
     # Create the Level
     level_obj = Level.generate_level_from_file(game, level)
@@ -107,6 +109,9 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
     else:
         print("***** USING MANUAL CONTROLS *****")
         state_graph = None
+
+    if (draw_states or draw_links) and not os.path.exists(state_graph_file):
+        error_exit("Enumerated state graph not found. Run 'pypy3 main.py platformer %s %s --process'" % (game, level))
 
     edge_actions_dict = None if state_graph is None else nx.get_edge_attributes(state_graph, 'action')
 
@@ -142,6 +147,27 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
     if draw_all_labels or draw_dup_labels:
         metatile_labels, font_color, label_padding = \
             setup_metatile_labels(game, level, player_img, draw_all_labels, draw_dup_labels)
+
+    # Setup drawing training level states
+    if draw_states:
+        enumerated_state_graph = nx.read_gpickle(state_graph_file)
+        states_to_draw = {'is_start': [], 'goal_reached': [], 'other': []}
+        for state in enumerated_state_graph.nodes:
+            state = eval(state)
+            if state['is_start']:
+                states_to_draw['is_start'].append((state['x'], state['y']))
+            elif state['goal_reached']:
+                states_to_draw['goal_reached'].append((state['x'], state['y']))
+            else:
+                states_to_draw['other'].append((state['x'], state['y']))
+
+    # Setup drawing training level links (transition edges)
+    if draw_links:
+        enumerated_state_graph = nx.read_gpickle(state_graph_file)
+        links_to_draw = []  # (x1, y1, x2, y2)
+        for edge in enumerated_state_graph.edges:
+            src, dest = eval(edge[0]), eval(edge[1])
+            links_to_draw.append((src['x'], src['y'], dest['x'], dest['y']))
 
     # Setup drawing solution path
     if draw_path:
@@ -254,6 +280,27 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
                 label_x, label_y = camera.apply_to_coord((label_x, label_y))
                 world.blit(surface, (label_x + label_padding[0], label_y + label_padding[1]))
 
+        # Draw level states
+        if draw_states:
+            for coord in states_to_draw.get('other'):
+                center_coord = camera.apply_to_coord(coord)
+                pygame.draw.circle(world, COLORS.get('YELLOW'), center_coord, 2)
+
+            for coord in states_to_draw.get('is_start'):
+                center_coord = camera.apply_to_coord(coord)
+                pygame.draw.circle(world, COLORS.get('BLUE'), center_coord, 3)
+
+            for coord in states_to_draw.get('goal_reached'):
+                center_coord = camera.apply_to_coord(coord)
+                pygame.draw.circle(world, COLORS.get('GREEN'), center_coord, 3)
+
+        # Draw level links (transition edges)
+        if draw_links:
+            color = COLORS.get('SLATE_GRAY')
+            for x1, y1, x2, y2 in links_to_draw:
+                new_x1, new_y1, new_x2, new_y2 = camera.apply_to_line(x1, y1, x2, y2)
+                pygame.draw.line(world, color, (new_x1, new_y1), (new_x2, new_y2))
+
         # Draw level solution path
         if draw_path:
             for coord in path_coords:
@@ -308,7 +355,9 @@ if __name__ == "__main__":
     parser.add_argument('--draw_dup_labels', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_path', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--show_score', const=True, nargs='?', type=bool, default=False)
+    parser.add_argument('--draw_states', const=True, nargs='?', type=bool, default=False)
+    parser.add_argument('--draw_links', const=True,nargs='?',type=bool,default=False)
     args = parser.parse_args()
 
     main(args.game, args.level, args.player_img, args.use_graph, args.draw_all_labels, args.draw_dup_labels,
-         args.draw_path, args.show_score)
+         args.draw_path, args.show_score, args.draw_states, args.draw_links)

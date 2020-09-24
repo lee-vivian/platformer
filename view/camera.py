@@ -17,6 +17,10 @@ class Camera:
     def apply_to_rect(self, rect):
         return pygame.Rect(rect.x + self.state.topleft[0], rect.y + self.state.topleft[1], rect.width, rect.height)
 
+    def apply_to_line(self, x1, y1, x2, y2):
+        return (x1 + self.state.topleft[0], y1 + self.state.topleft[1],
+                x2 + self.state.topleft[0], y2 + self.state.topleft[1])
+
     def apply_to_coord(self, coord):
         return (coord[0] + self.state.topleft[0], coord[1] + self.state.topleft[1])
 
