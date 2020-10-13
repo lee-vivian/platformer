@@ -109,7 +109,7 @@ def get_sprites(coords, img):
 
 def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score,
          draw_enum_reachable, draw_reachable, draw_unreachable, draw_training_labels, draw_links, draw_unique_links,
-         draw_unlinked_reachable):
+         draw_unlinked_reachable, screenshot):
 
     # Create the Level
     level_obj = Level.generate_level_from_file(game, level)
@@ -134,8 +134,8 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
     # Background
     FPS = 40  # frame rate
     ANI = 4  # animation cycles
-    WORLD_X = min(level_obj.width, MAX_WIDTH)
-    WORLD_Y = min(level_obj.height, MAX_HEIGHT)
+    WORLD_X = min(level_obj.width, MAX_WIDTH) if not screenshot else level_obj.width
+    WORLD_Y = min(level_obj.height, MAX_HEIGHT) if not screenshot else level_obj.height
     clock = pygame.time.Clock()
     pygame.init()
     world = pygame.display.set_mode([WORLD_X, WORLD_Y])
@@ -470,6 +470,10 @@ def main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, d
         for label, label_rect in label_rect_pairs:
             world.blit(label, label_rect)
 
+        if screenshot:
+            pygame.image.save(world, "%s.png" % level)
+            return
+
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -491,9 +495,10 @@ if __name__ == "__main__":
     parser.add_argument('--draw_links', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_unique_links', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_unlinked_reachable', const=True, nargs='?', type=bool, default=False)
+    parser.add_argument('--screenshot', const=True, nargs='?', type=bool, default=False)
     args = parser.parse_args()
 
     main(args.game, args.level, args.player_img, args.use_graph, args.draw_all_labels, args.draw_dup_labels,
          args.draw_path, args.show_score, args.draw_enum_reachable,
          args.draw_reachable, args.draw_unreachable, args.draw_training_labels, args.draw_links, args.draw_unique_links,
-         args.draw_unlinked_reachable)
+         args.draw_unlinked_reachable, args.screenshot)

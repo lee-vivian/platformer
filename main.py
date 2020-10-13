@@ -29,7 +29,8 @@ def save_process_runtimes(process_key, process_runtimes):
 
 
 def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score,
-         draw_enum_reachable, draw_reachable, draw_unreachable, draw_training_labels, draw_links, draw_unique_links, draw_unlinked_reachable,
+         draw_enum_reachable, draw_reachable, draw_unreachable, draw_training_labels, draw_links, draw_unique_links,
+         draw_unlinked_reachable, screenshot,
          process, gen_prolog, dimensions, structure, summary, runtime, prolog):
 
     # Set environment variable
@@ -148,7 +149,7 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
         import platformer
         platformer.main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score,
                         draw_enum_reachable, draw_reachable, draw_unreachable, draw_training_labels, draw_links, draw_unique_links,
-                        draw_unlinked_reachable)
+                        draw_unlinked_reachable, screenshot)
 
 
 if __name__ == "__main__":
@@ -169,6 +170,7 @@ if __name__ == "__main__":
     parser.add_argument('--draw_links', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_unique_links', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--draw_unlinked_reachable', const=True, nargs='?', type=bool, default=False)
+    parser.add_argument('--screenshot', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--process', const=True, nargs='?', type=bool, help="Run process scripts", default=False)
     parser.add_argument('--gen_prolog', const=True, nargs='?', type=bool, help="Generate prolog rules", default=False)
     parser.add_argument('--dimensions', const=True, nargs='?', type=bool, help="Get level dimensions in tiles (width, height)", default=False)
@@ -180,5 +182,6 @@ if __name__ == "__main__":
 
     main(args.environment, args.game, args.level, args.player_img,
          args.use_graph, args.draw_all_labels, args.draw_dup_labels, args.draw_path, args.show_score,
-         args.draw_enum_reachable, args.draw_reachable, args.draw_unreachable, args.draw_training_labels, args.draw_links, args.draw_unique_links, args.draw_unlinked_reachable,
+         args.draw_enum_reachable, args.draw_reachable, args.draw_unreachable, args.draw_training_labels, args.draw_links,
+         args.draw_unique_links, args.draw_unlinked_reachable, args.screenshot,
          args.process, args.gen_prolog, args.dimensions, args.structure, args.summary, args.runtime, args.prolog)
