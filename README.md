@@ -2,6 +2,8 @@
 
 Help this hungry turtle cross the city and collect pizza with his awesome ninja jumping skills. Cowabunga! 
 
+Generate new levels from existing examples to extend the adventure.
+
 Hot keys:
 - **Arrow Keys** or **WASD** to move the turtle
 - **q** to quit game
