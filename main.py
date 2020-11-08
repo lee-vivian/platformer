@@ -31,7 +31,7 @@ def save_process_runtimes(process_key, process_runtimes):
 def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score,
          draw_enum_reachable, draw_reachable, draw_unreachable, draw_training_labels, draw_links, draw_unique_links,
          draw_unlinked_reachable, screenshot,
-         process, gen_prolog, dimensions, structure, summary, runtime, prolog):
+         process, solve_config, solve_max, solve_threads, solve_save, dimensions, structure, summary, runtime):
 
     # Set environment variable
     if environment not in ENVIRONMENTS:
@@ -70,24 +70,24 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
 
         utils.error_exit("Run 'pypy3 main.py <environment> %s %s --process'" % (game, level))
 
-    if prolog:
-        import json
-
-        all_prolog_info_file = utils.get_filepath("level_saved_files_block/prolog_files", "all_prolog_info.pickle")
-        if not os.path.exists(all_prolog_info_file):
-            utils.error_exit("%s file not found" % all_prolog_info_file)
-        all_prolog_info = utils.read_pickle(all_prolog_info_file)
-
-        prolog_exists = all_prolog_info.get(level)
-        if prolog_exists:
-            print("----- Prolog Info -----")
-            print("Game: %s" % game)
-            print("Level: %s" % level)
-            for key, item in prolog_exists.items():
-                print("%s: %s" % (key, str(item)))
-            exit(0)
-
-        utils.error_exit("Run 'python main.py <environment> %s %s --gen_prolog'" % (game, level))
+    # if prolog:
+    #     import json
+    #
+    #     all_prolog_info_file = utils.get_filepath("level_saved_files_block/prolog_files", "all_prolog_info.pickle")
+    #     if not os.path.exists(all_prolog_info_file):
+    #         utils.error_exit("%s file not found" % all_prolog_info_file)
+    #     all_prolog_info = utils.read_pickle(all_prolog_info_file)
+    #
+    #     prolog_exists = all_prolog_info.get(level)
+    #     if prolog_exists:
+    #         print("----- Prolog Info -----")
+    #         print("Game: %s" % game)
+    #         print("Level: %s" % level)
+    #         for key, item in prolog_exists.items():
+    #             print("%s: %s" % (key, str(item)))
+    #         exit(0)
+    #
+    #     utils.error_exit("Run 'python main.py <environment> %s %s --gen_prolog'" % (game, level))
 
     if process:
         print("----- Creating Uniform Txt Layer File -----")
@@ -136,16 +136,16 @@ def main(environment, game, level, player_img, use_graph, draw_all_labels, draw_
 
         save_process_runtimes(process_key="%s/%s" % (game, level), process_runtimes=process_runtimes)
 
-    if gen_prolog:
-        import gen_prolog
+    if solve_config is not None:
+        import solve
         metatile_constraints_file = "level_saved_files_%s/metatile_constraints/%s.pickle" % (player_img, level)
         if not os.path.exists(metatile_constraints_file):
             utils.error_exit("%s file does not exist. Run 'pypy3 main.py %s %s %s --process' first" %
                              (metatile_constraints_file, environment, game, level))
-        prolog_file, runtime = gen_prolog.main(tile_constraints_file=metatile_constraints_file, debug=False, print_pl=False, save=True)
-        save_process_runtimes(process_key="%s/%s" % (game, level), process_runtimes=[('gen_prolog', runtime)])
+        solve.main(tile_constraints_file=metatile_constraints_file, config_file=solve_config,
+                   max_sol=solve_max, threads=solve_threads, print_level=False, save=solve_save, validate=False)
 
-    if not (process or gen_prolog):
+    if not process and solve_config is None:
         import platformer
         platformer.main(game, level, player_img, use_graph, draw_all_labels, draw_dup_labels, draw_path, show_score,
                         draw_enum_reachable, draw_reachable, draw_unreachable, draw_training_labels, draw_links, draw_unique_links,
@@ -172,16 +172,19 @@ if __name__ == "__main__":
     parser.add_argument('--draw_unlinked_reachable', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--screenshot', const=True, nargs='?', type=bool, default=False)
     parser.add_argument('--process', const=True, nargs='?', type=bool, help="Run process scripts", default=False)
-    parser.add_argument('--gen_prolog', const=True, nargs='?', type=bool, help="Generate prolog rules", default=False)
+    parser.add_argument('--solve_config', type=str, help='Filepath of config .json file to use', default=None)
+    parser.add_argument('--solve_max', type=int, help='Maximum number of solutions to return', default=1)
+    parser.add_argument('--solve_threads', type=int, help='Number of threads to use for clingo solver', default=1)
+    parser.add_argument('--solve_save', const=True, nargs='?', type=bool, help='Save solver generated levels to disk', default=False)
     parser.add_argument('--dimensions', const=True, nargs='?', type=bool, help="Get level dimensions in tiles (width, height)", default=False)
     parser.add_argument('--structure', const=True, nargs='?', type=bool, help="Print level txt structural layer", default=False)
     parser.add_argument('--summary', const=True, nargs='?', type=bool, help="Print level tile summmary stats", default=False)
     parser.add_argument('--runtime', const=True, nargs='?', type=bool, help="Print process script runtimes", default=False)
-    parser.add_argument('--prolog', const=True, nargs='?', type=bool, help="Print prolog dictionary info for level", default=False)
     args = parser.parse_args()
 
     main(args.environment, args.game, args.level, args.player_img,
          args.use_graph, args.draw_all_labels, args.draw_dup_labels, args.draw_path, args.show_score,
          args.draw_enum_reachable, args.draw_reachable, args.draw_unreachable, args.draw_training_labels, args.draw_links,
          args.draw_unique_links, args.draw_unlinked_reachable, args.screenshot,
-         args.process, args.gen_prolog, args.dimensions, args.structure, args.summary, args.runtime, args.prolog)
+         args.process, args.solve_config, args.solve_max, args.solve_threads, args.solve_save,
+         args.dimensions, args.structure, args.summary, args.runtime)
