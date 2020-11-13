@@ -9,12 +9,18 @@ import networkx as nx
 import re
 import subprocess
 import sys
+import os
 import argparse
 
-from model.level import TILE_DIM
+from model.level import TILE_DIM, TILE_CHARS
 from model_platformer.state import StatePlatformer as State
 from model.metatile import METATILE_TYPES
 import utils
+
+import pdb
+
+GENERATED_LEVELS_DIR = 'level_structural_layers/generated'
+GENERATED_ASSIGNMENTS_DICTS_DIR = 'level_saved_files_block/generated_model_assignments_dicts'
 
 
 def parse_constraints_filepath(constraints_filename):
@@ -223,12 +229,9 @@ def check_target_type_exists_in_training_level(tile_type, tile_ids_map):
     return True
 
 
-def specific_prolog_statements(config_file, tile_ids_map):
+def specific_prolog_statements(config, tile_ids_map):
 
     prolog_statements = ""
-    config_filename = utils.get_basepath_filename(config_file, 'json')
-    config_file_contents = utils.read_json(config_file)
-    config = config_file_contents['config']
 
     # ----- GET LEVEL DIMENSIONS -----
     level_w, level_h = get_config_dimensions(config)
@@ -419,19 +422,86 @@ def specific_prolog_statements(config_file, tile_ids_map):
     return prolog_statements
 
 
+def create_assignments_dict(model_str):
+    assignments = re.findall(r'assignment\([0-9t,]*\)', model_str)
+    assignments_dict = {}  # {(tile_x, tile_y): tile_id}
+    for assignment in assignments:
+        match = re.match(r'assignment\((\d+),(\d+),(t\d+)\)', assignment)
+
+        tile_x = int(match.group(1))
+        tile_y = int(match.group(2))
+        tile_id = match.group(3)
+        assignments_dict[(tile_x, tile_y)] = tile_id
+    return assignments_dict  # {(tile_x, tile_y): tile_id}
+
+
+def get_tile_char(tile_id, tile_ids_map):
+    for tile_type, tile_ids in tile_ids_map.items():
+        if tile_id in tile_ids:
+            return list(TILE_CHARS[tile_type.split('_tile_ids')[0]].keys())[0]
+    return list(TILE_CHARS['empty'].keys())[0]  # empty
+
+
+def convert_assignments_dict_into_level(assignments_dict, level_w, level_h, tile_ids_map):
+    level_structural_txt = ""
+    for row in range(level_h):
+        for col in range(level_w):
+            tile_xy = (col, row)
+            tile_id = assignments_dict.get(tile_xy)
+            tile_char = get_tile_char(tile_id, tile_ids_map)
+            level_structural_txt += tile_char
+        level_structural_txt += "\n"
+    return level_structural_txt
+
+
 def main(tile_constraints_file, config_file, max_sol, threads, print_level, save, validate):
     level_saved_files_dir, prolog_filename = parse_constraints_filepath(tile_constraints_file)
     prolog_filepath = utils.get_filepath("%s/prolog_files" % level_saved_files_dir, "%s.pl" % prolog_filename)
+
     general_prolog, tile_ids_map = general_prolog_statements(tile_constraints_file)
-    specific_prolog = specific_prolog_statements(config_file, tile_ids_map)
+    config_file_contents = utils.read_json(config_file)
+    config = config_file_contents['config']
+    specific_prolog = specific_prolog_statements(config, tile_ids_map)
     utils.write_file(prolog_filepath, general_prolog + specific_prolog)
 
-    with open('tmp_mario_mini.txt', 'wb') as f:
+    answer_set_prefix = '_'.join([prolog_filename] + '_'.join(config_file.split('/')[1:]).split('.json')[:1])
+    level_w, level_h = get_config_dimensions(config)
+
+    with open("%s/%s.txt" % (GENERATED_MODEL_STRS_DIR, answer_set_prefix), 'wb') as f:
         clingo_cmd = "clingo %s --models %d --sign-def rnd --time-limit 1800" % (prolog_filepath, max_sol)
         process = subprocess.Popen(clingo_cmd.split(' '), stdout=subprocess.PIPE)
-        for c in iter(lambda: process.stdout.read(1), b''):  # replace '' with b'' for Python 3
-            sys.stdout.write(c.decode('utf-8'))
-            f.write(c)
+
+        generated_sol_idx = 0
+        # while os.path.exists("%s/%s_a%d.txt" % (GENERATED_LEVELS_DIR, answer_set_prefix, generated_sol_idx)):
+        #     generated_sol_idx += 1
+
+        model_str = None
+
+        for line in iter(lambda: process.stdout.readline(), b''):
+            decoded_line = line.decode('utf-8')
+            sys.stdout.write(decoded_line)
+            f.write(line)
+
+            if b'Answer:' in line and model_str is None:
+                model_str = ""  # start new model_str
+
+            elif (b'Answer:' in line or b'Models' in line) and model_str is not None and save:
+                assignments_dict = create_assignments_dict(model_str)  # parse previous model_str and start new one
+                generated_level_txt = convert_assignments_dict_into_level(assignments_dict, level_w, level_h, tile_ids_map)
+
+                level_txt_outfile = utils.get_filepath(GENERATED_LEVELS_DIR, "%s_a%d.txt" % (
+                    answer_set_prefix, generated_sol_idx))
+                utils.write_file(level_txt_outfile, generated_level_txt)
+
+                assignments_dict_outfile = utils.get_filepath(GENERATED_ASSIGNMENTS_DICTS_DIR, "%s_a%d.txt" % (
+                    answer_set_prefix, generated_sol_idx))
+                utils.write_file(assignments_dict_outfile, str(assignments_dict))
+
+                model_str = ""
+                generated_sol_idx += 1
+
+            elif model_str is not None:
+                model_str += decoded_line + "\n"
 
     return True
 
